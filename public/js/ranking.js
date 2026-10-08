@@ -119,7 +119,7 @@ var Ranking = (function () {
       return '<tr class="' + (isMe ? 'rank-me' : '') + '">' +
         '<td class="rank-pos">' + r.rank + '</td>' +
         '<td class="rank-user">' + avatar + '<span>' + escHtml(r.displayName) + (isMe ? ' <em>(vos)</em>' : '') + '</span></td>' +
-        '<td>' + r.lessonsCompleted + '/34</td>' +
+        '<td>' + r.lessonsCompleted + '/' + (typeof LESSONS !== 'undefined' ? LESSONS.length : 35) + '</td>' +
         '<td>' + r.quizPoints + '</td>' +
         '<td>' + cert + '</td>' +
         '<td class="rank-total"><strong>' + r.totalScore + '</strong></td>' +

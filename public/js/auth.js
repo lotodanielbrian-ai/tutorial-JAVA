@@ -124,7 +124,7 @@ var AuthUI = (function () {
     var fill = document.getElementById('prog-fill');
     if (fill) fill.style.width = '0%';
     var lbl = document.getElementById('prog-lbl');
-    if (lbl) lbl.textContent = '0 de 34 completados';
+    if (lbl) lbl.textContent = '0 de ' + (typeof LESSONS !== 'undefined' ? LESSONS.length : 35) + ' completados';
     var certBtn = document.getElementById('cert-btn');
     if (certBtn) certBtn.style.display = 'none';
   }
@@ -186,7 +186,7 @@ var AuthUI = (function () {
       } else if (typeof applyProgressFromRemote === 'function') {
         applyProgressFromRemote(state.completedLessons, state.scores);
       }
-      var cert = state.completedLessons.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 34);
+      var cert = state.completedLessons.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 35);
       return Progress.syncProgress(state.completedLessons, typeof cur !== 'undefined' ? cur : 0, cert).then(function () {
         return Ranking.update(state.completedLessons, state.scores, cert);
       });

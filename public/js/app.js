@@ -69,11 +69,11 @@ function filterLessons(query) {
 
 // ── Sidebar ────────────────────────────────────────────────────────────
 function buildSidebar() {
-  const groups = { super: [], basico: [], inter: [], avanzado: [], examen: [] };
+  const groups = { super: [], basico: [], inter: [], avanzado: [], examen: [], entrevista: [] };
   LESSONS.forEach(l => {
     if (groups[l.level]) groups[l.level].push(l);
   });
-  const labels = { super: '🌱 Super Básico', basico: '📘 Básico', inter: '🚀 Intermedio', avanzado: '🔧 Avanzado', examen: '🎓 Exámenes Finales' };
+  const labels = { super: '🌱 Super Básico', basico: '📘 Básico', inter: '🚀 Intermedio', avanzado: '🔧 Avanzado', examen: '🎓 Exámenes Finales', entrevista: '💼 Entrevista junior' };
   let html = '';
   for (const [key, lessons] of Object.entries(groups)) {
     html += `<div class="lv-group"><div class="lv-label">${labels[key]}</div>`;
@@ -100,7 +100,7 @@ function buildSidebar() {
 // ── Main render ────────────────────────────────────────────────────────
 function render() {
   const l = LESSONS[cur];
-  const badgeClass = { super:'badge-super', basico:'badge-basico', inter:'badge-inter', avanzado:'badge-avanzado', examen:'badge-examen' }[l.level];
+  const badgeClass = { super:'badge-super', basico:'badge-basico', inter:'badge-inter', avanzado:'badge-avanzado', examen:'badge-examen', entrevista:'badge-entrevista' }[l.level];
   const exBtnLabel = l.quiz ? '📝 Cuestionario' : '💻 Ejercicio';
   const exPaneHtml = l.quiz ? buildQuiz(l) : buildExercise(l);
   document.getElementById('main').innerHTML = `
@@ -666,6 +666,8 @@ function runCode() {
       const expected = ex.expected.replace(/\\n/g,'\n').trimEnd();
       
       const res = localValidate(LESSONS[cur].id, code);
+      const style = (typeof styleNotes === 'function') ? styleNotes(code) : '';
+      const styleBox = style ? `<div class="out-box box-expected"><div class="out-head">Buenas prácticas</div><div class="out-body style-note">${style}</div></div>` : '';
 
       if (res.syntax) {
         highlightErrorLine(res.line);
@@ -677,18 +679,62 @@ function runCode() {
                 <div class="compile-src">${esc(res.lineText || '')}</div>
                 <div class="compile-javac">Línea ${res.line}: ${esc(res.javac || '')}</div>
                 <div class="compile-why">${esc(res.why || '')}</div>
+                ${res.suggest ? `<div class="compile-suggest">${esc(res.suggest)}</div>` : ''}
               </div>
             </div>
             <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
-          </div>`;
+          </div>` + styleBox;
         showHint();
+      } else if (res.simulated) {
+        var got = String(res.output || '').replace(/\s+$/, '');
+        if (got === expected.replace(/\s+$/, '')) {
+          clearErrorLine();
+          done.add(LESSONS[cur].id);
+          saveDone();
+          if (typeof Progress !== 'undefined' && Progress.saveAttempt) {
+            Progress.saveAttempt({
+              lessonId: LESSONS[cur].id,
+              type: 'exercise',
+              passed: true,
+              quizCorrect: 0,
+              quizTotal: 0,
+              scorePercent: 100
+            });
+          }
+          if (typeof Ranking !== 'undefined' && Ranking.update) {
+            Ranking.update([...done], quizBestScores, done.size === LESSONS.length);
+          }
+          launchConfetti();
+          outArea.innerHTML = `
+            <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(got)}</div></div>` + styleBox;
+          buildSidebar();
+          if (done.size === LESSONS.length && typeof Progress !== 'undefined' && !Progress.wasCertShown()) {
+            Progress.markCertShown();
+            setTimeout(function() { document.getElementById('grad-overlay').classList.add('show'); }, 600);
+          }
+          if (typeof Progress !== 'undefined' && Progress.setCompletionDateIso) {
+            Progress.setCompletionDateIso(new Date().toISOString());
+          }
+        } else {
+          if (res.blameLine) highlightErrorLine(res.blameLine);
+          else clearErrorLine();
+          outArea.innerHTML = `
+            <div class="cmp-grid">
+              <div class="out-box box-err">
+                <div class="out-head">Incorrecto</div>
+                <div class="out-body">${esc(got ? got : '(no imprimió nada)')}${res.suggest ? `<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div><div class="compile-suggest">${esc(res.suggest)}</div>` : '<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div>'}</div>
+              </div>
+              <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
+            </div>` + styleBox;
+          showHint();
+        }
       } else if (res.err) {
         clearErrorLine();
         outArea.innerHTML = `
           <div class="cmp-grid">
             <div class="out-box box-err"><div class="out-head">Incorrecto</div><div class="out-body">${esc(res.err)}</div></div>
             <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
-          </div>`;
+          </div>` + styleBox;
         showHint();
       } else if (res.ok) {
         clearErrorLine();
@@ -709,7 +755,7 @@ function runCode() {
         }
         launchConfetti();
         outArea.innerHTML = `
-          <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(expected)}</div></div>`;
+          <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(expected)}</div></div>` + styleBox;
         buildSidebar();
         if (done.size === LESSONS.length && typeof Progress !== 'undefined' && !Progress.wasCertShown()) {
           Progress.markCertShown();

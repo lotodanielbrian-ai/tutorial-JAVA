@@ -3374,5 +3374,50 @@ public class Main {
       'No hay output esperado fijo. Mientras tengas las clases, el menú y los comandos Git, ¡está aprobado!'
     ]
   }
+},
+{
+  id:35, level:'entrevista', levelLabel:'Entrevista junior', stars:'💼',
+  title:'Preguntas de entrevista',
+  desc:'Diez preguntas de opción múltiple como las que hacen en una entrevista laboral para un puesto junior de Java.',
+  simple: () => `
+<div class="analogy-card"><span class="emoji-big">💼</span><h4>Un paso más: la entrevista</h4>
+<p>En un laburo junior no te piden que recites el manual. Te preguntan si entendés lo que escribís: cómo se compara un texto, qué hace <code>main</code>, qué colección usar, y qué pasa si dividís enteros.</p>
+<p>Este paso es un cuestionario. Hay <strong>una sola respuesta correcta</strong> por pregunta. Si te equivocás, el resultado te muestra cuál era y podés reintentar.</p>
+</div>
+<div class="analogy-card"><h4>Cómo se responde en una entrevista</h4>
+<p>No adivines en silencio. Decí la respuesta y el porqué en una frase. Por ejemplo: «Uso <code>equals</code>, porque <code>==</code> compara si son el mismo objeto, no si el texto es igual».</p>
+</div>
+`,
+  tutorial: () => `
+<div class="ts">
+<h3>Lo que suelen preguntar</h3>
+<ul>
+<li><strong>String:</strong> es una clase, inmutable. Para comparar el texto se usa <code>equals</code>, no <code>==</code>.</li>
+<li><strong>main:</strong> la firma que busca la JVM es <code>public static void main(String[] args)</code>.</li>
+<li><strong>ArrayList:</strong> crece con <code>add</code> y permite repetidos. Un array tiene tamaño fijo.</li>
+<li><strong>Overload:</strong> mismo nombre, distintos parámetros, en la misma clase. Override es redefinir un método de la clase padre.</li>
+<li><strong>Excepciones:</strong> <code>IOException</code> es checked: hay que atraparla o declararla. <code>NullPointerException</code> es unchecked.</li>
+<li><strong>private:</strong> el atributo solo se usa dentro de su clase. Afuera se entra por getters y setters.</li>
+<li><strong>División entera:</strong> <code>5 / 2</code> da <code>2</code>, no <code>2.5</code>.</li>
+<li><strong>Constructor:</strong> se llama con <code>new</code> para dejar el objeto listo.</li>
+</ul>
+</div>
+${ann('tip','💡','Si no sabés una, descartá primero la que es claramente falsa. En la entrevista también vale decir «no estoy seguro, pero creo que…» y explicar el razonamiento.')}
+`,
+  quiz: {
+    passing: 7,
+    questions: [
+      { question: '¿Qué imprime System.out.println("Hola" == new String("Hola"));?', options: ['true', 'false', 'null', 'No compila'], correct: 1 },
+      { question: '¿Cómo se compara el texto de dos String?', options: ['Con ==', 'Con equals', 'Con compare', 'Con is'], correct: 1 },
+      { question: '¿Cuál es la firma correcta del punto de entrada?', options: ['public void main(String args)', 'public static void main(String[] args)', 'static main()', 'public static int main()'], correct: 1 },
+      { question: '¿Qué es String en Java?', options: ['Un tipo primitivo', 'Una clase inmutable', 'Un array de int', 'Un método de System'], correct: 1 },
+      { question: '¿Qué estructura permite repetidos y crece con add?', options: ['Un array de tamaño fijo', 'HashSet', 'ArrayList', 'Un método void'], correct: 2 },
+      { question: '¿Qué es la sobrecarga (overload)?', options: ['El mismo nombre con distintos parámetros, en la misma clase', 'Redefinir un método del padre', 'Borrar un método', 'Heredar de dos clases a la vez'], correct: 0 },
+      { question: '¿Cuál de estas excepciones es checked y obliga a try-catch o throws?', options: ['NullPointerException', 'ArithmeticException', 'IOException', 'ArrayIndexOutOfBoundsException'], correct: 2 },
+      { question: '¿Quién puede leer un atributo private?', options: ['Cualquier clase', 'Solo las clases hijas', 'Solo la misma clase', 'Solo el método main'], correct: 2 },
+      { question: '¿Qué imprime int x = 5; System.out.println(x / 2);?', options: ['2.5', '2', '3', 'Un error de compilación'], correct: 1 },
+      { question: '¿Para qué sirve el constructor?', options: ['Para destruir el objeto', 'Para inicializar el objeto cuando se hace new', 'Para importar paquetes', 'Para comparar dos String'], correct: 1 }
+    ]
+  }
 }
 ];

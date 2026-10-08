@@ -139,7 +139,7 @@ var Progress = (function () {
       completionDate: local.completionDate || null,
       certShown: local.certShown || null,
       certificateEarned: !!(remote && remote.certificateEarned) ||
-        mergedDone.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 34)
+        mergedDone.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 35)
     };
   }
 
