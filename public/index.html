@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Java INPRO — De Cero a Programador · Tutorial Interactivo</title>
+<meta name="description" content="34 lecciones interactivas para aprender programación en Java desde cero. Ejercicios, quizzes, ranking y certificado descargable.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/main.css">
+</head>
+<body class="auth-pending">
+<div id="login-gate" class="login-gate">
+  <div class="login-gate-card">
+    <div class="login-gate-logo">
+      <div class="java-cup" aria-hidden="true">☕</div>
+      <div>
+        <h1>Java INPRO</h1>
+        <p class="login-gate-sub">De Cero a Programador · 34 lecciones</p>
+      </div>
+    </div>
+    <p class="login-gate-text">Iniciá sesión para acceder al tutorial, guardar tu progreso y aparecer en el ranking.</p>
+    <button type="button" class="btn-social btn-google" onclick="AuthUI.signInGoogle()">
+      <span class="social-icon">G</span> Continuar con Google
+    </button>
+    <button type="button" class="btn-social btn-facebook" onclick="AuthUI.signInFacebook()">
+      <span class="social-icon">f</span> Continuar con Facebook
+    </button>
+    <div class="login-gate-loading" id="login-gate-loading" hidden>
+      <span class="login-spinner" aria-hidden="true"></span>
+    </div>
+    <p id="login-gate-status" class="login-gate-status" aria-live="polite"></p>
+  </div>
+</div>
+<button class="mobile-hamburger" onclick="toggleSidebar()" aria-label="Menú">☰</button><div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sb-head">
+          <div class="sb-logo">
+        <div class="java-cup" aria-hidden="true">☕</div>
+        <div>
+          <h1 class="sb-title">Tutorial Java</h1>
+          <div class="sb-sub">Java INPRO · 34 lecciones</div>
+        </div>
+      </div>
+        <div class="auth-box" id="auth-box">
+      <div class="auth-user">
+        <div class="user-avatar" id="user-avatar" style="display:flex">👤</div>
+        <div class="user-meta">
+          <div class="user-name" id="user-name">—</div>
+          <div class="user-hint">Progreso en la nube</div>
+        </div>
+      </div>
+      <div class="auth-actions">
+        <button type="button" id="btn-ranking" class="auth-btn" onclick="Ranking.showModal()">🏆 Ranking</button>
+        <button type="button" id="btn-history" class="auth-btn" onclick="Ranking.showHistory()">📋 Historial</button>
+        <button type="button" id="btn-logout" class="auth-btn" onclick="AuthUI.signOut()">Salir</button>
+      </div>
+    </div>
+    </div>
+    <div class="sb-search">
+      <input type="text" id="search-input" placeholder="Buscar lección..." oninput="filterLessons(this.value)">
+    </div>
+    <div id="sb-list" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch"></div>
+    <div class="sb-prog">
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+        <div class="prog-lbl" id="prog-lbl" style="margin-top:0;">0 de 34 completados</div>
+        <button type="button" onclick="resetGlobalProgress()" class="hint-btn" style="padding:4px 8px; font-size:11px; margin:0; background:var(--bg4); color:var(--text3);" title="Borrar todo el progreso">🗑️ Resetear</button>
+        <button type="button" id="cert-btn" onclick="showCertOverlay()" class="hint-btn" style="padding:4px 10px;font-size:11px;margin:0 0 0 6px;background:var(--java-bg);color:var(--java);display:none;" title="Emitir certificado">🎓 Certificado</button>
+        <button type="button" onclick="showManual()" class="hint-btn" style="padding:4px 10px;font-size:11px;margin:0 0 0 6px;background:var(--bg4);color:var(--blue);" title="Manual de Java">📖 Manual</button>
+      </div>
+    </div>
+  </aside>
+  <main class="main" id="main"></main>
+</div>
+
+
+<div class="grad-overlay" id="grad-overlay">
+  <div class="grad-box">
+    <h2>🎉 ¡Felicitaciones! 🎉</h2>
+    <p>¡Felicitaciones! Completaste las 28 lecciones de <b>Java INPRO</b> y aprobaste el examen final.</p>
+    <p>Ingresá tu nombre y apellido para emitir tu certificado de aprobación.</p>
+    <label for="cert-name" style="display:block;text-align:left;font-size:13px;color:var(--text3);margin-bottom:6px;font-weight:600;">Nombre y apellido:</label>
+    <input type="text" id="cert-name" placeholder="Ej. Juan Pérez" autocomplete="off">
+    <button type="button" class="btn-cert" onclick="generateCert()">Emitir Certificado (PDF)</button>
+    <p id="cert-date-preview" style="font-size:13px;color:var(--greentx);margin-top:12px;margin-bottom:0;"></p><p style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:0;">Seleccioná "Guardar como PDF" · Orientación: <b>Horizontal</b> · Papel: <b>A3</b> · Márgenes: <b>Ninguno</b></p>
+  </div>
+</div>
+
+<div id="cert-print">
+  <div class="cert-inner">
+    <div class="cert-corner-tl"></div><div class="cert-corner-tr"></div>
+    <div class="cert-corner-bl"></div><div class="cert-corner-br"></div>
+    <div class="cert-logo">☕</div>
+    <div class="cert-title">CERTIFICADO DE APROBACIÓN</div>
+    <div class="cert-line"></div>
+    <div class="cert-sub">Se otorga el presente certificado a</div>
+    <div class="cert-name" id="cert-name-display">Nombre Apellido</div>
+    <div class="cert-desc">Por haber completado y aprobado todas las evaluaciones del programa <b>"Java INPRO — Introducción a la Programación"</b>, demostrando conocimientos en algoritmia, estructuras de control, paradigmas de programación y Programación Orientada a Objetos.</div>
+    <div class="cert-skills">
+      <span class="cert-skill">Git · Control de Versiones</span>
+      <span class="cert-skill">Java SE</span>
+      <span class="cert-skill">POO · Herencia · Polimorfismo</span>
+      <span class="cert-skill">Estructuras de Control</span>
+      <span class="cert-skill">Arrays &amp; Colecciones</span>
+      <span class="cert-skill">Excepciones · File I/O</span>
+    </div>
+    <div class="cert-footer">
+      <div class="cert-sign">
+        <div class="cert-seal">☕</div>
+        <div class="cert-sig-code">boolean certified = true;</div>
+        <b>JAMES GOSLING</b><br>Creador de Java
+      </div>
+      <div class="cert-sign"><span id="cert-date"></span><br><b>FECHA DE EMISIÓN</b></div>
+    </div>
+  </div>
+</div>
+
+<div class="grad-overlay" id="manual-overlay" style="z-index:10001;">
+  <div class="grad-box" style="max-width:850px;max-height:90vh;overflow-y:auto;text-align:left;padding:30px 40px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;position:sticky;top:0;background:var(--bg2);padding-bottom:10px;border-bottom:2px solid var(--java);z-index:1">
+      <h2 style="margin:0;color:var(--java);font-size:20px;">📖 Manual de Java INPRO</h2>
+      <div>
+        <button type="button" class="hint-btn" onclick="printManual()" style="margin-right:8px;padding:6px 14px;font-size:12px;">📥 Descargar PDF</button>
+        <button type="button" class="hint-btn" onclick="document.getElementById('manual-overlay').classList.remove('show')" style="padding:6px 14px;font-size:12px;">✕ Cerrar</button>
+      </div>
+    </div>
+    <div class="manual-content" style="font-family:'Inter',sans-serif;font-size:14px;line-height:1.9;color:var(--text);text-align:justify;">      <!-- ============================================================ -->
+      <!-- CAPÍTULO 1: FUNDAMENTOS DE JAVA -->
+      <!-- ============================================================ -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">1.1 — Estructura de un programa Java</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.1.1 — El esqueleto mínimo</h3>
+      <p>Todo programa Java arranca desde un método llamado <code>main</code>, que debe residir dentro de una <code>class</code>. El compilador busca esa firma exacta para comenzar la ejecución. Si falta o está mal escrita, el programa no corre.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public class MiPrograma {
+    public static void main(String[] args) {
+        System.out.println("¡Hola, Java!");
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.1.2 — Significado de cada palabra clave</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Palabra</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><code>public</code></td><td>Modificador de acceso. Permite que la JVM vea la clase y el método desde cualquier parte.</td></tr>
+          <tr><td><code>class</code></td><td>Define un nuevo tipo (molde). Todo el código ejecutable vive dentro de clases.</td></tr>
+          <tr><td><code>static</code></td><td>El método pertenece a la clase, no a una instancia. La JVM puede llamarlo sin crear objetos.</td></tr>
+          <tr><td><code>void</code></td><td>El método no devuelve ningún valor.</td></tr>
+          <tr><td><code>main</code></td><td>Nombre especial reservado. La JVM busca <code>public static void main(String[])</code> como punto de entrada.</td></tr>
+          <tr><td><code>String[] args</code></td><td>Parámetro que recibe argumentos de línea de comandos. <code>String[]</code> es un array de cadenas.</td></tr>
+          <tr><td><code>System.out.println</code></td><td>Imprime texto en consola y agrega un salto de línea al final.</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.1.3 — Punto y coma y llaves</h3>
+      <p>Cada instrucción termina con <code>;</code>. Olvidarlo produce un error de compilación. Las llaves <code>{ }</code> delimitan bloques de código: cuerpo de la clase, cuerpo del método, cuerpo de estructuras de control.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.1.4 — Comentarios</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">// Comentario de una línea: el compilador ignora todo hasta el final de la línea
+
+/* Comentario de múltiples líneas:
+   útil para documentar bloques largos
+   o desactivar código temporalmente */</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.1.5 — Errores comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Causa</th><th>Solución</th></tr></thead>
+        <tbody>
+          <tr><td>Falta <code>main</code></td><td>Nombre mal escrito (<code>Main</code>, <code>principal</code>)</td><td>Usar exactamente <code>main</code> en minúscula</td></tr>
+          <tr><td>Falta <code>static</code></td><td>Se omitió la palabra clave</td><td>Agregar <code>static</code> antes de <code>void</code></td></tr>
+          <tr><td>Falta <code>;</code></td><td>Olvido de punto y coma</td><td>Verificar que cada sentencia termine con <code>;</code></td></tr>
+          <tr><td>Llaves desbalanceadas</td><td>Falta una <code>{</code> o <code>}</code></td><td>Contar que cada apertura tenga su cierre</td></tr>
+          <tr><td>Mayúsculas en <code>system</code></td><td>Se escribió <code>system</code> en lugar de <code>System</code></td><td>Java distingue mayúsculas: <code>System</code> con S mayúscula</td></tr>
+        </tbody>
+      </table>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Dato clave:</strong> El nombre del archivo debe coincidir exactamente con el nombre de la clase pública. Si la clase se llama <code>MiPrograma</code>, el archivo debe llamarse <code>MiPrograma.java</code>.
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">1.2 — Tipos de datos primitivos</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.2.1 — Los ocho primitivos</h3>
+      <p>Java tiene ocho tipos de datos primitivos. No son objetos: almacenan el valor directamente en memoria, lo que los hace muy eficientes.</p>
+      <table class="sym-tbl">
+        <thead><tr><th>Tipo</th><th>Tamaño</th><th>Rango</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td><code>byte</code></td><td>8 bits</td><td>-128 a 127</td><td><code>byte edad = 25;</code></td></tr>
+          <tr><td><code>short</code></td><td>16 bits</td><td>-32.768 a 32.767</td><td><code>short año = 2026;</code></td></tr>
+          <tr><td><code>int</code></td><td>32 bits</td><td>-2.147.483.648 a 2.147.483.647</td><td><code>int cantidad = 1000;</code></td></tr>
+          <tr><td><code>long</code></td><td>64 bits</td><td>±9 trillones</td><td><code>long poblacion = 7800000000L;</code></td></tr>
+          <tr><td><code>float</code></td><td>32 bits</td><td>±3.4E+38 (6-7 dígitos)</td><td><code>float precio = 19.99f;</code></td></tr>
+          <tr><td><code>double</code></td><td>64 bits</td><td>±1.8E+308 (15 dígitos)</td><td><code>double pi = 3.1415926535;</code></td></tr>
+          <tr><td><code>char</code></td><td>16 bits</td><td>Unicode 0 a 65.535</td><td><code>char letra = 'A';</code></td></tr>
+          <tr><td><code>boolean</code></td><td>1 bit (virtual)</td><td><code>true</code> o <code>false</code></td><td><code>boolean activo = true;</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.2.2 — Declaración de variables</h3>
+      <p>Sintaxis universal: <code>tipo nombre = valor;</code>. Java es de tipado estático: una vez declarado el tipo no puede cambiar.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int edad = 20;                  // Entero
+double altura = 1.75;           // Decimal
+boolean esEstudiante = true;    // Booleano
+char inicial = 'S';             // Carácter (comillas simples)
+String nombre = "Sonic";        // Cadena (comillas dobles, clase, no primitivo)</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.2.3 — Convención camelCase</h3>
+      <p>Los nombres de variables comienzan con minúscula y cada palabra subsecuente con mayúscula: <code>nombreCompleto</code>, <code>cantidadProductos</code>, <code>esMayorDeEdad</code>. Las clases comienzan con mayúscula: <code>Persona</code>, <code>Calculadora</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.2.4 — Constantes con final</h3>
+      <p>La palabra clave <code>final</code> impide que una variable cambie de valor después de su inicialización. Por convención se escriben en MAYÚSCULAS_CON_GUION_BAJO.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">final double PI = 3.1416;
+final int MAX_INTENTOS = 3;
+final String NOMBRE_APP = "Java INPRO";</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.2.5 — Errores comunes con tipos</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td>Asignar <code>int</code> a <code>String</code></td><td><code>String x = 5;</code> — incompatible types</td></tr>
+          <tr><td>Olvidar la <code>f</code> en float</td><td><code>float f = 3.14;</code> — possible lossy conversion</td></tr>
+          <tr><td>Olvidar la <code>L</code> en long</td><td><code>long l = 3000000000;</code> — integer number too large</td></tr>
+          <tr><td>Usar <code>==</code> con <code>double</code></td><td>Comparar decimales con <code>==</code> puede fallar por precisión</td></tr>
+          <tr><td>Dividir enteros esperando decimal</td><td><code>5 / 2</code> da <code>2</code>, no <code>2.5</code></td></tr>
+        </tbody>
+      </table>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 String no es primitivo:</strong> <code>String</code> es una clase de la biblioteca estándar. Empieza con mayúscula, tiene métodos y se comporta como un objeto. Sin embargo, Java le da un trato especial: se puede crear sin <code>new</code> y se concatena con <code>+</code>.
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">1.3 — Operadores</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.3.1 — Operadores aritméticos</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Operador</th><th>Significado</th><th>Ejemplo</th><th>Resultado</th></tr></thead>
+        <tbody>
+          <tr><td><code>+</code></td><td>Suma</td><td><code>5 + 3</code></td><td><code>8</code></td></tr>
+          <tr><td><code>-</code></td><td>Resta</td><td><code>10 - 4</code></td><td><code>6</code></td></tr>
+          <tr><td><code>*</code></td><td>Multiplicación</td><td><code>6 * 7</code></td><td><code>42</code></td></tr>
+          <tr><td><code>/</code></td><td>División</td><td><code>15 / 4</code></td><td><code>3</code> (¡entera!)</td></tr>
+          <tr><td><code>%</code></td><td>Módulo (resto)</td><td><code>15 % 4</code></td><td><code>3</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.3.2 — División entera</h3>
+      <p>Cuando ambos operandos son enteros, Java realiza <strong>división entera</strong>: el resultado se trunca, no se redondea. <code>15 / 4</code> da <code>3</code>, no <code>3.75</code>. Para obtener decimales, al menos un operando debe ser <code>double</code>: <code>15.0 / 4</code> o <code>(double) 15 / 4</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.3.3 — Operadores de asignación compuesta</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int x = 10;
+x += 5;   // x = x + 5  → 15
+x -= 3;   // x = x - 3  → 12
+x *= 2;   // x = x * 2  → 24
+x /= 4;   // x = x / 4  → 6
+x %= 5;   // x = x % 5  → 1</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.3.4 — Incremento y decremento</h3>
+      <p>Los operadores <code>++</code> y <code>--</code> suman o restan 1 en una sola operación. Existen en dos variantes:</p>
+      <ul>
+        <li><strong>Prefijo</strong> (<code>++x</code>): incrementa primero, luego usa el valor.</li>
+        <li><strong>Postfijo</strong> (<code>x++</code>): usa el valor actual, luego incrementa.</li>
+      </ul>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int a = 5;
+int b = ++a;   // a=6, b=6 (prefijo)
+int c = a++;   // c=6, a=7 (postfijo)</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.3.5 — Precedencia de operadores</h3>
+      <p>De mayor a menor prioridad:</p>
+      <ol>
+        <li>Paréntesis <code>( )</code></li>
+        <li>Incremento/decremento prefijo <code>++x</code> <code>--x</code></li>
+        <li>Multiplicación, división, módulo <code>* / %</code></li>
+        <li>Suma y resta <code>+ -</code></li>
+        <li>Asignación <code>= += -= *= /= %=</code></li>
+      </ol>
+      <p>Ante la duda, usar paréntesis: <code>(a + b) * c</code> es más claro que depender de la precedencia.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.3.6 — Errores comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Ejemplo</th><th>Problema</th></tr></thead>
+        <tbody>
+          <tr><td>División entera inesperada</td><td><code>5 / 2 → 2</code></td><td>Usar <code>5.0 / 2</code> o <code>(double)5 / 2</code></td></tr>
+          <tr><td>Confundir <code>=</code> con <code>==</code></td><td><code>if (a = 5)</code></td><td>Asigna en vez de comparar</td></tr>
+          <tr><td>Sin espacio en operadores</td><td><code>a+b</code> funciona igual</td><td>Válido pero menos legible</td></tr>
+          <tr><td>Módulo con negativos</td><td><code>-5 % 3 → -2</code></td><td>El signo del resultado es el del dividendo</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">1.4 — La clase String</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.4.1 — Creación de Strings</h3>
+      <p>Los <code>String</code> en Java son objetos inmutables: una vez creados, su contenido no puede modificarse. Cada operación que "modifica" un String en realidad crea uno nuevo.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">String s1 = "Hola";                     // Literal (pool de strings)
+String s2 = new String("Hola");         // Constructor explícito (objeto nuevo)
+String s3 = s1 + " Mundo";              // Concatenación: "Hola Mundo"</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.4.2 — Métodos principales de String</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Método</th><th>Descripción</th><th>Ejemplo con "Java"</th></tr></thead>
+        <tbody>
+          <tr><td><code>length()</code></td><td>Devuelve la cantidad de caracteres</td><td><code>"Java".length() → 4</code></td></tr>
+          <tr><td><code>charAt(i)</code></td><td>Carácter en la posición i (base 0)</td><td><code>"Java".charAt(1) → 'a'</code></td></tr>
+          <tr><td><code>toUpperCase()</code></td><td>Convierte todo a mayúsculas</td><td><code>"java".toUpperCase() → "JAVA"</code></td></tr>
+          <tr><td><code>toLowerCase()</code></td><td>Convierte todo a minúsculas</td><td><code>"JAVA".toLowerCase() → "java"</code></td></tr>
+          <tr><td><code>contains(s)</code></td><td>¿Contiene la subcadena s?</td><td><code>"Hola".contains("ol") → true</code></td></tr>
+          <tr><td><code>substring(i,f)</code></td><td>Subcadena desde i hasta f-1</td><td><code>"Java".substring(1,3) → "av"</code></td></tr>
+          <tr><td><code>replace(a,b)</code></td><td>Reemplaza todas las ocurrencias de a por b</td><td><code>"Hola".replace('o','a') → "Hala"</code></td></tr>
+          <tr><td><code>equals(s)</code></td><td>Compara contenido (no referencia)</td><td><code>"abc".equals("abc") → true</code></td></tr>
+          <tr><td><code>trim()</code></td><td>Elimina espacios al inicio y final</td><td><code>"  Hola  ".trim() → "Hola"</code></td></tr>
+          <tr><td><code>indexOf(s)</code></td><td>Posición de la primera ocurrencia</td><td><code>"Java".indexOf("va") → 2</code></td></tr>
+          <tr><td><code>startsWith(s)</code></td><td>¿Empieza con s?</td><td><code>"Hola".startsWith("Ho") → true</code></td></tr>
+          <tr><td><code>endsWith(s)</code></td><td>¿Termina con s?</td><td><code>"archivo.txt".endsWith(".txt") → true</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.4.3 — equals() vs ==</h3>
+      <p>Este es uno de los errores más frecuentes en Java:</p>
+      <ul>
+        <li><code>==</code> compara <strong>referencias</strong> (¿apuntan al mismo objeto en memoria?).</li>
+        <li><code>equals()</code> compara el <strong>contenido</strong> (¿tienen los mismos caracteres?).</li>
+      </ul>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">String a = new String("Hola");
+String b = new String("Hola");
+System.out.println(a == b);       // false (objetos distintos)
+System.out.println(a.equals(b));  // true  (mismo contenido)</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.4.4 — Concatenación con +</h3>
+      <p>El operador <code>+</code> concatena Strings. Si uno de los operandos no es String, Java lo convierte automáticamente llamando a <code>toString()</code> o a su representación textual.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">String nombre = "Sonic";
+int edad = 25;
+String mensaje = "Hola, soy " + nombre + " y tengo " + edad + " años.";
+// Resultado: "Hola, soy Sonic y tengo 25 años."</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.4.5 — Secuencias de escape</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Secuencia</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><code>\n</code></td><td>Salto de línea</td></tr>
+          <tr><td><code>\t</code></td><td>Tabulación</td></tr>
+          <tr><td><code>\"</code></td><td>Comilla doble literal</td></tr>
+          <tr><td><code>\\</code></td><td>Barra invertida literal</td></tr>
+          <tr><td><code>\'</code></td><td>Comilla simple literal</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">1.5 — Math y conversiones de tipos</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.5.1 — La clase Math</h3>
+      <p><code>Math</code> es una clase utilitaria con métodos estáticos. No se instancia; todos sus métodos se llaman directamente con <code>Math.</code>.</p>
+      <table class="sym-tbl">
+        <thead><tr><th>Método</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td><code>Math.round(x)</code></td><td>Redondea al entero más cercano</td><td><code>Math.round(3.7) → 4L</code></td></tr>
+          <tr><td><code>Math.sqrt(x)</code></td><td>Raíz cuadrada</td><td><code>Math.sqrt(16) → 4.0</code></td></tr>
+          <tr><td><code>Math.pow(b,e)</code></td><td>Potencia b<sup>e</sup></td><td><code>Math.pow(2,3) → 8.0</code></td></tr>
+          <tr><td><code>Math.max(a,b)</code></td><td>El mayor de dos valores</td><td><code>Math.max(5,9) → 9</code></td></tr>
+          <tr><td><code>Math.min(a,b)</code></td><td>El menor de dos valores</td><td><code>Math.min(5,9) → 5</code></td></tr>
+          <tr><td><code>Math.abs(x)</code></td><td>Valor absoluto</td><td><code>Math.abs(-7) → 7</code></td></tr>
+          <tr><td><code>Math.random()</code></td><td>Aleatorio entre 0.0 y 1.0</td><td><code>(int)(Math.random()*100)</code></td></tr>
+          <tr><td><code>Math.PI</code></td><td>Constante π</td><td><code>3.141592653589793</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.5.2 — Casting explícito (estrechamiento)</h3>
+      <p>Cuando se convierte de un tipo más grande a uno más pequeño, hay riesgo de pérdida de datos. Java exige un <strong>cast explícito</strong>:</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">double pi = 3.1416;
+int entero = (int) pi;     // 3 (pierde los decimales)
+long grande = 1000L;
+int chico = (int) grande;  // OK si el valor cabe</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.5.3 — Casting implícito (ensanchamiento)</h3>
+      <p>Java convierte automáticamente de un tipo más pequeño a uno más grande, porque no hay pérdida de información:</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int a = 42;
+double b = a;     // 42.0 — conversión implícita, sin cast
+long c = a;       // 42L — también implícita</pre>
+      <p>La jerarquía de ensanchamiento: <code>byte → short → int → long → float → double</code>. El <code>char</code> puede ensancharse a <code>int</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.5.4 — Parseo de Strings a números</h3>
+      <p>Las clases wrapper proveen métodos para convertir cadenas en valores numéricos:</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">String texto = "42";
+int numero = Integer.parseInt(texto);        // 42
+double decimal = Double.parseDouble("3.14"); // 3.14
+long largo = Long.parseLong("1000000");      // 1000000L
+boolean flag = Boolean.parseBoolean("true"); // true</pre>
+      <p>Si el String no es un número válido, <code>parseInt</code> lanza <code>NumberFormatException</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">1.5.5 — Conversión de números a String</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int edad = 25;
+String s1 = String.valueOf(edad);   // "25"
+String s2 = Integer.toString(edad); // "25"
+String s3 = "" + edad;              // "25" (truco de concatenación)</pre>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Regla nemotécnica:</strong> Para convertir String → número usa <code>Wrapper.parseTipo()</code>. Para número → String usa <code>String.valueOf()</code> o simplemente concatena con <code>""</code>.
+      </div>
+<!-- ============================================================ -->
+      <!-- CAPÍTULO 2: CONTROL DE FLUJO -->
+      <!-- ============================================================ -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.1 — Estructuras condicionales: if / else / else if</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.1.1 — if simple</h3>
+      <p>Ejecuta un bloque de código únicamente si una condición booleana se evalúa como <code>true</code>.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int edad = 20;
+if (edad >= 18) {
+    System.out.println("Sos mayor de edad");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.1.2 — if/else</h3>
+      <p>Proporciona un camino alternativo cuando la condición es <code>false</code>.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">double nota = 5.5;
+if (nota >= 7.0) {
+    System.out.println("Aprobado");
+} else {
+    System.out.println("Desaprobado");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.1.3 — if/else if/else</h3>
+      <p>Evalúa múltiples condiciones en secuencia. La primera que sea <code>true</code> se ejecuta; el resto se ignora.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">double nota = 8.2;
+if (nota >= 9.0) {
+    System.out.println("Sobresaliente");
+} else if (nota >= 7.0) {
+    System.out.println("Notable");
+} else if (nota >= 5.0) {
+    System.out.println("Aprobado");
+} else {
+    System.out.println("Insuficiente");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.1.4 — Operadores de comparación</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Operador</th><th>Significado</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td><code>==</code></td><td>Igual a</td><td><code>a == b</code></td></tr>
+          <tr><td><code>!=</code></td><td>Distinto de</td><td><code>a != b</code></td></tr>
+          <tr><td><code>&gt;</code></td><td>Mayor que</td><td><code>a &gt; b</code></td></tr>
+          <tr><td><code>&lt;</code></td><td>Menor que</td><td><code>a &lt; b</code></td></tr>
+          <tr><td><code>&gt;=</code></td><td>Mayor o igual</td><td><code>a &gt;= b</code></td></tr>
+          <tr><td><code>&lt;=</code></td><td>Menor o igual</td><td><code>a &lt;= b</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.1.5 — Operador ternario ?:</h3>
+      <p>Es un <code>if/else</code> compacto que devuelve un valor. Sintaxis: <code>condición ? valorSiVerdadero : valorSiFalso</code>.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int edad = 20;
+String estado = (edad >= 18) ? "Mayor" : "Menor";
+System.out.println(estado);  // "Mayor"</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.1.6 — Errores comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Causa</th></tr></thead>
+        <tbody>
+          <tr><td><code>if (a = 5)</code></td><td>Asignación en vez de comparación. Debe ser <code>a == 5</code></td></tr>
+          <tr><td><code>if (x);</code></td><td>Punto y coma después del <code>if</code> cierra la condición. El bloque siguiente se ejecuta siempre</td></tr>
+          <tr><td>Comparar Strings con <code>==</code></td><td>Usar <code>equals()</code> para comparar contenido</td></tr>
+          <tr><td>Olvidar llaves en bloques</td><td>Sin llaves, solo la primera línea pertenece al <code>if</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.2 — switch / case</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.2.1 — Estructura básica</h3>
+      <p>Evalúa una variable y salta directamente al <code>case</code> que coincide. Es más legible que múltiples <code>if/else if</code> cuando se compara la misma variable contra muchos valores constantes.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int dia = 3;
+switch (dia) {
+    case 1: System.out.println("Lunes"); break;
+    case 2: System.out.println("Martes"); break;
+    case 3: System.out.println("Miércoles"); break;
+    case 4: System.out.println("Jueves"); break;
+    case 5: System.out.println("Viernes"); break;
+    case 6: System.out.println("Sábado"); break;
+    case 7: System.out.println("Domingo"); break;
+    default: System.out.println("Día no válido");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.2.2 — break y fall-through</h3>
+      <p>Sin <code>break</code>, la ejecución "cae" al siguiente <code>case</code> (<em>fall-through</em>). Esto es útil para agrupar casos que comparten el mismo código:</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">switch (dia) {
+    case 1: case 2: case 3: case 4: case 5:
+        System.out.println("Día laboral");
+        break;
+    case 6: case 7:
+        System.out.println("Fin de semana");
+        break;
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.2.3 — Tipos permitidos</h3>
+      <p>El <code>switch</code> acepta: <code>byte</code>, <code>short</code>, <code>int</code>, <code>char</code>, <code>String</code> (desde Java 7) y <code>enum</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.2.4 — switch vs if-else: cuándo usar cada uno</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Criterio</th><th>switch</th><th>if/else if</th></tr></thead>
+        <tbody>
+          <tr><td>Comparación</td><td>Solo igualdad exacta</td><td>Rangos, desigualdades, condiciones complejas</td></tr>
+          <tr><td>Legibilidad</td><td>Excelente con muchos valores fijos</td><td>Mejor para pocas condiciones o rangos</td></tr>
+          <tr><td>Rendimiento</td><td>Salto directo (tableswitch/lookupswitch)</td><td>Evalúa secuencialmente</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.2.5 — Errores comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Consecuencia</th></tr></thead>
+        <tbody>
+          <tr><td>Olvidar <code>break</code></td><td>Se ejecutan todos los cases siguientes (fall-through)</td></tr>
+          <tr><td>Olvidar <code>default</code></td><td>Si ningún case coincide, no se ejecuta nada</td></tr>
+          <tr><td>Case con rango</td><td><code>case > 10:</code> no compila; los cases deben ser valores constantes</td></tr>
+          <tr><td>Cases duplicados</td><td>Error de compilación: duplicate case label</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.3 — Operadores lógicos</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.3.1 — AND lógico (&&)</h3>
+      <p>Devuelve <code>true</code> solo si <strong>ambas</strong> condiciones son <code>true</code>. Si la primera es <code>false</code>, la segunda no se evalúa (<strong>cortocircuito</strong>).</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int edad = 25;
+boolean tieneLicencia = true;
+if (edad >= 18 && tieneLicencia) {
+    System.out.println("Puede conducir");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.3.2 — OR lógico (||)</h3>
+      <p>Devuelve <code>true</code> si <strong>al menos una</strong> condición es <code>true</code>. Si la primera es <code>true</code>, la segunda no se evalúa (cortocircuito).</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">boolean esFinde = (dia == 6 || dia == 7);
+if (esFinde || esFeriado) {
+    System.out.println("No se trabaja");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.3.3 — NOT lógico (!)</h3>
+      <p>Invierte el valor booleano: <code>true</code> se vuelve <code>false</code> y viceversa.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">boolean cerrado = false;
+if (!cerrado) {
+    System.out.println("El local está abierto");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.3.4 — Tabla de verdad</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>A</th><th>B</th><th>A && B</th><th>A || B</th><th>!A</th></tr></thead>
+        <tbody>
+          <tr><td>true</td><td>true</td><td>true</td><td>true</td><td>false</td></tr>
+          <tr><td>true</td><td>false</td><td>false</td><td>true</td><td>false</td></tr>
+          <tr><td>false</td><td>true</td><td>false</td><td>true</td><td>true</td></tr>
+          <tr><td>false</td><td>false</td><td>false</td><td>false</td><td>true</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.3.5 — Diferencia entre & / && y | / ||</h3>
+      <ul>
+        <li><code>&amp;</code> y <code>|</code> <strong>no hacen cortocircuito</strong>: evalúan ambos lados siempre.</li>
+        <li><code>&&</code> y <code>||</code> hacen cortocircuito: si el resultado ya está decidido, no evalúan el lado derecho.</li>
+        <li>El cortocircuito es útil para evitar errores: <code>if (s != null && s.length() > 0)</code> evita <code>NullPointerException</code>.</li>
+      </ul>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.3.6 — Precedencia con operadores lógicos</h3>
+      <ol>
+        <li><code>!</code> (NOT)</li>
+        <li><code>&&</code> (AND)</li>
+        <li><code>||</code> (OR)</li>
+      </ol>
+      <p>Usar paréntesis para claridad: <code>if ((a > 5 && b > 5) || c > 10)</code>.</p>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.4 — Entrada de datos: Scanner</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.4.1 — Importación y creación</h3>
+      <p><code>Scanner</code> pertenece al paquete <code>java.util</code>. Debe importarse antes de usarse.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">import java.util.Scanner;
+
+public class Entrada {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Ingresá tu nombre: ");
+        String nombre = sc.nextLine();
+        System.out.println("Hola, " + nombre);
+        sc.close();
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.4.2 — Métodos principales de Scanner</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Método</th><th>Lee</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td><code>nextLine()</code></td><td>Línea completa (incluye espacios)</td><td><code>String linea = sc.nextLine();</code></td></tr>
+          <tr><td><code>nextInt()</code></td><td>Entero</td><td><code>int edad = sc.nextInt();</code></td></tr>
+          <tr><td><code>nextDouble()</code></td><td>Decimal</td><td><code>double precio = sc.nextDouble();</code></td></tr>
+          <tr><td><code>next()</code></td><td>Palabra (hasta el primer espacio)</td><td><code>String palabra = sc.next();</code></td></tr>
+          <tr><td><code>nextBoolean()</code></td><td>Booleano (<code>true</code> / <code>false</code>)</td><td><code>boolean b = sc.nextBoolean();</code></td></tr>
+          <tr><td><code>hasNextInt()</code></td><td>Verifica si hay un entero disponible</td><td><code>if (sc.hasNextInt()) { ... }</code></td></tr>
+          <tr><td><code>close()</code></td><td>Cierra el scanner (buena práctica)</td><td><code>sc.close();</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.4.3 — El bug del nextLine() después de nextInt()</h3>
+      <p>Cuando se lee un entero con <code>nextInt()</code>, el carácter de salto de línea (<code>\n</code>) queda en el buffer. Si a continuación se llama a <code>nextLine()</code>, este consume ese salto de línea vacío en lugar de esperar una nueva entrada.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">// ❌ Problema: el nextLine() no espera entrada
+System.out.print("Edad: ");
+int edad = sc.nextInt();
+System.out.print("Nombre: ");
+String nombre = sc.nextLine();  // Lee el \n residual
+
+// ✅ Solución: consumir el salto de línea sobrante
+System.out.print("Edad: ");
+int edad = sc.nextInt();
+sc.nextLine();                   // Limpia el buffer
+System.out.print("Nombre: ");
+String nombre = sc.nextLine();   // Ahora sí espera entrada</pre>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Regla práctica:</strong> Después de cualquier <code>nextInt()</code>, <code>nextDouble()</code> o <code>next()</code>, si el siguiente input es un <code>nextLine()</code>, agregá un <code>nextLine()</code> extra para limpiar el buffer.
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.5 — Bucles: while y do-while</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.5.1 — while (condición primero)</h3>
+      <p>Evalúa la condición <strong>antes</strong> de cada iteración. Si es <code>false</code> desde el inicio, el bloque no se ejecuta nunca.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int contador = 1;
+while (contador <= 5) {
+    System.out.println("Iteración: " + contador);
+    contador++;   // Sin esto: bucle infinito
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.5.2 — do-while (al menos una vez)</h3>
+      <p>Ejecuta el bloque <strong>primero</strong> y evalúa la condición <strong>después</strong>. Garantiza al menos una iteración.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int contador = 10;
+do {
+    System.out.println("Esto se imprime al menos una vez");
+    contador++;
+} while (contador <= 5);</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.5.3 — while vs do-while: cuándo usar cada uno</h3>
+      <ul>
+        <li><strong>while:</strong> cuando la condición debe cumplirse para entrar al bucle (ej: leer un archivo mientras haya líneas).</li>
+        <li><strong>do-while:</strong> cuando el bloque debe ejecutarse al menos una vez (ej: menú que se muestra antes de preguntar si continuar).</li>
+      </ul>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.5.4 — Bucle infinito</h3>
+      <p>Ocurre cuando la condición nunca se vuelve <code>false</code>. Es un error común cuando se olvida actualizar la variable de control.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">// ❌ BUCLE INFINITO: falta i++
+int i = 0;
+while (i < 10) {
+    System.out.println(i);
+}
+// ✅ Solución: agregar i++ dentro del bloque</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.5.5 — Errores comunes con while</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Consecuencia</th></tr></thead>
+        <tbody>
+          <tr><td>Olvidar actualizar la variable de control</td><td>Bucle infinito</td></tr>
+          <tr><td>Punto y coma después del while</td><td><code>while (cond); { ... }</code> — bucle vacío infinito</td></tr>
+          <tr><td>Condición que nunca es true</td><td>El bloque nunca se ejecuta</td></tr>
+          <tr><td>Off-by-one</td><td>Una iteración de más o de menos por usar <code>&lt;</code> en vez de <code>&lt;=</code></td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.6 — Bucle for, break y continue</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.6.1 — for clásico</h3>
+      <p>Compacta en una sola línea la inicialización, la condición y el paso. Ideal cuando se conoce de antemano la cantidad de iteraciones.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">for (int i = 0; i < 5; i++) {
+    System.out.println("Valor de i: " + i);
+}
+// Partes: (inicialización; condición; paso)</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.6.2 — break</h3>
+      <p>Sale inmediatamente del bucle, sin evaluar la condición nuevamente.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">for (int i = 1; i <= 10; i++) {
+    if (i == 5) {
+        break;   // Sale del bucle cuando i=5
+    }
+    System.out.println(i);  // Imprime 1,2,3,4
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.6.3 — continue</h3>
+      <p>Salta a la siguiente iteración, ignorando el resto del bloque actual.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">for (int i = 1; i <= 5; i++) {
+    if (i == 3) {
+        continue;  // Salta la iteración cuando i=3
+    }
+    System.out.println(i);  // Imprime 1,2,4,5
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.6.4 — For-each (enhanced for)</h3>
+      <p>Recorre arrays y colecciones sin necesidad de un índice. Más limpio y menos propenso a errores de límites.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int[] numeros = {10, 20, 30, 40, 50};
+for (int n : numeros) {
+    System.out.println(n);
+}
+// Se lee: "para cada int n en el array numeros"</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.6.5 — Comparativa for vs while vs for-each</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Estructura</th><th>Mejor para</th><th>Limitación</th></tr></thead>
+        <tbody>
+          <tr><td><code>for</code></td><td>Número conocido de iteraciones</td><td>Más verboso que for-each</td></tr>
+          <tr><td><code>while</code></td><td>Condición de salida desconocida (leer archivo, esperar evento)</td><td>Requiere inicialización externa</td></tr>
+          <tr><td><code>do-while</code></td><td>Al menos una ejecución garantizada</td><td>Poco usado; verificar que realmente se necesita</td></tr>
+          <tr><td><code>for-each</code></td><td>Recorrer colecciones completas</td><td>No se puede modificar el array ni obtener el índice</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.7 — Arrays</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.7.1 — Declaración e inicialización</h3>
+      <p>Un array es una estructura que almacena múltiples valores del mismo tipo en posiciones contiguas de memoria. Su tamaño es <strong>fijo</strong> una vez creado.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">// Forma 1: declarar y luego inicializar
+int[] notas = new int[5];  // Array de 5 enteros, todos en 0
+
+// Forma 2: inicialización directa con valores
+String[] dias = {"Lunes", "Martes", "Miércoles", "Jueves", "Viernes"};
+
+// Forma 3: declarar, luego asignar
+double[] precios;
+precios = new double[]{10.5, 20.0, 15.75};</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.7.2 — Índices y acceso</h3>
+      <p>Los índices comienzan en <code>0</code> y terminan en <code>length - 1</code>. Intentar acceder a un índice fuera de rango lanza <code>ArrayIndexOutOfBoundsException</code>.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int[] nums = {10, 20, 30, 40, 50};
+System.out.println(nums[0]);       // 10 (primer elemento)
+System.out.println(nums[4]);       // 50 (último elemento)
+System.out.println(nums.length);   // 5 (atributo, no método: sin paréntesis)
+
+nums[2] = 99;  // Modifica el tercer elemento
+// nums[5] = 60;  // ❌ ArrayIndexOutOfBoundsException</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.7.3 — Recorrido de arrays</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">String[] frutas = {"Manzana", "Banana", "Naranja"};
+
+// Recorrido con for clásico (tenés acceso al índice)
+for (int i = 0; i < frutas.length; i++) {
+    System.out.println("Posición " + i + ": " + frutas[i]);
+}
+
+// Recorrido con for-each (más limpio, sin índice)
+for (String fruta : frutas) {
+    System.out.println(fruta);
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.7.4 — Arrays multidimensionales</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">int[][] matriz = {
+    {1, 2, 3},
+    {4, 5, 6},
+    {7, 8, 9}
+};
+System.out.println(matriz[1][2]);  // 6 (fila 1, columna 2)</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.7.5 — Errores comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>ArrayIndexOutOfBoundsException</code></td><td>Índice negativo o mayor/igual que <code>length</code></td></tr>
+          <tr><td>Usar <code>.length()</code> en vez de <code>.length</code></td><td><code>length</code> es atributo en arrays, método en String</td></tr>
+          <tr><td>Array no inicializado</td><td><code>NullPointerException</code> al intentar acceder</td></tr>
+          <tr><td>Confundir índice con valor</td><td><code>for (int n : nums) { nums[n] = ... }</code> — n es valor, no índice</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">2.8 — Paradigmas de programación: POP vs POO</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.8.1 — Programación Orientada a Procedimientos (POP)</h3>
+      <p>El programa se organiza como una secuencia de instrucciones y funciones. Los datos y las funciones están separados. Se piensa en términos de "qué pasos hay que seguir". Lenguajes representativos: C, Pascal, Fortran.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.8.2 — Programación Orientada a Objetos (POO)</h3>
+      <p>El programa se organiza como un conjunto de objetos que interactúan entre sí. Cada objeto contiene datos (atributos) y comportamientos (métodos) encapsulados juntos. Se piensa en términos de "qué entidades participan y qué pueden hacer". Lenguajes representativos: Java, C++, Python, C#.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">2.8.3 — Los 4 pilares de la POO</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Pilar</th><th>Definición</th><th>En Java</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Encapsulamiento</strong></td><td>Ocultar datos internos, exponer solo lo necesario</td><td><code>private</code> + getters/setters</td></tr>
+          <tr><td><strong>Herencia</strong></td><td>Crear nuevas clases basadas en clases existentes</td><td><code>extends</code></td></tr>
+          <tr><td><strong>Polimorfismo</strong></td><td>Un mismo método se comporta distinto según el objeto</td><td><code>@Override</code>, upcasting</td></tr>
+          <tr><td><strong>Abstracción</strong></td><td>Mostrar solo lo esencial, ocultar complejidad interna</td><td><code>abstract class</code>, <code>interface</code></td></tr>
+        </tbody>
+      </table>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Regla nemotécnica:</strong> Los 4 pilares forman el acrónimo <strong>E-H-P-A</strong>: Encapsulamiento, Herencia, Polimorfismo, Abstracción.
+      </div>
+<!-- ============================================================ -->
+      <!-- CAPÍTULO 3: PROGRAMACIÓN ORIENTADA A OBJETOS -->
+      <!-- ============================================================ -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.1 — Métodos</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.1.1 — ¿Qué es un método?</h3>
+      <p>Un método es un bloque de código con nombre que realiza una tarea específica. Recibe datos de entrada (parámetros), los procesa y puede devolver un resultado. Es la unidad básica de organización del comportamiento en Java.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.1.2 — Métodos void (sin retorno)</h3>
+      <p>Realizan una acción pero no devuelven ningún valor. Se usan para imprimir, modificar atributos, enviar datos, etc.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public static void saludar(String nombre) {
+    System.out.println("¡Hola, " + nombre + "!");
+}
+
+// Llamada
+saludar("Sonic");  // Imprime: ¡Hola, Sonic!</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.1.3 — Métodos con retorno</h3>
+      <p>Devuelven un valor al código que los llamó usando la palabra clave <code>return</code>. El tipo de retorno debe coincidir con lo declarado.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public static int sumar(int a, int b) {
+    int resultado = a + b;
+    return resultado;
+}
+
+public static boolean esMayorDeEdad(int edad) {
+    return edad >= 18;  // Retorna true o false directamente
+}
+
+// Uso
+int total = sumar(5, 3);        // 8
+if (esMayorDeEdad(20)) { ... }  // true</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.1.4 — Parámetros y argumentos</h3>
+      <ul>
+        <li><strong>Parámetro:</strong> variable declarada en la definición del método (<code>int a</code> en <code>sumar(int a, int b)</code>).</li>
+        <li><strong>Argumento:</strong> valor real que se pasa al llamar al método (<code>5</code> en <code>sumar(5, 3)</code>).</li>
+        <li>Java usa <strong>pass-by-value</strong>: el método recibe una copia del valor, no la variable original. Para objetos, se copia la referencia, no el objeto mismo.</li>
+      </ul>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.1.5 — static: cuándo y por qué</h3>
+      <p><code>static</code> significa que el método pertenece a la <strong>clase</strong>, no a instancias individuales. Se llama con <code>Clase.metodo()</code> sin necesidad de crear un objeto.</p>
+      <ul>
+        <li>Usar <code>static</code> para métodos utilitarios (<code>Math.sqrt()</code>, <code>Integer.parseInt()</code>).</li>
+        <li>No usar <code>static</code> cuando el método necesita acceder a atributos de instancia.</li>
+        <li>Un método <code>static</code> solo puede llamar a otros métodos <code>static</code> y acceder a variables <code>static</code>.</li>
+      </ul>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.1.6 — Scope (alcance) de variables</h3>
+      <p>Las variables declaradas dentro de un método solo existen dentro de ese método. Las variables declaradas dentro de un bloque <code>{ }</code> solo existen dentro de ese bloque.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public static void ejemplo() {
+    int x = 10;           // Scope: todo el método
+    if (x > 5) {
+        int y = 20;       // Scope: solo dentro del if
+        System.out.println(x + y);  // OK, ambos visibles
+    }
+    // System.out.println(y);  // ❌ ERROR: y no existe aquí
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.1.7 — Errores comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Causa</th></tr></thead>
+        <tbody>
+          <tr><td>Falta <code>return</code></td><td>Método con tipo de retorno distinto de void debe tener return</td></tr>
+          <tr><td><code>return</code> en método void</td><td>No se puede devolver un valor en un método void</td></tr>
+          <tr><td>Llamar método no static desde static</td><td>Crear una instancia o hacer el método static</td></tr>
+          <tr><td>Parámetros en orden incorrecto</td><td><code>sumar("Hola", 5)</code> — incompatible types</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.2 — Clases y Objetos</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.2.1 — Clase (molde)</h3>
+      <p>Una clase es un plano, molde o plantilla que define los atributos (datos) y métodos (comportamientos) que tendrán los objetos creados a partir de ella.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public class Persona {
+    // Atributos (datos)
+    String nombre;
+    int edad;
+
+    // Método (comportamiento)
+    void presentarse() {
+        System.out.println("Hola, soy " + nombre + " y tengo " + edad + " años.");
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.2.2 — Objeto (instancia)</h3>
+      <p>Un objeto es una instancia concreta de una clase. Se crea con el operador <code>new</code>, que reserva memoria y llama al constructor.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">Persona p1 = new Persona();  // p1 es un objeto de tipo Persona
+p1.nombre = "Sonic";
+p1.edad = 25;
+p1.presentarse();             // "Hola, soy Sonic y tengo 25 años."
+
+Persona p2 = new Persona();  // Otro objeto independiente
+p2.nombre = "María";
+p2.edad = 30;
+p2.presentarse();             // "Hola, soy María y tengo 30 años."</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.2.3 — El operador punto</h3>
+      <p>El punto (<code>.</code>) se usa para acceder a atributos y métodos de un objeto: <code>objeto.atributo</code>, <code>objeto.metodo()</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.2.4 — NullPointerException</h3>
+      <p>Ocurre cuando se intenta usar un objeto que no ha sido inicializado (vale <code>null</code>). Es una de las excepciones más comunes en Java.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">Persona p = null;         // Declarada pero no inicializada
+// p.nombre = "Sonic";    // ❌ NullPointerException
+p = new Persona();         // Ahora sí: inicializada
+p.nombre = "Sonic";        // ✅ OK</pre>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Analogía:</strong> La clase es la receta de una pizza. El objeto es la pizza concreta que preparaste siguiendo la receta. Podés hacer muchas pizzas (objetos) con la misma receta (clase).
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.3 — Constructores</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.3.1 — ¿Qué es un constructor?</h3>
+      <p>Es un método especial que se llama automáticamente al crear un objeto con <code>new</code>. Su propósito es inicializar los atributos del objeto en un estado válido.</p>
+      <ul>
+        <li>Tiene el <strong>mismo nombre</strong> que la clase.</li>
+        <li><strong>No tiene tipo de retorno</strong> (ni siquiera <code>void</code>).</li>
+        <li>Se llama una sola vez, al momento de la creación.</li>
+      </ul>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.3.2 — Constructor por defecto</h3>
+      <p>Si no se define ningún constructor, Java provee uno vacío sin parámetros que inicializa los atributos a sus valores por defecto (0, null, false).</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.3.3 — Constructor personalizado</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public class Persona {
+    String nombre;
+    int edad;
+
+    // Constructor personalizado
+    public Persona(String nombre, int edad) {
+        this.nombre = nombre;  // this.nombre = atributo, nombre = parámetro
+        this.edad = edad;
+    }
+}
+
+// Uso
+Persona p = new Persona("Sonic", 25);  // Llama al constructor</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.3.4 — La palabra clave this</h3>
+      <p><code>this</code> es una referencia al objeto actual. Se usa para:</p>
+      <ul>
+        <li><strong>Desambiguar</strong> atributos de parámetros con el mismo nombre: <code>this.nombre = nombre;</code></li>
+        <li><strong>Llamar a otro constructor</strong> de la misma clase: <code>this(otroParametro);</code> (debe ser la primera línea).</li>
+        <li><strong>Pasar el objeto actual</strong> como argumento a otro método: <code>otroObjeto.metodo(this);</code></li>
+      </ul>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.3.5 — Sobrecarga de constructores</h3>
+      <p>Se pueden definir múltiples constructores con diferentes listas de parámetros. Java elige cuál llamar según los argumentos proporcionados.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public class Persona {
+    String nombre;
+    int edad;
+
+    // Constructor completo
+    public Persona(String nombre, int edad) {
+        this.nombre = nombre;
+        this.edad = edad;
+    }
+
+    // Constructor con solo nombre (edad por defecto)
+    public Persona(String nombre) {
+        this(nombre, 0);  // Llama al constructor completo
+    }
+
+    // Constructor vacío (valores por defecto)
+    public Persona() {
+        this("Sin nombre", 0);
+    }
+}</pre>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.4 — Encapsulamiento</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.4.1 — Modificadores de acceso</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Modificador</th><th>Visible en</th><th>Uso típico</th></tr></thead>
+        <tbody>
+          <tr><td><code>private</code></td><td>Solo la misma clase</td><td>Atributos que no deben modificarse desde fuera</td></tr>
+          <tr><td><code>public</code></td><td>Todas las clases</td><td>Métodos que forman la interfaz pública</td></tr>
+          <tr><td><code>protected</code></td><td>Misma clase, subclases y mismo paquete</td><td>Atributos heredables pero no públicos</td></tr>
+          <tr><td>(default)</td><td>Solo el mismo paquete</td><td>Clases y métodos internos del paquete</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.4.2 — Getters y Setters</h3>
+      <p>Los atributos se declaran <code>private</code> y se accede a ellos mediante métodos públicos <code>getXxx()</code> y <code>setXxx(valor)</code>. Esto permite validar datos y cambiar la implementación interna sin afectar el código externo.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public class CuentaBancaria {
+    private double saldo;  // Atributo privado
+
+    // Getter: permite leer (no modificar)
+    public double getSaldo() {
+        return saldo;
+    }
+
+    // Setter: permite modificar con validación
+    public void setSaldo(double nuevoSaldo) {
+        if (nuevoSaldo >= 0) {
+            this.saldo = nuevoSaldo;
+        } else {
+            System.out.println("El saldo no puede ser negativo.");
+        }
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.4.3 — Ventajas del encapsulamiento</h3>
+      <ul>
+        <li><strong>Protección de datos:</strong> los setters pueden validar valores antes de asignarlos.</li>
+        <li><strong>Mantenibilidad:</strong> se puede cambiar la implementación interna sin romper el código que usa la clase.</li>
+        <li><strong>Control de acceso:</strong> se pueden crear atributos de solo lectura (getter sin setter).</li>
+        <li><strong>Ocultamiento:</strong> el usuario de la clase no necesita saber cómo funciona internamente.</li>
+      </ul>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Principio fundamental:</strong> Los atributos siempre <code>private</code>. Los métodos que forman la API pública, <code>public</code>. Solo exponé lo que el mundo exterior realmente necesita saber.
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.5 — Herencia</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.5.1 — extends</h3>
+      <p>La herencia permite crear una clase nueva (<strong>subclase</strong> o clase hija) basada en una clase existente (<strong>superclase</strong> o clase padre). La subclase hereda atributos y métodos y puede agregar o modificar comportamiento.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">// Superclase
+public class Animal {
+    protected String nombre;
+
+    public Animal(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void comer() {
+        System.out.println(nombre + " está comiendo.");
+    }
+}
+
+// Subclase
+public class Perro extends Animal {
+    public Perro(String nombre) {
+        super(nombre);  // Llama al constructor de Animal
+    }
+
+    public void ladrar() {
+        System.out.println(nombre + " dice: ¡Guau!");
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.5.2 — super()</h3>
+      <p><code>super()</code> llama al constructor de la clase padre. <strong>Debe ser la primera instrucción</strong> del constructor de la subclase. Si no se escribe explícitamente, Java inserta <code>super()</code> (sin argumentos) automáticamente. <code>super.metodo()</code> permite llamar a un método de la clase padre desde la subclase, incluso si fue sobrescrito.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.5.3 — Herencia simple</h3>
+      <p>Java solo permite herencia simple: una clase puede extender <strong>una sola</strong> superclase. Esto evita la ambigüedad del "problema del diamante" presente en lenguajes con herencia múltiple como C++. La herencia múltiple de comportamiento se logra mediante interfaces.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.5.4 — Jerarquía de clases</h3>
+      <p>Todas las clases en Java heredan directa o indirectamente de <code>Object</code>. Esto significa que toda clase tiene métodos como <code>toString()</code>, <code>equals()</code> y <code>hashCode()</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.5.5 — "ES UN" vs "TIENE UN"</h3>
+      <ul>
+        <li><strong>"ES UN" (herencia):</strong> <code>Perro extends Animal</code> — un Perro ES UN Animal.</li>
+        <li><strong>"TIENE UN" (composición):</strong> <code>Coche tiene Motor</code> — se modela con un atributo, no con herencia.</li>
+      </ul>
+      <p>Usar herencia solo cuando hay una relación "ES UN" genuina. Para relaciones "TIENE UN", usar composición.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.5.6 — Errores comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Error</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td>Falta <code>super()</code></td><td>Si la superclase no tiene constructor vacío, la subclase debe llamar explícitamente a <code>super(args)</code></td></tr>
+          <tr><td>Herencia múltiple</td><td><code>class A extends B, C</code> — error de compilación en Java</td></tr>
+          <tr><td>Abusar de la herencia</td><td>Usar herencia para "reutilizar código" en vez de para modelar jerarquías reales</td></tr>
+          <tr><td>Atributos private en superclase</td><td>Los atributos <code>private</code> no se heredan; usar <code>protected</code> si la subclase necesita acceso directo</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.6 — Polimorfismo</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.6.1 — @Override</h3>
+      <p>Sobrescribir un método significa redefinir en la subclase un método heredado de la superclase, manteniendo la misma firma (nombre, parámetros y tipo de retorno). La anotación <code>@Override</code> es opcional pero recomendada: el compilador verifica que realmente se está sobrescribiendo un método existente.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public class Animal {
+    public void hacerSonido() {
+        System.out.println("El animal hace un sonido.");
+    }
+}
+
+public class Perro extends Animal {
+    @Override
+    public void hacerSonido() {
+        System.out.println("El perro ladra: ¡Guau!");
+    }
+}
+
+public class Gato extends Animal {
+    @Override
+    public void hacerSonido() {
+        System.out.println("El gato maúlla: ¡Miau!");
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.6.2 — Upcasting</h3>
+      <p>Es tratar un objeto de una subclase como si fuera de la superclase. Es seguro y no requiere cast explícito porque un Perro siempre ES UN Animal.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">Animal a = new Perro("Firulais");  // Upcasting implícito
+a.comer();                           // Método de Animal
+// a.ladrar();                       // ❌ Error: el compilador ve a como Animal</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.6.3 — Dynamic dispatch (enlace dinámico)</h3>
+      <p>Cuando se llama a un método sobrescrito a través de una referencia de la superclase, Java ejecuta la versión de la subclase (el tipo real del objeto en tiempo de ejecución), no la de la superclase.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">Animal[] mascotas = {new Perro("Firulais"), new Gato("Mishi")};
+for (Animal a : mascotas) {
+    a.hacerSonido();  // Dynamic dispatch: cada objeto usa su propia versión
+}
+// Imprime:
+// "El perro ladra: ¡Guau!"
+// "El gato maúlla: ¡Miau!"</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.6.4 — Override vs Overload (sobrescribir vs sobrecargar)</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Criterio</th><th>Override</th><th>Overload</th></tr></thead>
+        <tbody>
+          <tr><td>¿Dónde?</td><td>Entre superclase y subclase</td><td>En la misma clase</td></tr>
+          <tr><td>Firma</td><td>Idéntica (mismo nombre, mismos parámetros)</td><td>Distinta (diferentes parámetros)</td></tr>
+          <tr><td>Anotación</td><td><code>@Override</code></td><td>No tiene anotación especial</td></tr>
+          <tr><td>Resolución</td><td>En tiempo de ejecución (dynamic dispatch)</td><td>En tiempo de compilación</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.7 — Clases Abstractas e Interfaces</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.7.1 — Clase abstracta (abstract class)</h3>
+      <p>Una clase que no puede instanciarse directamente. Puede contener métodos abstractos (sin cuerpo, solo la firma) y métodos concretos (con implementación). Las subclases concretas están obligadas a implementar todos los métodos abstractos.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public abstract class Figura {
+    protected String color;
+
+    public Figura(String color) {
+        this.color = color;
+    }
+
+    // Método abstracto: las subclases DEBEN implementarlo
+    public abstract double calcularArea();
+
+    // Método concreto: las subclases lo heredan tal cual
+    public void mostrarColor() {
+        System.out.println("Color: " + color);
+    }
+}
+
+public class Circulo extends Figura {
+    private double radio;
+
+    public Circulo(String color, double radio) {
+        super(color);
+        this.radio = radio;
+    }
+
+    @Override
+    public double calcularArea() {
+        return Math.PI * radio * radio;
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.7.2 — Interface</h3>
+      <p>Una interfaz es un "contrato" que define qué métodos debe implementar una clase, sin especificar cómo. Una clase puede implementar <strong>múltiples</strong> interfaces (herencia múltiple de tipo).</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public interface Volador {
+    void volar();       // Método abstracto implícito (public abstract)
+    void aterrizar();
+}
+
+public interface Nadador {
+    void nadar();
+}
+
+// Una clase puede implementar múltiples interfaces
+public class Pato implements Volador, Nadador {
+    @Override
+    public void volar() {
+        System.out.println("El pato vuela.");
+    }
+    @Override
+    public void aterrizar() {
+        System.out.println("El pato aterriza.");
+    }
+    @Override
+    public void nadar() {
+        System.out.println("El pato nada.");
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.7.3 — Default methods (Java 8+)</h3>
+      <p>Desde Java 8, las interfaces pueden tener métodos con implementación por defecto usando la palabra clave <code>default</code>. Esto permite agregar nuevos métodos a interfaces existentes sin romper las clases que las implementan.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.7.4 — ¿Cuándo usar abstract class y cuándo interface?</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Abstract class</th><th>Interface</th></tr></thead>
+        <tbody>
+          <tr><td>Cuando las clases comparten atributos y comportamiento común</td><td>Cuando clases no relacionadas comparten un comportamiento</td></tr>
+          <tr><td>Cuando se necesita un constructor para inicializar estado</td><td>Cuando solo se define un contrato (qué, no cómo)</td></tr>
+          <tr><td>Herencia simple (una sola)</td><td>Herencia múltiple de tipo (varias interfaces)</td></tr>
+          <tr><td>Puede tener métodos concretos y abstractos</td><td>Originalmente solo abstractos; desde Java 8 también default/static</td></tr>
+          <tr><td>Relación "ES UN" fuerte</td><td>Relación "PUEDE HACER" (capacidad)</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">3.8 — ArrayList</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.8.1 — ¿Por qué ArrayList?</h3>
+      <p>A diferencia de los arrays, <code>ArrayList</code> tiene <strong>tamaño dinámico</strong>: crece y se reduce automáticamente según se agregan o eliminan elementos. Pertenece al paquete <code>java.util</code> y usa <strong>genéricos</strong> para garantizar seguridad de tipos.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.8.2 — Declaración y uso básico</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">import java.util.ArrayList;
+
+ArrayList<String> nombres = new ArrayList<>();  // <> operador diamante
+
+// Agregar elementos
+nombres.add("Ana");
+nombres.add("Luis");
+nombres.add("Carlos");
+
+// Acceder por índice
+System.out.println(nombres.get(0));  // "Ana"
+
+// Tamaño
+System.out.println(nombres.size());  // 3
+
+// Eliminar
+nombres.remove("Luis");              // Elimina por objeto
+nombres.remove(0);                   // Elimina por índice
+
+// Verificar existencia
+if (nombres.contains("Ana")) {
+    System.out.println("Ana está en la lista");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.8.3 — Métodos principales</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Método</th><th>Descripción</th></tr></thead>
+        <tbody>
+          <tr><td><code>add(elemento)</code></td><td>Agrega al final</td></tr>
+          <tr><td><code>add(indice, elemento)</code></td><td>Inserta en una posición específica</td></tr>
+          <tr><td><code>get(indice)</code></td><td>Obtiene el elemento en esa posición</td></tr>
+          <tr><td><code>set(indice, elemento)</code></td><td>Reemplaza el elemento en esa posición</td></tr>
+          <tr><td><code>remove(indice)</code></td><td>Elimina por índice</td></tr>
+          <tr><td><code>remove(objeto)</code></td><td>Elimina la primera ocurrencia del objeto</td></tr>
+          <tr><td><code>size()</code></td><td>Devuelve la cantidad de elementos</td></tr>
+          <tr><td><code>contains(objeto)</code></td><td>¿Contiene ese elemento?</td></tr>
+          <tr><td><code>clear()</code></td><td>Elimina todos los elementos</td></tr>
+          <tr><td><code>isEmpty()</code></td><td>¿Está vacía?</td></tr>
+          <tr><td><code>indexOf(objeto)</code></td><td>Posición de la primera ocurrencia (-1 si no está)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.8.4 — Recorrido con for-each</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">for (String nombre : nombres) {
+    System.out.println(nombre);
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.8.5 — Autoboxing y genéricos</h3>
+      <p>Los genéricos no aceptan tipos primitivos: <code>ArrayList&lt;int&gt;</code> no compila. Se deben usar las clases wrapper: <code>ArrayList&lt;Integer&gt;</code>. Java convierte automáticamente entre <code>int</code> e <code>Integer</code> (autoboxing/unboxing).</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">ArrayList<Integer> numeros = new ArrayList<>();
+numeros.add(10);       // Autoboxing: int → Integer
+numeros.add(20);
+int suma = numeros.get(0) + numeros.get(1);  // Unboxing: Integer → int
+System.out.println(suma);  // 30</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">3.8.6 — ArrayList vs Array</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Criterio</th><th>Array</th><th>ArrayList</th></tr></thead>
+        <tbody>
+          <tr><td>Tamaño</td><td>Fijo</td><td>Dinámico</td></tr>
+          <tr><td>Primitivos</td><td>Sí</td><td>No (usa wrappers)</td></tr>
+          <tr><td>Sintaxis</td><td><code>int[] a = new int[5]</code></td><td><code>ArrayList&lt;Integer&gt; a = new ArrayList&lt;&gt;()</code></td></tr>
+          <tr><td>Acceso</td><td><code>a[i]</code> (operador [])</td><td><code>a.get(i)</code> (método)</td></tr>
+          <tr><td>Longitud</td><td><code>a.length</code> (atributo)</td><td><code>a.size()</code> (método)</td></tr>
+          <tr><td>Rendimiento</td><td>Más rápido</td><td>Ligeramente más lento (redimensionamiento)</td></tr>
+        </tbody>
+      </table>
+<!-- ============================================================ -->
+      <!-- CAPÍTULO 4: HERRAMIENTAS Y BUENAS PRÁCTICAS -->
+      <!-- ============================================================ -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">4.1 — Estructura de proyectos Java</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.1.1 — Packages (paquetes)</h3>
+      <p>Los paquetes agrupan clases relacionadas y evitan conflictos de nombres. Se corresponden con la estructura de directorios del proyecto. La convención es usar el dominio de la organización invertido: <code>com.empresa.proyecto.modulo</code>.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">// Archivo: src/com/miapp/modelo/Persona.java
+package com.miapp.modelo;
+
+public class Persona {
+    // ...
+}
+
+// Archivo: src/com/miapp/servicio/PersonaService.java
+package com.miapp.servicio;
+import com.miapp.modelo.Persona;  // Import explícito
+
+public class PersonaService {
+    // ...
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.1.2 — Estructura estándar de directorios</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">mi-proyecto/
+├── src/
+│   └── main/
+│       └── java/
+│           └── com/
+│               └── miapp/
+│                   ├── modelo/      ← Clases de dominio (Persona, Producto)
+│                   ├── servicio/    ← Lógica de negocio
+│                   └── principal/   ← Clase con main()
+└── README.md</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.1.3 — Convenciones de nombres</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Elemento</th><th>Convención</th><th>Ejemplo</th></tr></thead>
+        <tbody>
+          <tr><td>Clases</td><td>PascalCase</td><td><code>CuentaBancaria</code></td></tr>
+          <tr><td>Métodos y variables</td><td>camelCase</td><td><code>calcularInteres()</code></td></tr>
+          <tr><td>Constantes</td><td>MAYÚSCULAS_CON_GUION</td><td><code>MAX_INTENTOS</code></td></tr>
+          <tr><td>Paquetes</td><td>minúsculas</td><td><code>com.miapp.util</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.1.4 — Maven y Gradle (mención)</h3>
+      <p><strong>Maven</strong> y <strong>Gradle</strong> son herramientas de automatización de builds. Gestionan dependencias, compilación, testing y empaquetado. Maven usa un archivo <code>pom.xml</code>; Gradle usa <code>build.gradle</code> (Groovy o Kotlin DSL). Aunque no se enseñan en profundidad en este curso, son estándares de la industria que conviene conocer.</p>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Import:</strong> Java no carga todas las clases automáticamente. Las clases de <code>java.lang</code> (String, Math, System) se importan automáticamente. Todo lo demás requiere <code>import</code> explícito.
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">4.2 — Manejo de archivos (File I/O)</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.2.1 — Lectura de archivos</h3>
+      <p>Java provee varias formas de leer archivos. La más simple para archivos de texto es combinar <code>FileReader</code> con <code>BufferedReader</code>. La construcción <strong>try-with-resources</strong> cierra automáticamente el recurso al finalizar.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class Lector {
+    public static void main(String[] args) {
+        String ruta = "datos.txt";
+        try (BufferedReader br = new BufferedReader(new FileReader(ruta))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                System.out.println(linea);
+            }
+        } catch (IOException e) {
+            System.out.println("Error al leer: " + e.getMessage());
+        }
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.2.2 — Escritura de archivos</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+try (BufferedWriter bw = new BufferedWriter(new FileWriter("salida.txt"))) {
+    bw.write("Primera línea");
+    bw.newLine();
+    bw.write("Segunda línea");
+} catch (IOException e) {
+    System.out.println("Error al escribir: " + e.getMessage());
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.2.3 — Try-with-resources</h3>
+      <p>Introducido en Java 7. Los recursos declarados entre paréntesis del <code>try</code> se cierran automáticamente al finalizar el bloque, sin necesidad de un bloque <code>finally</code>. Solo funciona con clases que implementan <code>AutoCloseable</code>.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.2.4 — Parseo de CSV con split()</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">String linea = "Juan,25,Argentina";
+String[] partes = linea.split(",");
+String nombre = partes[0];   // "Juan"
+int edad = Integer.parseInt(partes[1]);  // 25
+String pais = partes[2];     // "Argentina"</pre>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">4.3 — Excepciones</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.3.1 — try-catch-finally</h3>
+      <p>El manejo de excepciones permite que el programa reaccione ante errores en tiempo de ejecución sin detenerse abruptamente.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">try {
+    int resultado = 10 / 0;          // ArithmeticException
+    int[] arr = new int[3];
+    arr[5] = 99;                     // ArrayIndexOutOfBoundsException
+} catch (ArithmeticException e) {
+    System.out.println("Error aritmético: " + e.getMessage());
+} catch (ArrayIndexOutOfBoundsException e) {
+    System.out.println("Índice fuera de rango");
+} catch (Exception e) {
+    System.out.println("Error general: " + e.getMessage());
+} finally {
+    System.out.println("Esto se ejecuta siempre (haya o no error).");
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.3.2 — Excepciones checked vs unchecked</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Tipo</th><th>Jerarquía</th><th>¿Obligación?</th><th>Ejemplos</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Checked</strong></td><td>Heredan de <code>Exception</code> (no de RuntimeException)</td><td>Deben ser capturadas o declaradas con <code>throws</code></td><td><code>IOException</code>, <code>SQLException</code></td></tr>
+          <tr><td><strong>Unchecked</strong></td><td>Heredan de <code>RuntimeException</code></td><td>No obligan a capturarlas</td><td><code>NullPointerException</code>, <code>ArithmeticException</code></td></tr>
+          <tr><td><strong>Errors</strong></td><td>Heredan de <code>Error</code></td><td>No deben capturarse (irrecuperables)</td><td><code>OutOfMemoryError</code>, <code>StackOverflowError</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.3.3 — Excepciones comunes</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Excepción</th><th>Causa típica</th></tr></thead>
+        <tbody>
+          <tr><td><code>NullPointerException</code></td><td>Usar un objeto que es <code>null</code></td></tr>
+          <tr><td><code>ArrayIndexOutOfBoundsException</code></td><td>Acceder a un índice inválido de array</td></tr>
+          <tr><td><code>ArithmeticException</code></td><td>División por cero con enteros</td></tr>
+          <tr><td><code>NumberFormatException</code></td><td>Convertir un String no numérico a número</td></tr>
+          <tr><td><code>ClassCastException</code></td><td>Convertir un objeto a un tipo incompatible</td></tr>
+          <tr><td><code>IOException</code></td><td>Error al leer/escribir archivos</td></tr>
+          <tr><td><code>FileNotFoundException</code></td><td>El archivo no existe (subclase de IOException)</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.3.4 — Multi-catch (Java 7+)</h3>
+      <p>Permite capturar múltiples tipos de excepción en un solo bloque <code>catch</code>:</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">try {
+    // código que puede fallar
+} catch (IOException | SQLException e) {
+    System.out.println("Error de entrada/salida: " + e.getMessage());
+}</pre>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">4.4 — Excepciones propias</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.4.1 — Crear una excepción personalizada</h3>
+      <p>Para representar errores específicos del dominio de la aplicación se pueden crear excepciones propias extendiendo <code>Exception</code> (checked) o <code>RuntimeException</code> (unchecked).</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">// Excepción checked (obliga a capturar)
+public class SaldoInsuficienteException extends Exception {
+    public SaldoInsuficienteException(String mensaje) {
+        super(mensaje);
+    }
+}
+
+// Excepción unchecked (no obliga a capturar)
+public class EdadInvalidaException extends RuntimeException {
+    public EdadInvalidaException(String mensaje) {
+        super(mensaje);
+    }
+}</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.4.2 — throw y throws</h3>
+      <ul>
+        <li><code>throw</code>: lanza una excepción en un punto específico del código.</li>
+        <li><code>throws</code>: declara que un método puede lanzar una excepción (checked), delegando la responsabilidad de capturarla a quien lo llame.</li>
+      </ul>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">public class Cuenta {
+    private double saldo;
+
+    public void retirar(double monto) throws SaldoInsuficienteException {
+        if (monto > saldo) {
+            throw new SaldoInsuficienteException(
+                "Saldo insuficiente. Disponible: $" + saldo);
+        }
+        saldo -= monto;
+    }
+}</pre>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">4.5 — JVM, Bytecode y compilación</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.5.1 — El flujo de compilación</h3>
+      <p>Java sigue un proceso de dos pasos: compilación y ejecución.</p>
+      <ol>
+        <li><strong>Código fuente</strong> (<code>.java</code>) → compilador <code>javac</code> → <strong>bytecode</strong> (<code>.class</code>)</li>
+        <li><strong>Bytecode</strong> (<code>.class</code>) → JVM (<code>java</code>) → <strong>código máquina</strong> (en tiempo de ejecución)</li>
+      </ol>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;"># Compilar
+javac MiPrograma.java          # Genera MiPrograma.class
+
+# Ejecutar
+java MiPrograma                # La JVM ejecuta el bytecode</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.5.2 — ¿Qué es la JVM?</h3>
+      <p>La <strong>Java Virtual Machine</strong> es una máquina virtual que ejecuta bytecode. Es la responsable del lema <strong>"Write Once, Run Anywhere"</strong>: el mismo <code>.class</code> puede ejecutarse en cualquier sistema operativo que tenga una JVM instalada. La JVM provee además manejo automático de memoria (Garbage Collector) y seguridad (sandbox).</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.5.3 — Compilación multi-archivo</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;"># Compilar todos los .java de un directorio
+javac *.java
+
+# Compilar especificando destino de .class
+javac -d bin/ src/com/miapp/*.java</pre>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Dato:</strong> El bytecode es un lenguaje intermedio independiente de la plataforma. No es código máquina nativo, sino instrucciones que la JVM interpreta o compila "just-in-time" (JIT) a código nativo.
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">4.6 — Exportación JAR</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.6.1 — ¿Qué es un JAR?</h3>
+      <p>Un archivo <strong>JAR</strong> (Java ARchive) es un paquete comprimido (formato ZIP) que contiene archivos <code>.class</code>, recursos y metadatos. Permite distribuir una aplicación Java como un solo archivo.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.6.2 — Crear un JAR ejecutable</h3>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;"># 1. Crear MANIFEST.MF con la clase principal
+# Contenido del archivo MANIFEST.MF:
+# Main-Class: com.miapp.Principal
+#
+# 2. Empaquetar
+jar cfm MiApp.jar MANIFEST.MF -C bin/ .
+
+# 3. Ejecutar
+java -jar MiApp.jar</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">4.6.3 — Opciones comunes de jar</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Opción</th><th>Significado</th></tr></thead>
+        <tbody>
+          <tr><td><code>c</code></td><td>Crear un nuevo archivo JAR</td></tr>
+          <tr><td><code>f</code></td><td>Especificar nombre del archivo de salida</td></tr>
+          <tr><td><code>m</code></td><td>Incluir archivo MANIFEST.MF personalizado</td></tr>
+          <tr><td><code>v</code></td><td>Modo verbose (muestra lo que se empaqueta)</td></tr>
+          <tr><td><code>t</code></td><td>Listar contenido de un JAR existente</td></tr>
+          <tr><td><code>x</code></td><td>Extraer contenido de un JAR</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ============================================================ -->
+      <!-- CAPÍTULO 5: CONTROL DE VERSIONES CON GIT -->
+      <!-- ============================================================ -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">5.1 — Git: Fundamentos</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.1.1 — ¿Qué es Git?</h3>
+      <p>Git es un sistema de <strong>control de versiones distribuido</strong>. Permite registrar el historial de cambios de un proyecto, volver a versiones anteriores, trabajar en paralelo con ramas y colaborar con otros desarrolladores. Fue creado por Linus Torvalds en 2005.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.1.2 — Los tres estados de Git</h3>
+      <p>Git maneja tres áreas donde los archivos pueden residir:</p>
+      <table class="sym-tbl">
+        <thead><tr><th>Área</th><th>Descripción</th><th>Comando</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Working Directory</strong></td><td>Los archivos en tu disco, donde trabajás</td><td>—</td></tr>
+          <tr><td><strong>Staging Area</strong></td><td>Archivos marcados para el próximo commit</td><td><code>git add</code></td></tr>
+          <tr><td><strong>Repository (.git)</strong></td><td>Historial de commits almacenado localmente</td><td><code>git commit</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.1.3 — Flujo de trabajo básico</h3>
+      <ol>
+        <li><strong>Modificar</strong> archivos en el Working Directory.</li>
+        <li><strong>Agregar</strong> los cambios al Staging Area con <code>git add</code>.</li>
+        <li><strong>Confirmar</strong> los cambios al repositorio con <code>git commit</code>.</li>
+      </ol>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Diferencia clave:</strong> Git es <strong>distribuido</strong>: cada desarrollador tiene una copia completa del historial en su máquina. No depende de un servidor central para funcionar (a diferencia de SVN).
+      </div>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">5.2 — Comandos esenciales de Git</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.1 — git init</h3>
+      <p>Inicializa un nuevo repositorio Git en el directorio actual. Crea una carpeta oculta <code>.git</code> que contiene toda la base de datos del historial.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git init                    # Crea repositorio en el directorio actual
+git init nombre-proyecto    # Crea directorio y repositorio dentro</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.2 — git status</h3>
+      <p>Muestra el estado actual: archivos modificados, en staging, sin seguimiento. Es el comando más usado para entender qué está pasando.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git status</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.3 — git add</h3>
+      <p>Agrega archivos al Staging Area, preparándolos para el próximo commit.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git add archivo.java        # Agrega un archivo específico
+git add *.java               # Agrega todos los .java
+git add .                    # Agrega todos los cambios del directorio actual</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.4 — git commit</h3>
+      <p>Guarda los cambios del Staging Area en el repositorio como una nueva versión (commit). Cada commit tiene un mensaje descriptivo y un identificador único (hash SHA-1).</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git commit -m "Agrega clase Persona con getters y setters"
+git commit -m "Corrige bug en cálculo de saldo"</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.5 — git log</h3>
+      <p>Muestra el historial de commits en orden cronológico inverso.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git log                     # Historial completo
+git log --oneline           # Una línea por commit (resumido)
+git log --oneline -5        # Últimos 5 commits</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.6 — git checkout</h3>
+      <p>Permite moverse entre commits o ramas, o restaurar archivos a un estado anterior.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git checkout nombre-rama     # Cambia a una rama
+git checkout -- archivo.java # Descarta cambios locales (restaura)</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.7 — .gitignore</h3>
+      <p>Archivo que indica a Git qué archivos o directorios debe ignorar (no versionar). Esencial para excluir archivos compilados, dependencias, configuraciones locales e información sensible.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;"># Ejemplo de .gitignore para proyectos Java
+*.class
+*.jar
+bin/
+target/
+.idea/
+*.iml
+.settings/
+.classpath
+.project</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.2.8 — Resumen de comandos Git</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Comando</th><th>Función</th></tr></thead>
+        <tbody>
+          <tr><td><code>git init</code></td><td>Crear repositorio</td></tr>
+          <tr><td><code>git status</code></td><td>Ver estado de archivos</td></tr>
+          <tr><td><code>git add</code></td><td>Agregar al staging</td></tr>
+          <tr><td><code>git commit -m</code></td><td>Confirmar cambios</td></tr>
+          <tr><td><code>git log</code></td><td>Ver historial</td></tr>
+          <tr><td><code>git checkout</code></td><td>Cambiar de rama/restaurar</td></tr>
+          <tr><td><code>git diff</code></td><td>Ver diferencias no stagedas</td></tr>
+          <tr><td><code>git branch</code></td><td>Listar/crear ramas</td></tr>
+          <tr><td><code>git merge</code></td><td>Fusionar ramas</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">5.3 — Git remoto y GitHub</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.3.1 — Repositorios remotos</h3>
+      <p>Un repositorio remoto es una copia del proyecto alojada en un servidor (GitHub, GitLab, Bitbucket). Permite compartir código y colaborar con otros desarrolladores.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.3.2 — git remote add</h3>
+      <p>Vincula el repositorio local con un repositorio remoto.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git remote add origin https://github.com/usuario/repositorio.git</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.3.3 — git push</h3>
+      <p>Envía los commits locales al repositorio remoto.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git push -u origin main      # Primer push: establece upstream
+git push                     # Pushs subsiguientes (ya configurado)</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.3.4 — git pull</h3>
+      <p>Trae los cambios del repositorio remoto y los fusiona con la rama local.</p>
+      <pre style="background:var(--code-bg);padding:12px;border-radius:8px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:13px;">git pull origin main         # Descarga y fusiona cambios remotos</pre>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.3.5 — Flujo de trabajo con remotos</h3>
+      <ol>
+        <li><code>git pull</code> para traer los últimos cambios.</li>
+        <li>Trabajar localmente: modificar, <code>add</code>, <code>commit</code>.</li>
+        <li><code>git push</code> para subir los cambios.</li>
+      </ol>
+      <p>Este flujo <strong>pull-commit-push</strong> es el día a día del desarrollo colaborativo con Git.</p>
+
+      <!-- ──────────────────────────────────────── -->
+      <h2 style="color:var(--java);margin-top:30px;border-bottom:1px solid var(--border);padding-bottom:8px;">5.4 — IDEs para Java</h2>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.4.1 — Eclipse IDE</h3>
+      <p>Uno de los IDEs más veteranos para Java. Gratuito y de código abierto. Destaca por su ecosistema de plugins, su perspective-based UI y su potente soporte para refactoring. Integración Git integrada (EGit).</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.4.2 — IntelliJ IDEA</h3>
+      <p>Considerado por muchos el IDE más inteligente para Java. Ofrece autocompletado contextual avanzado, análisis estático profundo y navegación de código superior. La versión Community es gratuita; la Ultimate es de pago. Integración Git nativa excepcional.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.4.3 — VS Code</h3>
+      <p>Editor ligero y altamente extensible. Con el paquete de extensiones "Extension Pack for Java" se convierte en un entorno Java funcional. Ideal para proyectos pequeños o para quien prefiere un editor rápido sobre un IDE pesado. Soporte Git integrado en la interfaz.</p>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.4.4 — Comparativa de IDEs</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Criterio</th><th>Eclipse</th><th>IntelliJ IDEA</th><th>VS Code</th></tr></thead>
+        <tbody>
+          <tr><td>Peso</td><td>Pesado</td><td>Medio</td><td>Ligero</td></tr>
+          <tr><td>Curva de aprendizaje</td><td>Media-alta</td><td>Media</td><td>Baja</td></tr>
+          <tr><td>Refactoring</td><td>Bueno</td><td>Excelente</td><td>Básico (con extensiones)</td></tr>
+          <tr><td>Git integrado</td><td>EGit</td><td>Nativo excelente</td><td>Nativo bueno</td></tr>
+          <tr><td>Costo</td><td>Gratuito</td><td>Community gratis / Ultimate pago</td><td>Gratuito</td></tr>
+          <tr><td>Mejor para</td><td>Proyectos grandes empresariales</td><td>Desarrollo profesional Java</td><td>Proyectos chicos/medianos, aprendizaje</td></tr>
+        </tbody>
+      </table>
+
+      <h3 style="color:var(--teal);margin-top:20px;">5.4.5 — Atajos de teclado esenciales</h3>
+      <table class="sym-tbl">
+        <thead><tr><th>Acción</th><th>Eclipse</th><th>IntelliJ</th><th>VS Code</th></tr></thead>
+        <tbody>
+          <tr><td>Ejecutar</td><td><code>Ctrl+F11</code></td><td><code>Shift+F10</code></td><td><code>F5</code></td></tr>
+          <tr><td>Formatear código</td><td><code>Ctrl+Shift+F</code></td><td><code>Ctrl+Alt+L</code></td><td><code>Shift+Alt+F</code></td></tr>
+          <tr><td>Buscar archivo</td><td><code>Ctrl+Shift+R</code></td><td><code>Ctrl+Shift+N</code></td><td><code>Ctrl+P</code></td></tr>
+          <tr><td>Autocompletar</td><td><code>Ctrl+Space</code></td><td><code>Ctrl+Space</code></td><td><code>Ctrl+Space</code></td></tr>
+          <tr><td>Comentar línea</td><td><code>Ctrl+/</code></td><td><code>Ctrl+/</code></td><td><code>Ctrl+/</code></td></tr>
+          <tr><td>Buscar referencias</td><td><code>Ctrl+Shift+G</code></td><td><code>Alt+F7</code></td><td><code>Shift+F12</code></td></tr>
+          <tr><td>Renombrar</td><td><code>Alt+Shift+R</code></td><td><code>Shift+F6</code></td><td><code>F2</code></td></tr>
+        </tbody>
+      </table>
+
+      <div style="background:var(--bg3);border-left:3px solid var(--java);padding:12px 16px;margin:12px 0;border-radius:0 8px 8px 0;">
+        <strong>💡 Recomendación:</strong> Para empezar, VS Code con Extension Pack for Java es la opción más accesible. Cuando los proyectos crezcan, IntelliJ IDEA Community Edition ofrece herramientas más avanzadas sin costo.
+      </div>
+</div>
+
+<div class="modal-overlay" id="ranking-overlay" onclick="Ranking.onOverlayClick(event)">
+  <div class="grad-box ranking-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2>🏆 Ranking</h2>
+      <button type="button" class="hint-btn" onclick="Ranking.hideModal()">✕ Cerrar</button>
+    </div>
+    <p class="rank-legend">Puntos = lecciones×10 + quizzes (máx 60) + certificado (+100). Máx 500.</p>
+    <div class="rank-scroll">
+      <table class="rank-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Usuario</th>
+            <th>Lecciones</th>
+            <th>Quiz</th>
+            <th>Cert</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="ranking-tbody">
+          <tr><td colspan="6" class="rank-empty">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="history-overlay" onclick="Ranking.onHistoryOverlayClick(event)">
+  <div class="grad-box ranking-box" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <h2>📋 Mi historial</h2>
+      <button type="button" class="hint-btn" onclick="Ranking.hideHistory()">✕ Cerrar</button>
+    </div>
+    <div id="history-body" class="rank-scroll"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/lessons.js"></script>
+<script src="js/validate.js"></script>
+<script src="js/progress.js"></script>
+<script src="js/ranking.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
