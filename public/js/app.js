@@ -155,11 +155,16 @@ function showManual() {
 }
 
 function printManual() {
+  var overlay = document.getElementById('manual-overlay');
+  if (overlay) overlay.classList.add('show');
+  document.body.classList.add('printing-manual');
   var ps = document.createElement('style');
-  ps.textContent = '@page { size: A4; margin: 1.5cm; }';
+  ps.id = 'manual-page-size';
+  ps.textContent = '@page { size: A4 portrait; margin: 16mm; }';
   document.head.appendChild(ps);
   window.print();
-  setTimeout(function() { ps.remove(); }, 500);
+  ps.remove();
+  document.body.classList.remove('printing-manual');
 }
 
 function switchTab(t) {
