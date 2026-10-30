@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Java INPRO — De Cero a Programador · Tutorial Interactivo</title>
-<meta name="description" content="35 lecciones interactivas para aprender programación en Java desde cero. Ejercicios, quizzes, ranking y certificado descargable.">
+<meta name="description" content="35 lecciones interactivas para aprender programación en Java desde cero, de la vida diaria al código. Ejercicios ejecutables, evaluaciones, ranking y certificado descargable.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/main.css">
@@ -54,6 +54,7 @@
       <div class="auth-actions">
         <button type="button" id="btn-ranking" class="auth-btn" onclick="Ranking.showModal()">🏆 Ranking</button>
         <button type="button" id="btn-history" class="auth-btn" onclick="Ranking.showHistory()">📋 Historial</button>
+        <button type="button" id="btn-eval" class="auth-btn" onclick="Practica.showPanel()">🧪 Evaluaciones</button>
         <button type="button" id="btn-logout" class="auth-btn" onclick="AuthUI.signOut()">Salir</button>
       </div>
     </div>
@@ -110,11 +111,15 @@
       <div class="cert-sign">
         <div class="cert-seal">☕</div>
         <div class="cert-sig-code">boolean certified = true;</div>
-        <b>JAMES GOSLING</b><br>Creador de Java
+        <b>BRIAN DANIEL LOTO</b><br>Autor del curso
       </div>
       <div class="cert-sign"><span id="cert-date"></span><br><b>FECHA DE EMISIÓN</b></div>
     </div>
   </div>
+</div>
+
+<div class="grad-overlay" id="sim-overlay" style="z-index:10001;">
+  <div class="grad-box sim-box" id="sim-box"></div>
 </div>
 
 <div class="grad-overlay" id="manual-overlay" style="z-index:10001;">
@@ -1713,7 +1718,13 @@ git push                     # Pushs subsiguientes (ya configurado)</pre>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="js/firebase-config.js"></script>
 <script src="js/lessons.js"></script>
+<script src="js/javarun.js"></script>
 <script src="js/validate.js"></script>
+<script src="js/practica-1-super.js"></script>
+<script src="js/practica-2-basico.js"></script>
+<script src="js/practica-3-inter.js"></script>
+<script src="js/practica-4-avanzado.js"></script>
+<script src="js/practica.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/ranking.js"></script>
 <script src="js/auth.js"></script>

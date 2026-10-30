@@ -1,6 +1,6 @@
 // Progress sync: Firestore (source of truth) + localStorage cache scoped by uid
 var Progress = (function () {
-  var QUIZ_LESSON_IDS = [14, 25, 30, 32];
+  var QUIZ_LESSON_IDS = [14, 25, 30, 32, 35];
   var ACTIVE_UID_KEY = 'java_active_uid';
   var LEGACY_KEYS = [
     'java_done_v2',
@@ -92,6 +92,7 @@ var Progress = (function () {
     removeKey('java_quiz_scores', uid);
     removeKey('java_completion_date', uid);
     removeKey('java_cert_shown', uid);
+    removeKey('java_practice', uid);
   }
 
   function saveLocalCache(uid, completedLessons, scores, extras) {
@@ -106,7 +107,7 @@ var Progress = (function () {
 
   function loadLocalCache(uid) {
     if (!uid) {
-      return { completedLessons: [], scores: {}, completionDate: null, certShown: null };
+      return { completedLessons: [], scores: {}, completionDate: null, certShown: null, practice: null };
     }
     var completedLessons = getJson('java_done_v2', uid, []);
     if (!Array.isArray(completedLessons)) completedLessons = [];
@@ -116,7 +117,8 @@ var Progress = (function () {
       completedLessons: completedLessons,
       scores: scores,
       completionDate: getStr('java_completion_date', uid),
-      certShown: getStr('java_cert_shown', uid)
+      certShown: getStr('java_cert_shown', uid),
+      practice: getJson('java_practice', uid, null)
     };
   }
 
@@ -136,11 +138,40 @@ var Progress = (function () {
     return {
       completedLessons: mergedDone,
       scores: mergedScores,
-      completionDate: local.completionDate || null,
+      completionDate: local.completionDate || (remote && remote.completionDate) || null,
       certShown: local.certShown || null,
+      practice: mergePractice(local.practice, remote && remote.practice),
       certificateEarned: !!(remote && remote.certificateEarned) ||
         mergedDone.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 35)
     };
+  }
+
+  function mergePractice(local, remote) {
+    var a = local || {};
+    var b = remote || {};
+    var scores = Object.assign({}, a.scores || {});
+    Object.keys(b.scores || {}).forEach(function (k) {
+      scores[k] = Math.max(scores[k] === undefined ? 0 : scores[k], b.scores[k]);
+    });
+    var wrong = Array.from(new Set((a.wrong || []).concat(b.wrong || []))).filter(function (k) { return scores[k] < 1; });
+    var sims = (a.sims || []).length >= (b.sims || []).length ? (a.sims || []) : b.sims;
+    return { scores: scores, wrong: wrong, sims: sims };
+  }
+
+  var practiceTimer = null;
+
+  function savePractice(practice) {
+    var uid = activeUid();
+    if (!uid) return;
+    setJson('java_practice', uid, practice);
+    if (practiceTimer) clearTimeout(practiceTimer);
+    practiceTimer = setTimeout(function () {
+      var user = currentUser();
+      if (!firebaseReady || !user || user.uid !== uid) return;
+      firebaseDb.collection('progress').doc(uid).set({ practice: practice }, { merge: true }).catch(function (err) {
+        console.warn('[Progress] savePractice failed', err);
+      });
+    }, 1500);
   }
 
   function syncProgress(completedLessons, currentLesson, certificateEarned) {
@@ -148,7 +179,8 @@ var Progress = (function () {
     if (!user) return Promise.resolve();
     var uid = user.uid;
     saveLocalCache(uid, completedLessons, getJson('java_quiz_scores', uid, {}));
-    if (certificateEarned) {
+    var firstCompletion = !!certificateEarned && !getStr('java_completion_date', uid);
+    if (firstCompletion) {
       setStr('java_completion_date', uid, new Date().toISOString());
     }
     if (!firebaseReady) return Promise.resolve();
@@ -158,7 +190,7 @@ var Progress = (function () {
       certificateEarned: !!certificateEarned,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     };
-    if (certificateEarned) {
+    if (firstCompletion) {
       payload.completionDate = firebase.firestore.FieldValue.serverTimestamp();
     }
     return firebaseDb.collection('progress').doc(uid).set(payload, { merge: true }).catch(function (err) {
@@ -212,12 +244,6 @@ var Progress = (function () {
     return getStr('java_completion_date', uid);
   }
 
-  function setCompletionDateIso(iso) {
-    var uid = activeUid();
-    if (!uid) return;
-    setStr('java_completion_date', uid, iso);
-  }
-
   function loadRemote() {
     var user = currentUser();
     if (!firebaseReady || !user) {
@@ -228,7 +254,9 @@ var Progress = (function () {
     return Promise.all([progressP, attemptsP]).then(function (results) {
       var progSnap = results[0];
       var attSnap = results[1];
-      var completedLessons = progSnap.exists ? (progSnap.data().completedLessons || []) : [];
+      var progData = progSnap.exists ? progSnap.data() : {};
+      var completedLessons = progData.completedLessons || [];
+      var finished = progData.completionDate && progData.completionDate.toDate ? progData.completionDate.toDate().toISOString() : null;
       var scores = {};
       attSnap.forEach(function (doc) {
         var d = doc.data();
@@ -240,7 +268,9 @@ var Progress = (function () {
       return {
         completedLessons: completedLessons,
         scores: scores,
-        certificateEarned: !!(progSnap.exists && progSnap.data().certificateEarned)
+        certificateEarned: !!progData.certificateEarned,
+        completionDate: finished,
+        practice: progData.practice || null
       };
     }).catch(function (err) {
       console.warn('[Progress] loadRemote failed', err);
@@ -300,10 +330,10 @@ var Progress = (function () {
     loadLocalCache: loadLocalCache,
     saveLocalCache: saveLocalCache,
     saveQuizScores: saveQuizScores,
+    savePractice: savePractice,
     markCertShown: markCertShown,
     wasCertShown: wasCertShown,
     getCompletionDate: getCompletionDate,
-    setCompletionDateIso: setCompletionDateIso,
     clearLocalForUid: clearLocalForUid,
     purgeLegacyGlobalKeys: purgeLegacyGlobalKeys,
     setActiveUid: setActiveUid,

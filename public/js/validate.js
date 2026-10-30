@@ -1,4 +1,4 @@
-// Java INPRO — Code validation (syntax + pattern matching)
+// Java INPRO — Code validation (ejecuta con JavaRun, diagnostica y revisa conceptos)
 
 function checkJavaSyntax(source) {
   var lines = source.split('\n');
@@ -285,6 +285,7 @@ function lineNeedsSemicolon(rawLine) {
   if (!s) return false;
   if (/[;{]\s*$/.test(s)) return false;
   if (/^}\s*$/.test(s)) return false;
+  if (/\)\s*(throws\s+[\w,\s]+)?\{.*\}\s*$/.test(s)) return false;
   if (/^}\s*(else|catch|finally)\b/.test(s)) return false;
   if (/,\s*$/.test(s)) return false;
   if (/^(case|default)\b/.test(s)) return false;
@@ -754,97 +755,151 @@ function styleNotes(source) {
   return intro;
 }
 
-function localValidate(id, c) {
-  var isGitLesson = (id === 31 || id === 33);
-  if (!isGitLesson) {
-    var syntaxErr = checkJavaSyntax(c);
-    if (syntaxErr) return syntaxErr;
-    var sim = simulateJava(c, lessonExpected(id));
-    if (sim && sim.syntax) return sim;
-    if (sim && sim.simulated) return sim;
-  }
-  const code = c.replace(/\/\/.*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
-  if (!isGitLesson && !code.includes('class')) return { err: "Falta definir una clase (ej. 'class Main')." };
+function normalizeOutput(text) {
+  return String(text == null ? '' : text).replace(/\r/g, '').split('\n').map(function (l) { return l.replace(/\s+$/, ''); }).join('\n').replace(/\s+$/, '');
+}
 
-  const has = (str) => code.includes(str);
-  
-  switch(id) {
-    case 1: return (has('println("¡Hola, Java!")') && has('println("Bienvenido al tutorial")')) ? { ok: true } : { err: "Asegurate de imprimir las dos frases exactas pedidas." };
-    case 2: return (has('String') && has('int') && has('double') && has('boolean') && has('System.out.println')) ? { ok: true } : { err: "Declaraste las 4 variables? (String, int, double, boolean) Y usaste System.out.println?" };
-    case 3: return ((has('a+b')||has('a + b')) && (has('a-b')||has('a - b')) && (has('a*b')||has('a * b')) && (has('a/b')||has('a / b')) && (has('a%b')||has('a % b'))) ? { ok: true } : { err: "Asegurate de calcular la suma (+), resta (-), producto (*), división (/) y resto (%)." };
-    case 4: return (has('.toUpperCase(') && has('.length(') && has('.charAt(0)') && has('.contains("tutorial")')) ? { ok: true } : { err: "Usá los métodos .toUpperCase(), .length(), .charAt(0) y .contains()." };
-    case 5: return (has('double') && has('(int)') && has('Math.round') && has('Math.sqrt')) ? { ok: true } : { err: "Asegurate de usar widening (double), narrowing (int), Math.round() y Math.sqrt()." };
-        case 6:
-      if (!has('.trim()')) return { err: "Usá .trim() para eliminar los espacios del nombre." };
-      if (!has('.toUpperCase()')) return { err: "Convertí el nombre a mayúsculas con .toUpperCase()." };
-      if (!has('+')) return { err: "Concatená texto y variables con +." };
-      return { ok: true };
-case 7: return (has('if') && has('else if') && has('else') && (has('>= 90')||has('>=90'))) ? { ok: true } : { err: "Usá la estructura if / else if / else para evaluar la nota." };
-    case 8: return (has('switch') && has('case') && has('break') && has('default')) ? { ok: true } : { err: "Usá la estructura switch con cases, breaks y default." };
-    case 9: return (has('&&')) ? { ok: true } : { err: "Debés usar el operador && para evaluar ambas condiciones." };
-    case 10: return (has('String') && has('int') && has('Hola') && has('22')) ? { ok: true } : { err: "Declaraste las variables como se pedía y concatenaste bien el string?" };
-    case 11: return (has('while') && (has('<= 5') || has('<=5')) && has('++') && has('¡Listo!')) ? { ok: true } : { err: "Usá un bucle while, incrementá la variable, y al final imprimí '¡Listo!'." };
-    case 12: return (has('for') && (has('<= 5') || has('< 6') || has('<=5') || has('<6')) && has('*')) ? { ok: true } : { err: "Usá un bucle for que vaya del 1 al 5 para la tabla del 3." };
-    case 13: return ((has('int[]') || has('int []')) && (has('for') || has('while')) && has('+')) ? { ok: true } : { err: "Creá el array y recorrelo con un for para sumar." };
-        case 14: case 25: return { ok: false, err: "Esta leccion es un cuestionario, no un ejercicio de codigo." };
-    //SKIP: 14 es quiz (Paradigmas), validación no aplica
-    case 16: return (has('static void imprimirSeparador') && has('--- --- ---') && code.split('imprimirSeparador').length > 3) ? { ok: true } : { err: "Definí el método imprimirSeparador() y llamalo 3 veces." };
-    case 17: return (has('static int calcularArea') && has('return') && has('*') && (has('calcularArea(6,') || has('calcularArea(6,4)') || has('calcularArea(6, 4)') || has('calcularArea( 6,'))) ? { ok: true } : { err: "Definí calcularArea con retorno (return) y llamalo con 6 y 4." };
-    case 18: return (has('class Persona') && has('void presentarse') && has('new Persona()')) ? { ok: true } : { err: "Creá la clase Persona, el método presentarse, y un objeto nuevo." };
-    case 19: return (has('Producto(String') && has('this.') && has('new Producto("Laptop"')) ? { ok: true } : { err: "Creá el constructor y usalo para instanciar el Producto." };
-    case 20: return (has('private String nombre') && has('private int edad') && has('public String getNombre')) ? { ok: true } : { err: "Asegurate de usar private en los atributos y definir los métodos get/set." };
-    case 21: return (has('class Perro extends Animal') && has('super(')) ? { ok: true } : { err: "Asegurate de usar 'extends Animal' y 'super()'." };
-    case 22: return (code.includes('@Override') || (has('void hacerSonido()') && has('new Perro(') && has('new Gato('))) ? { ok: true } : { err: "Creá Perro y Gato que hereden de Animal y sobrescribí hacerSonido()." };
-    case 23: return (has('interface') && has('implements')) ? { ok: true } : { err: "Definí una interfaz y clases que la implementen." };
-    case 24: return (has('ArrayList<String>') && has('.add("Manzana")') && has('.add("Banana")') && has('.add("Naranja")') && has('.size()')) ? { ok: true } : { err: "Creá el ArrayList, usá .add() 3 veces y mostrá el total con .size()." };
-    //SKIP: 25 es quiz (Proyectos), validación no aplica
-    case 26: return (has('FileWriter') && has('BufferedWriter') && has('.write(') && has('catch')) ? { ok: true } : { err: "Asegurate de usar FileWriter, BufferedWriter, write() y un try-catch." };
-    case 27: return (has('try') && has('Integer.parseInt') && has('catch')) ? { ok: true } : { err: "Usá un bloque try-catch para atrapar el error." };
-    case 28: return (has('extends Exception') && has('throw new') && has('try')) ? { ok: true } : { err: "Creá tu propia excepción con extends Exception, lanzala con throw y atrapala con try-catch." };
-    case 30:     case 34:
-      if (!has('class') || !has('private')) return { err: "Creá una clase con atributos privados." };
-      if (!has('ArrayList')) return { err: "Usá ArrayList para gestionar la colección." };
-      if (!has('switch')) return { err: "Implementá un menú con switch." };
-      if (!has('while')) return { err: "Usá while para mantener el menú activo." };
-      if (!has('try')) return { err: "Manejá errores con try-catch." };
-      if (!has('git init')) return { err: "Versioná el proyecto con git init." };
-      if (!has('git add')) return { err: "Usá git add para preparar archivos." };
-      if (!has('git commit')) return { err: "Guardá los cambios con git commit." };
-      return { ok: true };
-return { ok: false, err: "Esta lección es un cuestionario. Andá a la pestaña Cuestionario para completarlo." };
-    case 31:
-      if (!has('git init')) return { err: "Inicializá el repositorio con git init." };
-      if (!has('git add')) return { err: "Usá git add para preparar los archivos." };
-      if (!has('git commit')) return { err: "Guardá los cambios con git commit." };
-      if (!has('git log')) return { err: "Consultá el historial con git log." };
-      if (!has('git checkout')) return { err: "Recuperá la versión anterior con git checkout." };
-      return { ok: true };
-    case 32: case 35: return { ok: false, err: "Esta lección es un cuestionario. Andá a la pestaña Cuestionario para completarlo." };
-    case 33:
-      if (!has('git init')) return { err: "Inicializá el repositorio con git init." };
-      if (!has('git add')) return { err: "Prepará los archivos con git add." };
-      var commits = (code.match(/git commit/g) || []).length;
-      if (commits < 2) return { err: "Hacé al menos 2 commits para registrar los cambios de cada día." };
-      if (!has('git log')) return { err: "Consultá el historial con git log." };
-      if (!has('git checkout')) return { err: "Recuperá la versión anterior con git checkout." };
-      return { ok: true };
-    case 15:
-      if (!has('for') && !has('while')) return { err: "Tenés que usar un bucle (for o while) para recorrer el array." };
-      if (!has('if')) return { err: "Tenés que usar un if para verificar si la venta superó los 200." };
-      if (!has('ventas')) return { err: "Usá el array ventas que se te dio en el starter." };
-      return { ok: true };
-    case 29:
-      if (!has('switch')) return { err: "Tenés que usar switch para el menú." };
-      if (!has('while')) return { err: "Tenés que usar while para mantener el menú." };
-      var oopCount = 0;
-      if (has('interface') || has('abstract class')) oopCount++;
-      if (has('ArrayList')) oopCount++;
-      if (has('try') || has('catch')) oopCount++;
-      if (has('private')) oopCount++;
-      if (has('implements')) oopCount++;
-      if (has('Scanner')) oopCount++;
-      if (oopCount < 5) return { err: "Usá al menos 5 elementos: interfaz, ArrayList, try-catch, private, implements y Scanner." };
-      return { ok: true };
+function compileResult(source, r, expected) {
+  var ce = r.compile;
+  var lines = source.split('\n');
+  var friendly = checkJavaSyntax(source);
+  if (friendly && friendly.line === ce.line) return friendly;
+  var sim = simulateJava(source, expected);
+  if (sim && sim.syntax && sim.line === ce.line) return sim;
+  return {
+    syntax: true,
+    line: ce.line,
+    lineText: lines[ce.line - 1] != null ? lines[ce.line - 1] : '',
+    javac: ce.javac,
+    why: ce.why,
+    err: 'Línea ' + ce.line + ': ' + ce.javac
+  };
+}
+
+/** Ejecuta el programa de verdad y devuelve lo que muestra la consola. */
+function judgeProgram(source, expected, stdin) {
+  var r = JavaRun.run(source, { stdin: stdin });
+  if (r.compile) return compileResult(source, r, expected);
+  if (r.unsupported) return { unsupported: r.unsupported };
+  if (r.noMain) return { err: 'Falta el método main: public static void main(String[] args).' };
+  if (r.limit) return { err: r.limit, line: r.line };
+  var res = { simulated: true, output: normalizeOutput(r.output), blameLine: 0, suggest: '' };
+  if (r.exception) {
+    res.runtime = 'Exception in thread "main" ' + r.exception;
+    res.blameLine = r.line;
+    return res;
   }
-  return { ok: false, err: "Error de validación general." };
+  var printsOnly = simulateJava(source, expected);
+  if (printsOnly && printsOnly.simulated) {
+    res.blameLine = printsOnly.blameLine;
+    res.suggest = printsOnly.suggest;
+  }
+  return res;
+}
+
+function lessonStdin(id) {
+  if (typeof LESSONS === 'undefined' || !LESSONS) return [];
+  for (var i = 0; i < LESSONS.length; i++) {
+    if (LESSONS[i].id === id && LESSONS[i].exercise) return LESSONS[i].exercise.stdin || [];
+  }
+  return [];
+}
+
+// La consola correcta no alcanza: cada lección pide usar su concepto.
+function conceptCheck(id, source) {
+  var code = maskJava(source);
+  function has(str) { return code.indexOf(str) !== -1; }
+  function re(rx) { return rx.test(code); }
+  var loop = re(/\b(for|while)\b/);
+  switch (id) {
+    case 1: return has('println') ? '' : 'Usá System.out.println para imprimir.';
+    case 2: return (re(/\bString\s+\w+/) && re(/\bint\s+\w+/) && re(/\bdouble\s+\w+/) && re(/\bboolean\s+\w+/)) ? '' : 'Declará las cuatro variables: String, int, double y boolean.';
+    case 3: return (re(/\ba\s*\+\s*b\b/) && re(/\ba\s*-\s*b\b/) && re(/\ba\s*\*\s*b\b/) && re(/\ba\s*\/\s*b\b/) && re(/\ba\s*%\s*b\b/)) ? '' : 'Calculá cada resultado con a y b, no escribas el número a mano.';
+    case 4: return (has('.toUpperCase(') && has('.length(') && has('.charAt(') && has('.contains(')) ? '' : 'Usá los métodos .toUpperCase(), .length(), .charAt() y .contains().';
+    case 5: return (has('(int)') && has('Math.round') && has('Math.sqrt')) ? '' : 'Usá el cast (int), Math.round() y Math.sqrt().';
+    case 6: return (has('.trim()') && has('.toUpperCase()')) ? '' : 'Procesá el nombre con .trim() y .toUpperCase().';
+    case 7: return (re(/\bif\b/) && re(/\belse\b/)) ? '' : 'Resolvelo con if / else: la categoría tiene que decidirla el programa.';
+    case 8: return (re(/\bswitch\b/) && re(/\bcase\b/) && re(/\bdefault\b/)) ? '' : 'Usá switch con sus case y un default.';
+    case 9: return has('&&') ? '' : 'Combiná las dos condiciones con &&.';
+    case 10: return has('+') ? '' : 'Uní el texto y las variables con +.';
+    case 11: return (re(/\bwhile\b/) && re(/\+\+|\+=/)) ? '' : 'Usá un while que incremente la variable.';
+    case 12: return re(/\bfor\b/) ? '' : 'Usá un bucle for.';
+    case 13: return (has('[]') && loop) ? '' : 'Recorré el array con un bucle.';
+    case 15: return (loop && re(/\bif\b/)) ? '' : 'Recorré ventas con un bucle y usá un if para contar.';
+    case 16: return (has('static void imprimirSeparador') && (code.split('imprimirSeparador').length > 3 || loop)) ? '' : 'Definí imprimirSeparador() y llamalo 3 veces.';
+    case 17: return (has('static int calcularArea') && re(/\breturn\b/)) ? '' : 'calcularArea tiene que devolver el resultado con return.';
+    case 18: return (has('class Persona') && has('new Persona(') && has('presentarse(')) ? '' : 'Creá la clase Persona, un objeto con new y llamá a presentarse().';
+    case 19: return (has('Producto(String') && has('this.') && has('new Producto(')) ? '' : 'Definí el constructor de Producto, usá this y creá el objeto con new.';
+    case 20: return (re(/private\s+String\s+nombre/) && re(/private\s+int\s+edad/) && has('getNombre') && has('setEdad')) ? '' : 'Usá atributos private con sus getters y setters.';
+    case 21: return (has('extends Animal') && has('super(')) ? '' : 'Usá extends Animal y llamá a super().';
+    case 22: return (has('extends Animal') && has('hacerSonido') && loop) ? '' : 'Perro y Gato tienen que sobrescribir hacerSonido() y el main recorrer un array de Animal.';
+    case 23: return (re(/\binterface\b/) && re(/\bimplements\b/)) ? '' : 'Definí una interfaz y clases que la implementen.';
+    case 24: return (has('ArrayList') && has('.add(') && has('.size(')) ? '' : 'Usá ArrayList con .add() y .size().';
+    case 26: return (has('FileWriter') && has('BufferedWriter') && has('.write(') && re(/\bcatch\b/)) ? '' : 'Usá FileWriter, BufferedWriter, write() y un try-catch.';
+    case 27: return (re(/\btry\b/) && has('Integer.parseInt') && re(/\bcatch\b/)) ? '' : 'Usá Integer.parseInt dentro de un try-catch.';
+    case 28: return (has('extends Exception') && has('throw new') && re(/\btry\b/)) ? '' : 'Creá la excepción con extends Exception, lanzala con throw y atrapala con try-catch.';
+    case 29:
+      if (!re(/\bswitch\b/) || !re(/\bwhile\b/)) return 'El menú necesita switch dentro de un while.';
+      if (!re(/\binterface\b/) || !re(/\bimplements\b/)) return 'Definí la interface Gestionable e implementala.';
+      if (!has('ArrayList') || !re(/\bprivate\b/) || !re(/\btry\b/)) return 'Usá ArrayList, atributos private y try-catch.';
+      return '';
+    case 34:
+      if (!has('class Libro') || !has('class Biblioteca')) return 'Creá las clases Libro y Biblioteca.';
+      if (!re(/\bprivate\b/) || !has('ArrayList')) return 'Libro lleva atributos private y Biblioteca guarda los libros en un ArrayList.';
+      if (!re(/\bswitch\b/) || !re(/\bwhile\b/) || !re(/\btry\b/)) return 'El menú necesita while, switch y try-catch.';
+      return '';
+  }
+  return '';
+}
+
+function gitCommands(source) {
+  return source.replace(/\/\*[\s\S]*?\*\//g, '').split('\n').map(function (l) {
+    return l.replace(/^\s*(?:\/\/.*)?$/, '').trim();
+  }).filter(Boolean);
+}
+
+function gitValidate(id, source) {
+  var cmds = gitCommands(source);
+  var file = id === 31 ? 'Main.java' : 'GestorNotas.java';
+  var pendingAdd = false;
+  var commits = 0;
+  var logged = false;
+  var restored = false;
+  if (!cmds.length || cmds[0] !== 'git init') return { err: 'El primer comando tiene que ser git init: sin repositorio, Git no puede registrar nada.' };
+  for (var i = 1; i < cmds.length; i++) {
+    var c = cmds[i];
+    if (!/^git\s/.test(c)) return { err: 'Línea "' + c + '": cada línea tiene que ser un comando git.' };
+    if (/^git add\s+\S/.test(c)) { pendingAdd = true; continue; }
+    if (/^git commit\b/.test(c)) {
+      if (!pendingAdd) return { err: 'Antes de cada git commit hay que preparar los cambios con git add.' };
+      if (!/-m\s+".+"/.test(c)) return { err: 'Cada commit lleva un mensaje: git commit -m "qué cambió".' };
+      pendingAdd = false;
+      commits++;
+      continue;
+    }
+    if (/^git log\b/.test(c)) { logged = true; continue; }
+    if (/^git (checkout|restore)\b/.test(c)) {
+      if (!logged) return { err: 'Primero consultá el historial con git log para saber a qué commit volver.' };
+      if (c.indexOf(file) === -1) return { err: 'Indicá qué archivo recuperar: ' + file + '.' };
+      restored = true;
+      continue;
+    }
+    if (/^git (status|diff)\b/.test(c)) continue;
+    return { err: 'Revisá este comando: ' + c };
+  }
+  if (commits < 2) return { err: 'Hacé al menos 2 commits, uno por cada cambio del proyecto.' };
+  if (!logged) return { err: 'Consultá el historial con git log.' };
+  if (!restored) return { err: 'Recuperá la versión anterior con git checkout <commit> -- ' + file + '.' };
+  return { ok: true, output: cmds.join('\n') };
+}
+
+function localValidate(id, c) {
+  if (id === 31 || id === 33) return gitValidate(id, c);
+  var res = judgeProgram(c, lessonExpected(id), lessonStdin(id));
+  if (res.unsupported) {
+    var missing = conceptCheck(id, c);
+    return missing ? { err: missing } : { ok: true, unverified: res.unsupported };
+  }
+  if (res.simulated && !res.runtime) res.conceptErr = conceptCheck(id, c);
+  return res;
 }

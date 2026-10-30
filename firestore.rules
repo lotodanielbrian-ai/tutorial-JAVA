@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    function validRanking() {
+      return request.resource.data.lessonsCompleted is int
+        && request.resource.data.lessonsCompleted >= 0
+        && request.resource.data.lessonsCompleted <= 35
+        && request.resource.data.totalScore is int
+        && request.resource.data.totalScore >= 0
+        && request.resource.data.totalScore <= 525
+        && request.resource.data.quizPoints is number
+        && request.resource.data.quizPoints >= 0
+        && request.resource.data.quizPoints <= 75
+        && request.resource.data.certificateBonus is int
+        && request.resource.data.certificateBonus in [0, 100];
+    }
+
+    match /users/{uid} {
+      allow read, create, update, delete: if isOwner(uid);
+    }
+
+    match /progress/{uid} {
+      allow read, write: if isOwner(uid);
+    }
+
+    match /attempts/{uid}/lessons/{lessonId} {
+      allow read, write: if isOwner(uid);
+    }
+
+    match /rankings/{uid} {
+      allow read: if true;
+      allow create, update: if isOwner(uid) && validRanking();
+      allow delete: if isOwner(uid);
+    }
+  }
+}

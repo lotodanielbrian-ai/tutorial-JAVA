@@ -1,0 +1,12 @@
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+node_modules/
+.DS_Store
+tests/.tmp/
+
+# Material de consulta local: no se publica
+introduccion a java/
+repo original/
+HTML JAVA/

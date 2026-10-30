@@ -1,7 +1,7 @@
 // Ranking: combined score (lessons + quizzes + certificate)
 var Ranking = (function () {
-  var QUIZ_IDS = [14, 25, 30, 32];
-  var MAX_TOTAL = 500;
+  var QUIZ_IDS = Progress.QUIZ_LESSON_IDS;
+  var MAX_TOTAL = 525;
   var FETCH_TIMEOUT_MS = 8000;
 
   function calcScore(completedLessons, quizScores, certificateEarned) {

@@ -40,6 +40,7 @@ function clearSessionProgress() {
   cur = 0;
   hintLevel = 0;
   if (typeof _quizAnswers !== 'undefined') _quizAnswers = {};
+  if (typeof Practica !== 'undefined') Practica.setState(null);
 }
 
 // ── State (empty until login loads this user's data) ───────────────────
@@ -84,6 +85,7 @@ function buildSidebar() {
         <span class="l-num">${String(l.id).padStart(2,'0')}</span>
         <div class="l-dot"></div>
         <span style="flex:1">${l.title}</span>
+        ${typeof Practica !== 'undefined' ? Practica.badge(l.id) : ''}
         <span class="l-stars">${l.stars}</span>
       </button>`;
     });
@@ -114,10 +116,12 @@ function render() {
       <button type="button" class="tab-btn active" id="tab-simple" onclick="switchTab('simple')">🏠 Explicación Simple</button>
       <button type="button" class="tab-btn" id="tab-tut" onclick="switchTab('tut')">📖 Tutorial Técnico</button>
       <button type="button" class="tab-btn" id="tab-ex" onclick="switchTab('ex')">${exBtnLabel}</button>
+      <button type="button" class="tab-btn" id="tab-prac" onclick="switchTab('prac')">🧠 Práctica</button>
     </div>
-    <div class="tab-pane active" id="pane-simple">${l.simple()}</div>
+    <div class="tab-pane active" id="pane-simple">${typeof Practica !== 'undefined' ? Practica.ladder(l) : ''}${l.simple()}</div>
     <div class="tab-pane" id="pane-tut">${l.tutorial()}</div>
     <div class="tab-pane" id="pane-ex">${exPaneHtml}</div>
+    <div class="tab-pane" id="pane-prac">${typeof Practica !== 'undefined' ? Practica.buildTab(l) : ''}</div>
     <div class="nav-row">
       <button type="button" class="nav-btn-lesson" onclick="goTo(cur-1)" ${cur===0?'disabled':''}>← Anterior</button>
       <button type="button" class="nav-btn-lesson" onclick="goTo(cur+1)" ${cur===LESSONS.length-1?'disabled':''}>Siguiente →</button>
@@ -168,7 +172,7 @@ function printManual() {
 }
 
 function switchTab(t) {
-  ['simple','tut','ex'].forEach(tab => {
+  ['simple','tut','ex','prac'].forEach(tab => {
     const btn = document.getElementById('tab-' + tab);
     const pane = document.getElementById('pane-' + tab);
     if (btn) btn.classList.toggle('active', t === tab);
@@ -291,8 +295,9 @@ function buildExercise(l) {
     <div class="ex-task">
       <h4>🎯 Tarea</h4>
       <p>${ex.desc}</p>
+      ${ex.stdin ? `<div class="exp-out-label">Entrada simulada (el emulador la escribe por vos)</div><div class="exp-out">${esc(ex.stdin.join('\n'))}</div>` : ''}
       <div class="exp-out-label">Output esperado</div>
-      <div class="exp-out">${displayExpected}</div>
+      <div class="exp-out">${esc(displayExpected)}</div>
     </div>
     <div class="ed-label">
       <span>Tu código</span>
@@ -303,7 +308,7 @@ function buildExercise(l) {
     <div class="editor-wrap">
       <div class="line-numbers" id="line-numbers"></div>
       <div class="err-line-bar" id="err-line-bar" hidden></div>
-      <textarea class="code-editor" id="code-editor" spellcheck="false" autocomplete="off" autocapitalize="off">${ex.starter}</textarea>
+      <textarea class="code-editor" id="code-editor" spellcheck="false" autocomplete="off" autocapitalize="off">${esc(ex.starter)}</textarea>
     </div>
     <div class="btn-row">
       <button type="button" class="run-btn" id="run-btn" onclick="runCode()">▶ Ejecutar</button>
@@ -572,6 +577,10 @@ function runQuiz(lid) {
   var correct = 0;
   var total = l.quiz.questions.length;
   var resultDiv = document.getElementById('quiz-result-' + lid);
+  if (Object.keys(_quizAnswers[lid] || {}).length < total) {
+    resultDiv.innerHTML = '<div class="quiz-score fail">Te faltan preguntas por responder.</div>';
+    return;
+  }
   var questionsDiv = document.querySelectorAll('#pane-ex .quiz-question');
   for (var qi = 0; qi < total; qi++) {
     var q = l.quiz.questions[qi];
@@ -613,10 +622,39 @@ function runQuiz(lid) {
     saveDone();
     launchConfetti();
     buildSidebar();
+    offerCertificate();
   }
   if (typeof Ranking !== 'undefined' && Ranking.update) {
     Ranking.update([...done], quizBestScores, done.size === LESSONS.length);
   }
+}
+
+function offerCertificate() {
+  if (done.size === LESSONS.length && typeof Progress !== 'undefined' && !Progress.wasCertShown()) {
+    Progress.markCertShown();
+    setTimeout(function() { document.getElementById('grad-overlay').classList.add('show'); }, 600);
+  }
+}
+
+function completeExercise() {
+  done.add(LESSONS[cur].id);
+  saveDone();
+  if (typeof Progress !== 'undefined' && Progress.saveAttempt) {
+    Progress.saveAttempt({
+      lessonId: LESSONS[cur].id,
+      type: 'exercise',
+      passed: true,
+      quizCorrect: 0,
+      quizTotal: 0,
+      scorePercent: 100
+    });
+  }
+  if (typeof Ranking !== 'undefined' && Ranking.update) {
+    Ranking.update([...done], quizBestScores, done.size === LESSONS.length);
+  }
+  launchConfetti();
+  buildSidebar();
+  offerCertificate();
 }
 
 function retryQuiz(lid) {
@@ -661,7 +699,7 @@ function runCode() {
   const outArea = document.getElementById('out-area');
 
   btn.disabled = true;
-  status.textContent = 'Evaluando localmente…';
+  status.textContent = 'Ejecutando…';
   status.className = 'run-status';
   outArea.innerHTML = '';
 
@@ -671,7 +709,8 @@ function runCode() {
       const expected = ex.expected.replace(/\\n/g,'\n').trimEnd();
       
       const res = localValidate(LESSONS[cur].id, code);
-      const style = (typeof styleNotes === 'function') ? styleNotes(code) : '';
+      const isGit = LESSONS[cur].id === 31 || LESSONS[cur].id === 33;
+      const style = (!isGit && typeof styleNotes === 'function') ? styleNotes(code) : '';
       const styleBox = style ? `<div class="out-box box-expected"><div class="out-head">Buenas prácticas</div><div class="out-body style-note">${style}</div></div>` : '';
 
       if (res.syntax) {
@@ -691,35 +730,36 @@ function runCode() {
           </div>` + styleBox;
         showHint();
       } else if (res.simulated) {
-        var got = String(res.output || '').replace(/\s+$/, '');
-        if (got === expected.replace(/\s+$/, '')) {
+        var got = normalizeOutput(res.output);
+        var wanted = normalizeOutput(expected);
+        var consoleBox = esc(got ? got : '(no imprimió nada)');
+        if (res.runtime) {
+          if (res.blameLine) highlightErrorLine(res.blameLine);
+          outArea.innerHTML = `
+            <div class="cmp-grid">
+              <div class="out-box box-err">
+                <div class="out-head">Error al ejecutar</div>
+                <div class="out-body">${got ? consoleBox : ''}<div class="compile-javac">${esc(res.runtime)}</div><div class="compile-why">El programa compiló, pero se detuvo en la línea ${res.blameLine}.</div></div>
+              </div>
+              <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
+            </div>` + styleBox;
+          showHint();
+        } else if (got === wanted && res.conceptErr) {
           clearErrorLine();
-          done.add(LESSONS[cur].id);
-          saveDone();
-          if (typeof Progress !== 'undefined' && Progress.saveAttempt) {
-            Progress.saveAttempt({
-              lessonId: LESSONS[cur].id,
-              type: 'exercise',
-              passed: true,
-              quizCorrect: 0,
-              quizTotal: 0,
-              scorePercent: 100
-            });
-          }
-          if (typeof Ranking !== 'undefined' && Ranking.update) {
-            Ranking.update([...done], quizBestScores, done.size === LESSONS.length);
-          }
-          launchConfetti();
+          outArea.innerHTML = `
+            <div class="cmp-grid">
+              <div class="out-box box-err">
+                <div class="out-head">La consola coincide, pero falta algo</div>
+                <div class="out-body">${consoleBox}<div class="compile-suggest">${esc(res.conceptErr)}</div></div>
+              </div>
+              <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
+            </div>` + styleBox;
+          showHint();
+        } else if (got === wanted) {
+          clearErrorLine();
+          completeExercise();
           outArea.innerHTML = `
             <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(got)}</div></div>` + styleBox;
-          buildSidebar();
-          if (done.size === LESSONS.length && typeof Progress !== 'undefined' && !Progress.wasCertShown()) {
-            Progress.markCertShown();
-            setTimeout(function() { document.getElementById('grad-overlay').classList.add('show'); }, 600);
-          }
-          if (typeof Progress !== 'undefined' && Progress.setCompletionDateIso) {
-            Progress.setCompletionDateIso(new Date().toISOString());
-          }
         } else {
           if (res.blameLine) highlightErrorLine(res.blameLine);
           else clearErrorLine();
@@ -727,14 +767,15 @@ function runCode() {
             <div class="cmp-grid">
               <div class="out-box box-err">
                 <div class="out-head">Incorrecto</div>
-                <div class="out-body">${esc(got ? got : '(no imprimió nada)')}${res.suggest ? `<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div><div class="compile-suggest">${esc(res.suggest)}</div>` : '<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div>'}</div>
+                <div class="out-body">${consoleBox}${res.suggest ? `<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div><div class="compile-suggest">${esc(res.suggest)}</div>` : '<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div>'}</div>
               </div>
               <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
             </div>` + styleBox;
           showHint();
         }
       } else if (res.err) {
-        clearErrorLine();
+        if (res.line) highlightErrorLine(res.line);
+        else clearErrorLine();
         outArea.innerHTML = `
           <div class="cmp-grid">
             <div class="out-box box-err"><div class="out-head">Incorrecto</div><div class="out-body">${esc(res.err)}</div></div>
@@ -743,32 +784,10 @@ function runCode() {
         showHint();
       } else if (res.ok) {
         clearErrorLine();
-        done.add(LESSONS[cur].id);
-        saveDone();
-        if (typeof Progress !== 'undefined' && Progress.saveAttempt) {
-          Progress.saveAttempt({
-            lessonId: LESSONS[cur].id,
-            type: 'exercise',
-            passed: true,
-            quizCorrect: 0,
-            quizTotal: 0,
-            scorePercent: 100
-          });
-        }
-        if (typeof Ranking !== 'undefined' && Ranking.update) {
-          Ranking.update([...done], quizBestScores, done.size === LESSONS.length);
-        }
-        launchConfetti();
+        completeExercise();
+        var note = res.unverified ? `<div class="compile-why">Este programa usa ${esc(res.unverified)}, que el emulador no ejecuta: se revisó la estructura, no la salida. Probalo también en tu IDE.</div>` : '';
         outArea.innerHTML = `
-          <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(expected)}</div></div>` + styleBox;
-        buildSidebar();
-        if (done.size === LESSONS.length && typeof Progress !== 'undefined' && !Progress.wasCertShown()) {
-          Progress.markCertShown();
-          setTimeout(function() { document.getElementById('grad-overlay').classList.add('show'); }, 600);
-        }
-        if (typeof Progress !== 'undefined' && Progress.setCompletionDateIso) {
-          Progress.setCompletionDateIso(new Date().toISOString());
-        }
+          <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(res.output || expected)}${note}</div></div>` + styleBox;
       }
     } catch(e) {
       outArea.innerHTML = `
@@ -809,6 +828,7 @@ function applyUserProgress(state) {
   var lessons = (state && state.completedLessons) || [];
   lessons.forEach(function (id) { done.add(id); });
   quizBestScores = Object.assign({}, (state && state.scores) || {});
+  if (typeof Practica !== 'undefined') Practica.setState(state && state.practice);
   if (typeof Progress !== 'undefined' && Progress.activeUid && Progress.activeUid()) {
     Progress.saveLocalCache(Progress.activeUid(), [...done], quizBestScores, {
       completionDate: state && state.completionDate,

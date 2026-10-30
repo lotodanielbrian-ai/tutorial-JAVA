@@ -1,0 +1,60 @@
+JAVA INPRO - RESUMEN DE CAMBIOS
+30 de octubre de 2026
+
+QUE CAMBIA PARA EL ALUMNO
+- Ejecutar corre el programa de verdad y muestra la consola real.
+- Ya no se aprueba imprimiendo el resultado a mano: hay que usar el concepto de la lección.
+- Cada lección abre con una escalera: vida diaria, idea, pasos, Java y sistema real.
+- Nueva pestaña Práctica con 313 actividades de 9 tipos.
+- Nuevo botón Evaluaciones: simulacros con tiempo, nota del 1 al 10 y repaso de errores.
+- La lección 29 incluye un simulacro del Parcial 1 real de la materia.
+- Scanner ya funciona, con entrada simulada.
+- La meta de cada lección es 80% de dominio. La práctica no cambia el certificado ni el ranking.
+
+ACTIVIDADES AGREGADAS
+  Encontrar el error ........ 61  (Java y comandos de Git)
+  ¿Qué imprime? ............. 53
+  Opción múltiple ........... 35
+  Verdadero o falso ......... 35
+  Respuesta con tus palabras  32
+  Unir ...................... 28
+  Completar ................. 27
+  Reto de código ............ 27
+  Ordenar ................... 15
+
+ERRORES CORREGIDOS
+- Los programas incorrectos aprobaban; ahora se ejecutan y se rechazan.
+- Las soluciones oficiales de las lecciones 5, 17, 20 y 29 se marcaban como incorrectas.
+- El proyecto final (lección 34) se aprobaba sin escribir nada.
+- Los cuestionarios de las lecciones 30 y 32 mostraban "undefined" como pregunta.
+- La solución de la lección 29 no imprimía el output esperado.
+- La fecha del certificado se reescribía en cada ejercicio y en cada inicio de sesión.
+- El certificado no aparecía si la última lección completada era un cuestionario.
+- El quiz de la lección 35 no sumaba puntos en el ranking.
+- Los quizzes se podían enviar en blanco.
+- 345 tildes y signos de apertura en mini-quizzes y pistas.
+
+CAMBIOS PARA REVISAR
+- El certificado ya no lleva la firma de James Gosling: lo firma el autor del curso.
+- La lección 34 pide una salida exacta. Git se practica en su pestaña Práctica.
+
+SEGURIDAD Y CONFIGURACION
+- firestore.rules, firestore.indexes.json y .gitignore ahora están versionados en la raíz.
+- Las reglas nuevas admiten las 35 lecciones y 525 puntos.
+- El perfil de usuario, que guarda el email, dejó de ser público.
+
+ARCHIVOS QUITADOS (estan en la Papelera de reciclaje)
+- HTML JAVA/java-tutorial-v2.html
+- introduccion a java/java-tutorial-v2.html
+- repo original/java-tutorial-v2.html
+- repo original/public/index.html
+
+PENDIENTE
+- Publicar sitio y reglas juntos: firebase deploy --only hosting,firestore
+  Hasta entonces, producción sigue con la versión anterior.
+- audit_report.md corresponde a otro proyecto (Controller Map): no se tocó.
+
+COMO VERIFICAR
+  node tests/run.js
+
+Detalle completo en AUDITORIA.md. Guia tecnica en CONTEXT.md.
