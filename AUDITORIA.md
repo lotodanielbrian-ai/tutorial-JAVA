@@ -34,13 +34,13 @@ El contenido teórico era sólido, pero la evaluación no medía lo que decía m
 | 2 | Falsos errores del emulador | Las soluciones oficiales de las lecciones 5, 17, 20 y 29 se marcaban como incorrectas | El intérprete decide primero; las heurísticas solo mejoran el mensaje de un error real |
 | 3 | La lección 34 tenía `expected` vacío | El proyecto final se aprobaba **sin escribir nada**. El camino oficial (comandos git sueltos en un `.java`) no compilaba | Proyecto con entrada simulada y salida exacta, con solución verificada. Git se evalúa en su pestaña Práctica |
 | 4 | Las lecciones 30 y 32 usaban `q` en vez de `question` | Cuestionarios con "undefined" como pregunta | Datos corregidos y prueba automática |
-| 5 | Las reglas de Firestore limitaban a 34 lecciones y 500 puntos, según la copia local. No se pudo confirmar cuáles están publicadas | Al completar las 35, el ranking dejaría de actualizarse y el bono de certificado no llegaría | Reglas en 35 lecciones, 75 de quizzes y 525 puntos. **Falta publicarlas** |
+| 5 | Las reglas de Firestore limitaban a 34 lecciones y 500 puntos, según la copia local. No se pudo confirmar cuáles están publicadas | Al completar las 35, el ranking dejaría de actualizarse y el bono de certificado no llegaría | Reglas en 35 lecciones, 75 de quizzes y 525 puntos. Publicadas |
 
 ### Altos
 
 | # | Problema | Solución |
 |---|---|---|
-| 6 | `users/{uid}` tenía lectura pública, y ese documento guarda el **email** | Solo lo lee quien es dueño. El ranking usa otra colección. **Falta publicarlo** |
+| 6 | `users/{uid}` tenía lectura pública, y ese documento guarda el **email** | Solo lo lee quien es dueño. El ranking usa otra colección. Publicado |
 | 7 | La fecha del certificado se reescribía en cada ejercicio y en cada inicio de sesión | Se fija una sola vez y se recupera desde Firestore |
 | 8 | El certificado no aparecía si la última lección era un cuestionario, como la 35 | Se ofrece al completar por cualquier vía |
 | 9 | El quiz 35 no sumaba puntos en el ranking | Agregado, y el código comparte una sola lista |
@@ -108,7 +108,6 @@ Ordenadas por impacto sobre el aprendizaje y el producto.
 
 | Prioridad | Propuesta | Por qué |
 |---|---|---|
-| Alta | Publicar reglas y sitio juntos | Sin esto, los arreglos 5 y 6 no llegan a producción |
 | Alta | Agregar explicación a las preguntas de los quizzes originales | Hoy son la parte con menos devolución |
 | Alta | Calcular el ranking en una Cloud Function | Es la única forma de que el puntaje sea confiable |
 | Media | Lecciones de `HashMap`, `enum`, testing con JUnit y SOLID | Se piden en entrevistas junior y el curso no las cubre |

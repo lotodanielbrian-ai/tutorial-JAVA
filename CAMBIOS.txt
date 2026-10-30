@@ -49,8 +49,8 @@ ARCHIVOS QUITADOS (estan en la Papelera de reciclaje)
 - repo original/public/index.html
 
 PENDIENTE
-- Publicar sitio y reglas juntos: firebase deploy --only hosting,firestore
-  Hasta entonces, producción sigue con la versión anterior.
+- Integrar la rama evaluaciones-y-auditoria a main: el sitio ya está publicado desde esa rama.
+- El resto del ranking queda para más adelante.
 - audit_report.md corresponde a otro proyecto (Controller Map): no se tocó.
 
 COMO VERIFICAR
