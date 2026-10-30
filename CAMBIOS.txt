@@ -35,7 +35,6 @@ ERRORES CORREGIDOS
 - 345 tildes y signos de apertura en mini-quizzes y pistas.
 
 CAMBIOS PARA REVISAR
-- El certificado ya no lleva la firma de James Gosling: lo firma el autor del curso.
 - La lección 34 pide una salida exacta. Git se practica en su pestaña Práctica.
 
 SEGURIDAD Y CONFIGURACION

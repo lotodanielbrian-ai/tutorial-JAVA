@@ -42,24 +42,23 @@ El contenido teórico era sólido, pero la evaluación no medía lo que decía m
 |---|---|---|
 | 6 | `users/{uid}` tenía lectura pública, y ese documento guarda el **email** | Solo lo lee quien es dueño. El ranking usa otra colección. **Falta publicarlo** |
 | 7 | La fecha del certificado se reescribía en cada ejercicio y en cada inicio de sesión | Se fija una sola vez y se recupera desde Firestore |
-| 8 | El certificado mostraba la firma de **James Gosling**, una persona real que no avaló el curso | Lo firma el autor del curso |
-| 9 | El certificado no aparecía si la última lección era un cuestionario, como la 35 | Se ofrece al completar por cualquier vía |
-| 10 | El quiz 35 no sumaba puntos en el ranking | Agregado, y el código comparte una sola lista |
-| 11 | `firestore.rules`, los índices y `.gitignore` existían solo en `repo original/`, fuera de git | Recuperados en la raíz y versionados |
-| 12 | La solución de la lección 29 no imprimía el output esperado | Reescrita con `Scanner` real y verificada |
+| 8 | El certificado no aparecía si la última lección era un cuestionario, como la 35 | Se ofrece al completar por cualquier vía |
+| 9 | El quiz 35 no sumaba puntos en el ranking | Agregado, y el código comparte una sola lista |
+| 10 | `firestore.rules`, los índices y `.gitignore` existían solo en `repo original/`, fuera de git | Recuperados en la raíz y versionados |
+| 11 | La solución de la lección 29 no imprimía el output esperado | Reescrita con `Scanner` real y verificada |
 
 ### Medios
 
 | # | Problema | Solución |
 |---|---|---|
-| 13 | Diez lecciones tenían una explicación simple de 250 a 550 caracteres, contra unos 1.300 del resto | Escalera "De la vida diaria al código" en las 35 lecciones |
-| 14 | Toda la evaluación era opción múltiple o código | Nueve tipos, con devolución inmediata |
-| 15 | Los quizzes se podían enviar en blanco | Se exigen todas las respuestas |
-| 16 | "Scanner no funciona en esta consola" | Funciona con entrada simulada, y la lección 10 ya lo usa de verdad |
-| 17 | Mini-quizzes y pistas sin tildes ni signo de apertura | 345 correcciones solo en texto visible, sin tocar código |
-| 18 | Un `println` partido en dos líneas daba un falso error | Resuelto por el mismo cambio del hallazgo 2 |
-| 19 | Salidas esperadas sin escapar en HTML | Escapadas |
-| 20 | La fila de botones de la barra lateral se desbordaba | Ajuste con varias líneas |
+| 12 | Diez lecciones tenían una explicación simple de 250 a 550 caracteres, contra unos 1.300 del resto | Escalera "De la vida diaria al código" en las 35 lecciones |
+| 13 | Toda la evaluación era opción múltiple o código | Nueve tipos, con devolución inmediata |
+| 14 | Los quizzes se podían enviar en blanco | Se exigen todas las respuestas |
+| 15 | "Scanner no funciona en esta consola" | Funciona con entrada simulada, y la lección 10 ya lo usa de verdad |
+| 16 | Mini-quizzes y pistas sin tildes ni signo de apertura | 345 correcciones solo en texto visible, sin tocar código |
+| 17 | Un `println` partido en dos líneas daba un falso error | Resuelto por el mismo cambio del hallazgo 2 |
+| 18 | Salidas esperadas sin escapar en HTML | Escapadas |
+| 19 | La fila de botones de la barra lateral se desbordaba | Ajuste con varias líneas |
 
 ### Limpieza de archivos
 
