@@ -93,6 +93,7 @@ var Progress = (function () {
     removeKey('java_completion_date', uid);
     removeKey('java_cert_shown', uid);
     removeKey('java_practice', uid);
+    removeKey('java_fase2', uid);
   }
 
   function saveLocalCache(uid, completedLessons, scores, extras) {
@@ -118,7 +119,8 @@ var Progress = (function () {
       scores: scores,
       completionDate: getStr('java_completion_date', uid),
       certShown: getStr('java_cert_shown', uid),
-      practice: getJson('java_practice', uid, null)
+      practice: getJson('java_practice', uid, null),
+      fase2: getJson('java_fase2', uid, null)
     };
   }
 
@@ -141,6 +143,7 @@ var Progress = (function () {
       completionDate: local.completionDate || (remote && remote.completionDate) || null,
       certShown: local.certShown || null,
       practice: mergePractice(local.practice, remote && remote.practice),
+      fase2: mergeFase2(local.fase2, remote && remote.fase2),
       certificateEarned: !!(remote && remote.certificateEarned) ||
         mergedDone.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 35)
     };
@@ -156,6 +159,27 @@ var Progress = (function () {
     var wrong = Array.from(new Set((a.wrong || []).concat(b.wrong || []))).filter(function (k) { return scores[k] < 1; });
     var sims = (a.sims || []).length >= (b.sims || []).length ? (a.sims || []) : b.sims;
     return { scores: scores, wrong: wrong, sims: sims };
+  }
+
+  function mergeFase2(local, remote) {
+    var a = local || {};
+    var b = remote || {};
+    return {
+      done: Array.from(new Set((a.done || []).concat(b.done || []))),
+      completionDate: a.completionDate || b.completionDate || null,
+      certShown: !!(a.certShown || b.certShown)
+    };
+  }
+
+  function saveFase2(fase2) {
+    var uid = activeUid();
+    if (!uid) return Promise.resolve();
+    setJson('java_fase2', uid, fase2);
+    var user = currentUser();
+    if (!firebaseReady || !user || user.uid !== uid) return Promise.resolve();
+    return firebaseDb.collection('progress').doc(uid).set({ fase2: fase2 }, { merge: true }).catch(function (err) {
+      console.warn('[Progress] saveFase2 failed', err);
+    });
   }
 
   var practiceTimer = null;
@@ -270,7 +294,8 @@ var Progress = (function () {
         scores: scores,
         certificateEarned: !!progData.certificateEarned,
         completionDate: finished,
-        practice: progData.practice || null
+        practice: progData.practice || null,
+        fase2: progData.fase2 || null
       };
     }).catch(function (err) {
       console.warn('[Progress] loadRemote failed', err);
@@ -331,6 +356,7 @@ var Progress = (function () {
     saveLocalCache: saveLocalCache,
     saveQuizScores: saveQuizScores,
     savePractice: savePractice,
+    saveFase2: saveFase2,
     markCertShown: markCertShown,
     wasCertShown: wasCertShown,
     getCompletionDate: getCompletionDate,

@@ -306,11 +306,16 @@ function lineNeedsSemicolon(rawLine) {
   return isStmt;
 }
 
+function allLessons() {
+  var list = typeof LESSONS === 'undefined' || !LESSONS ? [] : LESSONS;
+  return typeof LESSONS_F2 === 'undefined' ? list : list.concat(LESSONS_F2);
+}
+
 function lessonExpected(id) {
-  if (typeof LESSONS === 'undefined' || !LESSONS) return '';
-  for (var i = 0; i < LESSONS.length; i++) {
-    if (LESSONS[i].id === id && LESSONS[i].exercise && LESSONS[i].exercise.expected != null) {
-      return String(LESSONS[i].exercise.expected).replace(/\\n/g, '\n');
+  var list = allLessons();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === id && list[i].exercise && list[i].exercise.expected != null) {
+      return String(list[i].exercise.expected).replace(/\\n/g, '\n');
     }
   }
   return '';
@@ -798,9 +803,9 @@ function judgeProgram(source, expected, stdin) {
 }
 
 function lessonStdin(id) {
-  if (typeof LESSONS === 'undefined' || !LESSONS) return [];
-  for (var i = 0; i < LESSONS.length; i++) {
-    if (LESSONS[i].id === id && LESSONS[i].exercise) return LESSONS[i].exercise.stdin || [];
+  var list = allLessons();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].id === id && list[i].exercise) return list[i].exercise.stdin || [];
   }
   return [];
 }
@@ -808,6 +813,12 @@ function lessonStdin(id) {
 // La consola correcta no alcanza: cada lección pide usar su concepto.
 function conceptCheck(id, source) {
   var code = maskJava(source);
+  // Fase 2: cada ejercicio declara sus conceptos en need: [[regex, mensaje], ...]
+  if (id >= 100) {
+    var ex = allLessons().filter(function (l) { return l.id === id; })[0].exercise;
+    var miss = (ex.need || []).filter(function (n) { return !new RegExp(n[0]).test(code); })[0];
+    return miss ? miss[1] : '';
+  }
   function has(str) { return code.indexOf(str) !== -1; }
   function re(rx) { return rx.test(code); }
   var loop = re(/\b(for|while)\b/);

@@ -5,8 +5,9 @@ ui-debug.log
 node_modules/
 .DS_Store
 tests/.tmp/
+tests/.tmp-spring/
 
-# Material de consulta local: no se publica
-introduccion a java/
-repo original/
-HTML JAVA/
+# Material de consulta: el repositorio es publico y esto no se publica
+material/fase-1/
+material/fase-2/
+material/historico/

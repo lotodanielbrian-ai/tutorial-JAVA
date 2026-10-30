@@ -1,6 +1,30 @@
 JAVA INPRO - RESUMEN DE CAMBIOS
 30 de octubre de 2026
 
+FASE 2 (segundo semestre)
+- 25 lecciones nuevas: código limpio, Spring Boot, API REST, JPA, MySQL, testing,
+  logging, Docker y Swagger, en el orden de la cursada.
+- Se desbloquea al completar las 35 lecciones de la Fase 1.
+- 161 actividades nuevas, con un Laboratorio de API que simula un servidor.
+- Primer y segundo parcial simulados, y coloquio con defensa oral.
+- Segundo certificado, con el avance de las dos fases.
+- Proyecto Spring Boot de referencia en ejemplos/kiosco-api, con 18 tests.
+- La Fase 2 no cambia el primer certificado ni el ranking.
+
+SUMADO A LA FASE 1
+- 12 actividades: algoritmos, printf, matrices, Map, JDK/JRE/JVM y buenas prácticas.
+
+CORREGIDO
+- La pestaña Práctica se veía vacía en las lecciones con cuestionario.
+
+MATERIAL ORDENADO
+- material/fase-1: PDF del módulo.
+- material/fase-2: transcripciones de las 9 clases.
+- material/historico: copias viejas.
+- Todo esto queda fuera de git porque el repositorio es público.
+
+--- CAMBIOS ANTERIORES ---
+
 QUE CAMBIA PARA EL ALUMNO
 - Ejecutar corre el programa de verdad y muestra la consola real.
 - Ya no se aprueba imprimiendo el resultado a mano: hay que usar el concepto de la lección.
@@ -49,7 +73,9 @@ ARCHIVOS QUITADOS (estan en la Papelera de reciclaje)
 - repo original/public/index.html
 
 PENDIENTE
-- Integrar la rama evaluaciones-y-auditoria a main: el sitio ya está publicado desde esa rama.
+- Publicar: firebase deploy --only hosting
+- Probar Docker: Dockerfile y docker-compose.yml no se ejecutaron.
+- Integrar la rama evaluaciones-y-auditoria a main.
 - El resto del ranking queda para más adelante.
 - audit_report.md corresponde a otro proyecto (Controller Map): no se tocó.
 

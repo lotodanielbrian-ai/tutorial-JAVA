@@ -17,16 +17,35 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 | `public/js/validate.js` | `localValidate`, `judgeProgram`, `conceptCheck`, `gitValidate` y diagnósticos |
 | `public/js/practica-*.js` | `PRACTICA`: actividades por lección, una por tramo |
 | `public/js/practica.js` | `Practica`: dibuja y corrige actividades, simulacros y repaso |
+| `public/js/fase2-*.js` | `LESSONS_F2` y las actividades de la Fase 2, un archivo por tramo |
+| `public/js/apilab.js` | `ApiLab`: servidor simulado que copia las reglas de `kiosco-api` |
+| `ejemplos/kiosco-api/` | Proyecto Spring Boot real de referencia |
 | `public/js/app.js` | Render de lecciones, editor, quizzes y certificado |
 | `public/js/progress.js` | Progreso por `uid`: Firestore y caché en `localStorage` |
 | `public/js/ranking.js` | Puntaje, ranking e historial |
 | `public/js/auth.js` | Login obligatorio con Google o Facebook |
 | `firestore.rules` | Reglas de seguridad |
 | `tests/run.js` | Suite completa. `tests/JavaOracle.java` compila y ejecuta con el JDK |
+| `tests/spring-check.js` | Compila fragmentos con Spring, ejecuta SQL en H2 y compara `ApiLab` con la API real |
 | `tests/corpus/` | Programas para comparar el intérprete con Java |
 | `tests/wrong-programs.js` | Programas incorrectos que nunca deben aprobar |
 
-El orden de los `<script>` importa: `lessons` → `javarun` → `validate` → `practica-*` → `practica` → `progress` → `ranking` → `auth` → `app`.
+El orden de los `<script>` importa: `lessons` → `javarun` → `validate` → `practica-*` → `fase2-*` → `apilab` → `practica` → `progress` → `ranking` → `auth` → `app`.
+
+## Las dos fases
+
+`app.js` tiene una variable `fase`. Las funciones `lessonList()` y `doneSet()` devuelven la lista y el progreso de la fase activa.
+
+| | Fase 1 | Fase 2 |
+|---|---|---|
+| Lecciones | `LESSONS` | `LESSONS_F2` |
+| Ids | 1 a 35 | 101 a 125 |
+| Progreso | `done` | `doneF2`, en `progress/{uid}.fase2` |
+| Ranking | Sí | No |
+| Intentos en `attempts` | Sí | No |
+| Conceptos a exigir | `conceptCheck` por id | `exercise.need` |
+
+`fase2Unlocked()` exige las 35 lecciones. `generateCert2()` cambia el texto de `#cert-print` solo mientras imprime y después lo restaura: el primer certificado y su CSS no se tocan.
 
 ## Cómo se evalúa un ejercicio
 
@@ -86,9 +105,12 @@ Todo ítem lleva `t`, `q` y `why`, y puede llevar `hint`. Excepción: `code` usa
 | `match` | `pairs: [[izq, der]]` | Cada par |
 | `short` | `any: [[sinónimos]]`, `model` | Un sinónimo de cada grupo, sin tildes ni mayúsculas |
 | `code` | `title`, `task`, `starter`, `expected`, `solution`, `need`, `hint`, `stdin?` | `judgeProgram` y las expresiones de `need` |
+| `http` | `task`, `goal`, `demo` | `ApiLab.reached`: verbo, ruta, estado y texto de la respuesta |
 
 - Si `code` no contiene una clase, las pruebas lo envuelven en un `main`.
 - `noRun: true` es para lo que no se puede ejecutar, como comandos git o fragmentos.
+- `spring: true` compila el fragmento con Spring real en `tests/spring-check.js`. `sql: true` ejecuta la consulta en H2.
+- `demo` en un ítem `http` son los pasos que cumplen el objetivo: la prueba los ejecuta.
 - Un `bug` debe resolverse **cambiando una sola línea**, y `line` cuenta desde 1 sobre el código que se muestra.
 
 **El identificador de un ítem es `lección-posición`.** Agregá actividades al final: si reordenás, los puntajes guardados apuntan a otra actividad.
@@ -106,7 +128,10 @@ Todo ítem lleva `t`, `q` y `why`, y puede llevar `hint`. Excepción: `code` usa
 
 ## Reglas que no hay que romper
 
-- **Agregar una lección cambia `LESSONS.length`**: quienes ya tienen el certificado dejarían de tener el 100%. También hay que actualizar los topes de `firestore.rules`. Para sumar práctica, usá `PRACTICA`, que no afecta nada de eso.
+- **Agregar una lección a `LESSONS` cambia su largo**: quienes ya tienen el certificado dejarían de tener el 100%, y hay que actualizar `firestore.rules`. Lo nuevo va en `LESSONS_F2` o en `PRACTICA`.
+- **Actividades de la Fase 1:** van en `practica-5-extra.js` con `push`, para no mover los ítems existentes.
+- **`ApiLab` copia a `kiosco-api`:** si cambia una regla de la API, cambiala en los dos lados. `spring-check.js` lo detecta.
+- **Repositorio público:** nada de `material/`, salvo su README. Ni videos, ni transcripciones, ni PDF del instituto.
 - **Reglas y sitio se publican juntos.** Si cambiás el puntaje máximo (`MAX_TOTAL` en `ranking.js`), actualizá `validRanking()`.
 - **Nada de progreso en claves globales de `localStorage`**: siempre por `uid`, para que dos cuentas no se mezclen.
 - **UTF-8 siempre.** El contenido tiene acentos y emojis.
@@ -123,12 +148,16 @@ Todo ítem lleva `t`, `q` y `why`, y puede llevar `hint`. Excepción: `code` usa
 
 Es un intérprete sin análisis de tipos completo. Sí detecta, porque el curso lo enseña: tipos incompatibles, cast faltante, variable sin inicializar, `private`, `static`, `import` faltante, `final`, método abstracto sin implementar, `@Override` inválido, `return` faltante, excepciones checked sin manejar, orden de `catch` y métodos ausentes en el tipo declarado.
 
-No detecta símbolos inexistentes en ramas que no se ejecutan. No soporta `HashMap`, `enum`, `record`, lambdas, streams, varargs, clases anónimas ni `break` con etiqueta: devuelve `unsupported`, y el validador lo informa.
+Soporta `record`, `enum`, `Map`, `Optional`, lambdas, referencias a métodos y streams básicos.
+
+No detecta símbolos inexistentes en ramas que no se ejecutan. No soporta Spring, `HashSet`, varargs, clases anónimas ni `break` con etiqueta: devuelve `unsupported`, y el validador lo informa.
 
 ## Comandos
 
 ```bash
 node tests/run.js                                  # pruebas: requiere Node y un JDK
+node tests/spring-check.js                         # Spring, SQL y API real: requiere además Maven
 py -m http.server 8765 --directory public          # sitio en local
 firebase deploy --only hosting,firestore           # publicar sitio y reglas
+./mvnw spring-boot:run                             # en ejemplos/kiosco-api
 ```

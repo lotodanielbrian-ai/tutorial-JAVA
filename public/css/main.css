@@ -514,4 +514,15 @@ body.authed #login-gate{display:none!important}
 .grad-box.sim-box .pr-blank{padding:1px 4px;margin:0;font-size:12.5px;text-align:left;color:var(--java);border-radius:4px;background:var(--bg4)}
 .sb-prog>div:last-child{flex-wrap:wrap;gap:6px}
 .sb-prog>div:last-child .hint-btn{margin:0!important}
+.fase-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 14px 4px}
+.fase-switch button{padding:7px 8px;background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:var(--r);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.fase-switch button.active{background:var(--java-bg);border-color:var(--java-b);color:var(--java)}
+.f2-roadmap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rlg);padding:18px 22px;margin:18px 0}
+.f2-roadmap h4{color:var(--java);margin-bottom:10px}
+.f2-roadmap ol{padding-left:22px;font-size:13.5px;line-height:1.9;columns:2;column-gap:28px}
+.f2-label{display:block;font-size:13px;color:var(--text3);margin:14px 0 6px;font-weight:600}
+.lab-row{display:grid;grid-template-columns:100px 1fr;gap:8px;margin-top:6px}
+.lab-row select,.lab-row input{background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;min-width:0}
+.lab-body{margin-top:8px}
+@media(max-width:640px){.f2-roadmap ol{columns:1}}
 @media print{#sim-overlay{display:none!important}}

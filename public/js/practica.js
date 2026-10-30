@@ -5,7 +5,7 @@ var Practica = (function () {
   var MASTERY = 80;
   var PASS_NOTE = 6;
   var LABELS = {
-    mc: '🔘 Opción múltiple', tf: '⚖️ Verdadero o falso', fill: '✍️ Completar', bug: '🐞 Encontrar el error',
+    http: '🔌 Laboratorio de API', mc: '🔘 Opción múltiple', tf: '⚖️ Verdadero o falso', fill: '✍️ Completar', bug: '🐞 Encontrar el error',
     output: '👀 ¿Qué imprime?', order: '🧩 Ordenar', match: '🔗 Unir', short: '💬 Respondé con tus palabras', code: '🏗️ Reto de código'
   };
   var LADDER = [
@@ -20,7 +20,11 @@ var Practica = (function () {
     super: { label: '🌱 Super Básico', levels: ['super'] },
     basico: { label: '📘 Básico', levels: ['basico'] },
     inter: { label: '🚀 Intermedio', levels: ['inter'] },
-    avanzado: { label: '🔧 Avanzado', levels: ['avanzado', 'examen'] }
+    avanzado: { label: '🔧 Avanzado', levels: ['avanzado', 'examen'] },
+    f2limpio: { label: '🧹 Fase 2 · Código limpio', levels: ['limpio'], fase2: true },
+    f2parcial1: { label: '🌱 Fase 2 · Primer parcial', levels: ['spring', 'api'], fase2: true },
+    f2parcial2: { label: '🧪 Fase 2 · Segundo parcial', levels: ['calidad', 'entrega'], fase2: true },
+    f2todo: { label: '🎓 Fase 2 completa', levels: ['limpio', 'spring', 'api', 'calidad', 'entrega', 'extra', 'coloquio'], fase2: true }
   };
 
   var state = emptyState();
@@ -173,6 +177,8 @@ var Practica = (function () {
       }
       case 'short':
         return '<textarea class="pr-input" id="pr-in-' + key + '" rows="3" aria-label="Tu respuesta" placeholder="Explicalo como se lo contarías a un compañero"></textarea>';
+      case 'http':
+        return ApiLab.render(key, it);
       case 'code':
         return '<p class="pr-task">' + it.task + '</p>' +
           (it.stdin && it.stdin.length ? '<div class="exp-out-label">Entrada simulada</div><div class="exp-out">' + e(it.stdin.join('\n')) + '</div>' : '') +
@@ -193,7 +199,9 @@ var Practica = (function () {
   function renderItem(it, key, label, exam) {
     var q = it.t === 'code' ? (it.title || 'Reto') : it.q;
     var action = '';
-    if (it.t === 'code') {
+    if (it.t === 'http') {
+      action = '<button type="button" class="run-btn" onclick="Practica.sendHttp(\'' + key + '\')">▶ Enviar</button>';
+    } else if (it.t === 'code') {
       action = '<button type="button" class="run-btn" onclick="Practica.runReto(\'' + key + '\')">▶ Ejecutar</button>' +
         '<button type="button" class="hint-btn" onclick="Practica.retoHint(\'' + key + '\')">💡 Pista</button>' +
         '<button type="button" class="hint-btn" onclick="Practica.resetReto(\'' + key + '\')">↺ Resetear</button>';
@@ -348,6 +356,20 @@ var Practica = (function () {
     feedback(key, 'bad', msg);
   }
 
+  function sendHttp(key) {
+    var it = itemOf(key);
+    var res = ApiLab.send(key);
+    var ok = ApiLab.reached(it, res);
+    var box = '<pre class="pr-pre">HTTP ' + res.status + '\n' + e(res.body) + '</pre>';
+    if (ok) {
+      saveScore(key, 1);
+      feedback(key, 'good', '<strong>✅ Objetivo cumplido.</strong>' + box + it.why);
+      refreshHeader(Number(String(key).split('-')[0]));
+    } else {
+      feedback(key, 'warn', '<strong>Respuesta del servidor.</strong>' + box + (it.hint || 'Todavía no es lo que se pide. Revisá el verbo, la ruta y el cuerpo.'));
+    }
+  }
+
   function retoHint(key) {
     var it = itemOf(key);
     feedback(key, 'warn', '<strong>💡 Pista:</strong> ' + it.hint);
@@ -426,15 +448,17 @@ var Practica = (function () {
   }
 
   // ── Simulacro y repaso ───────────────────────────────────────────────
+  function lessonsFor(tramo) { return TRAMOS[tramo].fase2 ? LESSONS_F2 : LESSONS; }
+
   function poolFor(tramo) {
     var levels = TRAMOS[tramo].levels;
     var out = [];
-    LESSONS.forEach(function (l) {
+    lessonsFor(tramo).forEach(function (l) {
       if (levels.indexOf(l.level) === -1) return;
       var p = dataFor(l.id);
       if (!p || !p.items) return;
       p.items.forEach(function (it, i) {
-        if (it.t !== 'code') out.push(l.id + '-' + i);
+        if (it.t !== 'code' && it.t !== 'http') out.push(l.id + '-' + i);
       });
     });
     return out;
@@ -478,7 +502,7 @@ var Practica = (function () {
     var html = '<div class="sim-head"><h2>🧪 Evaluaciones</h2><button type="button" class="hint-btn" onclick="Practica.closeSimulacro()">✕ Cerrar</button></div>' +
       '<p class="sim-lead">Un simulacro mezcla actividades al azar y no da pistas hasta el final, como un examen. Sirve para saber qué sabés de verdad.</p>' +
       '<div class="sim-form">' +
-      '<label>Tramo<select id="sim-tramo">' + Object.keys(TRAMOS).map(function (k) { return '<option value="' + k + '">' + TRAMOS[k].label + '</option>'; }).join('') + '</select></label>' +
+      '<label>Tramo<select id="sim-tramo">' + Object.keys(TRAMOS).filter(function (k) { return !TRAMOS[k].fase2 || (typeof fase2Unlocked === 'function' && fase2Unlocked()); }).map(function (k) { return '<option value="' + k + '">' + TRAMOS[k].label + '</option>'; }).join('') + '</select></label>' +
       '<label>Preguntas<select id="sim-count"><option value="10">10</option><option value="20" selected>20</option><option value="30">30</option></select></label>' +
       '<label class="sim-check"><input type="checkbox" id="sim-timer"> Con tiempo (90 segundos por pregunta)</label>' +
       '</div><button type="button" class="run-btn" onclick="Practica.fromForm()">Empezar simulacro</button>' +
@@ -596,8 +620,10 @@ var Practica = (function () {
       (nota >= PASS_NOTE ? 'Aprobado.' : 'Todavía no alcanza: repasá las lecciones de abajo y volvé a intentarlo.') + '</div></div>';
     if (weak.length) {
       summary += '<div class="sim-review"><h4>📚 Qué repasar primero</h4><ul class="sim-weak">' + weak.slice(0, 6).map(function (id) {
-        var idx = LESSONS.findIndex(function (l) { return String(l.id) === id; });
-        return '<li><button type="button" class="pr-link" onclick="Practica.goLesson(' + idx + ')">' + e(LESSONS[idx].title) + '</button><span>' + byLesson[id].ok + ' de ' + byLesson[id].total + '</span></li>';
+        var inF2 = Number(id) >= 100;
+        var list = inF2 ? LESSONS_F2 : LESSONS;
+        var idx = list.findIndex(function (l) { return String(l.id) === id; });
+        return '<li><button type="button" class="pr-link" onclick="Practica.goLesson(' + (inF2 ? 2 : 1) + ',' + idx + ')">' + e(list[idx].title) + '</button><span>' + byLesson[id].ok + ' de ' + byLesson[id].total + '</span></li>';
       }).join('') + '</ul></div>';
     }
     var box = $('sim-box');
@@ -609,8 +635,9 @@ var Practica = (function () {
     if (nota >= PASS_NOTE && typeof launchConfetti === 'function') launchConfetti();
   }
 
-  function goLesson(idx) {
+  function goLesson(faseId, idx) {
     closeSimulacro();
+    if (typeof showFase === 'function') showFase(faseId);
     if (typeof goTo === 'function') goTo(idx);
   }
 
@@ -640,6 +667,7 @@ var Practica = (function () {
     pick: pick,
     move: move,
     runReto: runReto,
+    sendHttp: sendHttp,
     retoHint: retoHint,
     resetReto: resetReto,
     showSolution: showSolution,

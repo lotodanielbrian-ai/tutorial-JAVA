@@ -28,6 +28,12 @@ var JavaRun = (function () {
   function ClassRef(name) { this.name = name; }
   function ClassOf(name) { this.name = name; }
   function Native(kind, st) { this.kind = kind; this.st = st || {}; this.id = nextId(); }
+  function JMap(kind) { this.kind = kind; this.e = []; this.peak = 0; this.id = nextId(); }
+  function JEntry(k, v) { this.k = k; this.v = v; }
+  function JOpt(v) { this.v = v; }
+  function JFn(call) { this.call = call; this.id = nextId(); }
+  function JPipe(a, kind) { this.a = a; this.kind = kind || 'obj'; }
+  function Collector(kind, sep) { this.kind = kind; this.sep = sep; }
 
   // Sin prototipo: 'toString' o 'constructor' no deben parecer claves del mapa
   function dict(o) { return Object.assign(Object.create(null), o); }
@@ -249,15 +255,16 @@ var JavaRun = (function () {
 
     function classDecl(mods) {
       var m = mods || modifiers();
-      if (is('enum')) throw new Unsupported('enum');
-      if (is('record')) throw new Unsupported('record');
+      var isEnum = is('enum');
+      var isRecord = atRecord();
       var isInterface = is('interface');
-      if (!isInterface && !is('class')) fail('class, interface, enum, or record expected', 'Acá Java espera una clase o una interfaz.');
+      if (!isInterface && !isEnum && !isRecord && !is('class')) fail('class, interface, enum, or record expected', 'Acá Java espera una clase o una interfaz.');
       p++;
       var line = t().line;
       var name = ident();
       if (is('<')) typeArgs();
-      var c = { name: name, line: line, sup: null, ifaces: [], isAbstract: !!m.abstract || isInterface, isInterface: isInterface, fields: [], methods: [], ctors: [], inits: [], statics: [] };
+      var c = { name: name, line: line, sup: null, ifaces: [], isAbstract: !!m.abstract || isInterface, isInterface: isInterface, fields: [], methods: [], ctors: [], inits: [], statics: [], isEnum: isEnum, isRecord: isRecord, enumConsts: [], recParams: null, compact: null };
+      if (isRecord) c.recParams = params();
       if (eat('extends')) {
         if (isInterface) {
           do { c.ifaces.push(type()); } while (eat(','));
@@ -265,6 +272,7 @@ var JavaRun = (function () {
       }
       if (eat('implements')) { do { c.ifaces.push(type()); } while (eat(',')); }
       expect('{');
+      if (isEnum) enumBody(c);
       var nested = [];
       while (!is('}')) {
         if (t().k === 'eof') fail('reached end of file while parsing', 'Falta cerrar una llave }.');
@@ -272,6 +280,22 @@ var JavaRun = (function () {
       }
       expect('}');
       return [c].concat(nested);
+    }
+
+    function atRecord() {
+      return t().v === 'record' && la(1).k === 'id' && (la(2).v === '(' || la(2).v === '<');
+    }
+
+    function enumBody(c) {
+      while (t().k === 'id' && !RESERVED[t().v]) {
+        var line = t().line;
+        var nm = ident();
+        var list = is('(') ? args() : [];
+        if (is('{')) throw new Unsupported('constantes de enum con cuerpo');
+        c.enumConsts.push({ name: nm, args: list, line: line });
+        if (!eat(',')) break;
+      }
+      eat(';');
     }
 
     function params() {
@@ -302,7 +326,7 @@ var JavaRun = (function () {
       if (eat(';')) return;
       var line = t().line;
       var m = modifiers();
-      if (is('class') || is('interface') || is('enum') || is('record')) {
+      if (is('class') || is('interface') || is('enum') || atRecord()) {
         var inner = classDecl(m);
         inner.forEach(function (x) { x.outer = c.name; nested.push(x); });
         return;
@@ -314,6 +338,11 @@ var JavaRun = (function () {
         return;
       }
       if (is('<')) typeArgs();
+      if (c.isRecord && t().k === 'id' && t().v === c.name && la(1).v === '{') {
+        p++;
+        c.compact = block();
+        return;
+      }
       if (t().k === 'id' && t().v === c.name && la(1).v === '(') {
         p++;
         var ps = params();
@@ -728,7 +757,13 @@ var JavaRun = (function () {
           e = { k: 'incdec', op: x.v, prefix: false, e: e, line: x.line };
           continue;
         }
-        if (is('::')) throw new Unsupported('referencias a métodos');
+        if (is('::')) {
+          p++;
+          var mref = t().v;
+          p++;
+          e = { k: 'mref', target: e, name: mref, line: x.line };
+          continue;
+        }
         return e;
       }
     }
@@ -757,11 +792,10 @@ var JavaRun = (function () {
       if (x.k === 'str') { p++; return { k: 'lit', lt: 'String', v: x.v, line: x.line }; }
       if (x.k === 'chr') { p++; return { k: 'lit', lt: 'char', v: x.v, line: x.line }; }
       if (is('(')) {
+        if (parenLambda()) return lambda();
         p++;
-        if (la(0).k === 'id' && (la(1).v === ',' || (la(1).v === ')' && la(2).v === '->'))) throw new Unsupported('lambdas');
         var inner = expr();
         expect(')');
-        if (is('->')) throw new Unsupported('lambdas');
         return inner;
       }
       if (x.k === 'id') {
@@ -787,12 +821,45 @@ var JavaRun = (function () {
           if (PRIMS[x.v] && la(1).v === '.') throw new Unsupported('literal de clase');
           fail('illegal start of expression', x.v + ' no puede ir en este lugar.');
         }
+        if (la(1).v === '->') return lambda();
         p++;
-        if (is('->')) throw new Unsupported('lambdas');
         if (is('(')) return { k: 'call', target: null, name: x.v, args: args(), line: x.line };
         return { k: 'name', name: x.v, line: x.line };
       }
       fail('illegal start of expression', 'Java no esperaba ' + x.v + ' en este lugar.');
+    }
+
+    function parenLambda() {
+      var d = 0;
+      for (var i = p; i < toks.length; i++) {
+        if (toks[i].v === '(' && toks[i].k === 'op') d++;
+        if (toks[i].v === ')' && toks[i].k === 'op') {
+          d--;
+          if (d === 0) return !!toks[i + 1] && toks[i + 1].v === '->';
+        }
+      }
+      return false;
+    }
+
+    function lambda() {
+      var line = t().line;
+      var ps = [];
+      if (is('(')) {
+        p++;
+        while (!is(')')) {
+          modifiers();
+          var ty = null;
+          if (la(1).v !== ',' && la(1).v !== ')') ty = type();
+          ps.push({ name: ident(), type: ty });
+          if (!eat(',')) break;
+        }
+        expect(')');
+      } else {
+        ps.push({ name: ident(), type: null });
+      }
+      expect('->');
+      var isExpr = !is('{');
+      return { k: 'lambda', params: ps, body: isExpr ? expr() : block(), isExpr: isExpr, line: line };
     }
 
     function newExpr() {
@@ -918,9 +985,9 @@ var JavaRun = (function () {
   });
   var preludeAst = null;
 
-  var BUILTIN_STATIC = dict({ Math: 1, Integer: 1, Double: 1, Long: 1, Float: 1, Short: 1, Byte: 1, Boolean: 1, Character: 1, String: 1, System: 1, Arrays: 1, Collections: 1, List: 1, Objects: 1, Thread: 1 });
+  var BUILTIN_STATIC = dict({ Math: 1, Integer: 1, Double: 1, Long: 1, Float: 1, Short: 1, Byte: 1, Boolean: 1, Character: 1, String: 1, System: 1, Arrays: 1, Collections: 1, List: 1, Objects: 1, Thread: 1, Optional: 1, Stream: 1, IntStream: 1, Collectors: 1, Comparator: 1, Map: 1 });
   var BOXED = dict({ Integer: 'int', Double: 'double', Long: 'long', Float: 'float', Short: 'short', Byte: 'byte', Character: 'char', Boolean: 'boolean' });
-  var KNOWN_NATIVE = dict({ String: 1, Object: 1, ArrayList: 1, List: 1, LinkedList: 1, Collection: 1, Iterable: 1, StringBuilder: 1, StringBuffer: 1, Scanner: 1, File: 1, FileWriter: 1, BufferedWriter: 1, PrintWriter: 1, FileReader: 1, BufferedReader: 1, Comparable: 1, Runnable: 1, Cloneable: 1, Serializable: 1, AutoCloseable: 1, Closeable: 1, CharSequence: 1, Number: 1 });
+  var KNOWN_NATIVE = dict({ String: 1, Object: 1, ArrayList: 1, List: 1, LinkedList: 1, Collection: 1, Iterable: 1, StringBuilder: 1, StringBuffer: 1, Scanner: 1, File: 1, FileWriter: 1, BufferedWriter: 1, PrintWriter: 1, FileReader: 1, BufferedReader: 1, Comparable: 1, Runnable: 1, Cloneable: 1, Serializable: 1, AutoCloseable: 1, Closeable: 1, CharSequence: 1, Number: 1, Map: 1, HashMap: 1, LinkedHashMap: 1, TreeMap: 1, Optional: 1, Function: 1, BiFunction: 1, Predicate: 1, Consumer: 1, Supplier: 1, UnaryOperator: 1, BinaryOperator: 1, Comparator: 1 });
 
   function run(source, opts) {
     opts = opts || {};
@@ -965,6 +1032,8 @@ var JavaRun = (function () {
       if (v instanceof JSb) return 'StringBuilder';
       if (v instanceof JObj) return v.cls.name;
       if (v instanceof Native) return v.kind;
+      if (v instanceof JMap) return v.kind;
+      if (v instanceof JOpt) return 'Optional';
       return 'Object';
     }
 
@@ -981,6 +1050,7 @@ var JavaRun = (function () {
     }
 
     function coerce(v, type, line) {
+      if (v instanceof JFn) return v;
       switch (type) {
         case 'int': case 'short': case 'byte':
           if (typeof v === 'number') return v;
@@ -1062,6 +1132,10 @@ var JavaRun = (function () {
       if (v instanceof JChar) return String.fromCharCode(v.v);
       if (v instanceof JList) return '[' + v.a.map(function (x) { return x === v ? '(this Collection)' : toStr(x); }).join(', ') + ']';
       if (v instanceof JSb) return v.s;
+      if (v instanceof JMap) return '{' + mapEntries(v).map(toStr).join(', ') + '}';
+      if (v instanceof JEntry) return toStr(v.k) + '=' + toStr(v.v);
+      if (v instanceof JOpt) return v.v === null ? 'Optional.empty' : 'Optional[' + toStr(v.v) + ']';
+      if (v instanceof JFn) return 'Lambda@' + v.id.toString(16);
       if (v instanceof JObj) {
         var r = callVirtual(v, 'toString', [], curLine);
         return r === null ? 'null' : r.s;
@@ -1080,11 +1154,25 @@ var JavaRun = (function () {
       if (classes[c.name] && !classes[c.name].builtin && !builtin) {
         compileErr(c.line, 'duplicate class: ' + c.name, 'Hay dos clases con el mismo nombre.');
       }
+      if (c.isRecord) expandRecord(c);
       classes[c.name] = {
+        isEnum: c.isEnum, isRecord: c.isRecord, enumConsts: c.enumConsts, recParams: c.recParams,
         name: c.name, sup: c.sup, ifaces: c.ifaces, isAbstract: c.isAbstract, isInterface: c.isInterface, outer: c.outer,
         fields: c.fields, methods: c.methods, ctors: c.ctors, inits: c.inits, statics: c.statics,
         st: Object.create(null), ready: false, builtin: !!builtin, line: c.line
       };
+    }
+
+    // Un record es azúcar: atributos final, constructor canónico y un método por campo
+    function expandRecord(c) {
+      var body = c.compact ? c.compact.body.slice() : [];
+      c.recParams.forEach(function (rp) {
+        c.fields.push({ kind: 'field', name: rp.name, type: rp.type, init: null, isStatic: false, isFinal: true, access: 'private', line: c.line, cls: c.name });
+        body.push({ k: 'expr', line: c.line, e: { k: 'assign', op: '=', line: c.line, target: { k: 'field', target: { k: 'this', line: c.line }, name: rp.name, line: c.line }, v: { k: 'name', name: rp.name, line: c.line } } });
+        var exists = c.methods.some(function (m) { return m.name === rp.name && !m.params.length; });
+        if (!exists) c.methods.push({ name: rp.name, params: [], ret: rp.type, isStatic: false, isAbstract: false, access: 'public', throwsList: [], cls: c.name, line: c.line, override: false, body: { k: 'block', line: c.line, body: [{ k: 'return', line: c.line, v: { k: 'field', target: { k: 'this', line: c.line }, name: rp.name, line: c.line } }] } });
+      });
+      c.ctors.push({ params: c.recParams, body: { k: 'block', body: body, line: c.line }, access: 'public', line: c.line, throwsList: [] });
     }
 
     function supOf(c) {
@@ -1214,7 +1302,10 @@ var JavaRun = (function () {
       ArrayList: 'java.util', LinkedList: 'java.util', List: 'java.util', Arrays: 'java.util', Collections: 'java.util', Scanner: 'java.util', Objects: 'java.util',
       NoSuchElementException: 'java.util', InputMismatchException: 'java.util',
       File: 'java.io', FileWriter: 'java.io', FileReader: 'java.io', BufferedWriter: 'java.io', BufferedReader: 'java.io', PrintWriter: 'java.io',
-      IOException: 'java.io', FileNotFoundException: 'java.io'
+      IOException: 'java.io', FileNotFoundException: 'java.io',
+      Map: 'java.util', HashMap: 'java.util', LinkedHashMap: 'java.util', TreeMap: 'java.util', Optional: 'java.util', Comparator: 'java.util',
+      Function: 'java.util.function', BiFunction: 'java.util.function', Predicate: 'java.util.function', Consumer: 'java.util.function', Supplier: 'java.util.function', UnaryOperator: 'java.util.function', BinaryOperator: 'java.util.function',
+      Stream: 'java.util.stream', IntStream: 'java.util.stream', Collectors: 'java.util.stream'
     });
 
     function checkImports(toks, imports, list) {
@@ -1232,6 +1323,7 @@ var JavaRun = (function () {
     function scanReturns(node, ret, name) {
       if (!node || typeof node !== 'object') return;
       if (Array.isArray(node)) { node.forEach(function (x) { scanReturns(x, ret, name); }); return; }
+      if (node.k === 'lambda') return;
       if (node.k === 'return') {
         if (ret === 'void' && node.v) compileErr(node.line, 'incompatible types: unexpected return value', name + ' es void: no puede devolver un valor. Si tiene que devolverlo, cambiá void por el tipo.');
         if (ret !== 'void' && !node.v) compileErr(node.line, 'incompatible types: missing return value', name + ' tiene que devolver un ' + ret + '.');
@@ -1292,6 +1384,18 @@ var JavaRun = (function () {
       if (sup) initClass(sup);
       c.fields.forEach(function (f) { if (f.isStatic) c.st[f.name] = { type: f.type, v: defaultValue(f.type), isFinal: f.isFinal }; });
       var frame = { self: null, cls: c, isStatic: true };
+      if (c.isEnum) {
+        c.enumValues = [];
+        c.enumConsts.forEach(function (ec, ordinal) {
+          var o = new JObj(c);
+          o.enumName = ec.name;
+          o.ordinal = ordinal;
+          initFields(o, c);
+          construct(o, c, ec.args.map(function (a) { return ev(a, frame, newScope()); }), ec.line);
+          c.st[ec.name] = { type: c.name, v: o, isFinal: true, set: true };
+          c.enumValues.push(o);
+        });
+      }
       c.statics.forEach(function (s) {
         if (s.kind === 'block') { execBlock(s.body, frame, newScope()); return; }
         if (s.init) c.st[s.name].v = coerce(ev(s.init, frame, newScope(), s.type), s.type, s.line);
@@ -1391,6 +1495,7 @@ var JavaRun = (function () {
     }
 
     function score(paramType, v) {
+      if (v instanceof JFn) return classes[paramType] && !classes[paramType].isInterface ? -1 : 2;
       var t = typeName(v);
       if (paramType === t) return 4;
       if (v === null) return PRIMS[paramType] ? -1 : 2;
@@ -1476,6 +1581,24 @@ var JavaRun = (function () {
     }
 
     function objectMethod(o, name, args, line) {
+      if (o.cls.isEnum) {
+        switch (name) {
+          case 'name': case 'toString': return str(o.enumName);
+          case 'ordinal': return o.ordinal;
+          case 'compareTo': return o.ordinal - args[0].ordinal;
+        }
+      }
+      if (o.cls.isRecord) {
+        var fields = o.cls.recParams.map(function (rp) { return rp.name; });
+        switch (name) {
+          case 'toString':
+            return str(o.cls.name + '[' + fields.map(function (fn) { return fn + '=' + toStr(o.f[fn].v); }).join(', ') + ']');
+          case 'equals':
+            return args[0] instanceof JObj && args[0].cls === o.cls && fields.every(function (fn) { return sameValue(o.f[fn].v, args[0].f[fn].v); });
+          case 'hashCode':
+            return fields.reduce(function (h, fn) { return (Math.imul(31, h) + hashOf(o.f[fn].v)) | 0; }, 0);
+        }
+      }
       switch (name) {
         case 'toString': return str(o.cls.name + '@' + o.id.toString(16));
         case 'equals': return o === args[0];
@@ -1610,6 +1733,7 @@ var JavaRun = (function () {
     }
 
     function caseMatches(sv, lab, f, sc) {
+      if (sv instanceof JObj && sv.cls.isEnum && lab.k === 'name') return sv.enumName === lab.name;
       var lv = ev(lab, f, sc);
       if (sv instanceof JStr) return lv instanceof JStr && lv.s === sv.s;
       return asNumber(sv) === asNumber(lv);
@@ -1994,10 +2118,60 @@ var JavaRun = (function () {
           if (sr) throw new Unsupported('switch como expresión');
           return undefined;
         }
+        case 'lambda': return makeLambda(n, f, sc);
+        case 'mref': return methodRef(n, f, sc);
         case 'ctorcall':
           compileErr(n.line, 'call to super must be first statement in constructor', 'super(...) o this(...) tienen que ser la primera línea del constructor.');
       }
       throw new Unsupported('expresión ' + n.k);
+    }
+
+    function makeLambda(n, f, sc) {
+      return new JFn(function (args) {
+        var ls = newScope(sc);
+        n.params.forEach(function (lp, i) {
+          ls[lp.name] = { type: lp.type || 'var', v: lp.type ? coerce(args[i], lp.type, n.line) : args[i], set: true };
+        });
+        if (n.isExpr) return ev(n.body, f, ls);
+        var r = execBlock(n.body, f, ls);
+        return r && r.ret ? r.v : undefined;
+      });
+    }
+
+    function callOn(recv, name, args, line) {
+      if (recv === null) throwJava('NullPointerException', null, line);
+      if (recv instanceof JObj) return callVirtual(recv, name, args, line);
+      return nativeCall(recv, name, args, line);
+    }
+
+    function methodRef(n, f, sc) {
+      var line = n.line;
+      var isType = n.target.k === 'name' && !lookup(n.target.name, f, sc) && (isClassName(n.target.name) || KNOWN_NATIVE[n.target.name]);
+      if (!isType) {
+        var recv = ev(n.target, f, sc);
+        return new JFn(function (args) { return callOn(recv, n.name, args, line); });
+      }
+      var cname = n.target.name;
+      if (n.name === 'new') {
+        return new JFn(function (args) {
+          if (classes[cname]) return instantiate(classes[cname], args, line);
+          return newObject({ name: cname, args: [], line: line }, f, sc);
+        });
+      }
+      var user = classes[cname] && !BUILTIN_STATIC[cname] ? classes[cname] : null;
+      return new JFn(function (args) {
+        if (user) {
+          var sm = user.methods.filter(function (m) { return m.name === n.name && m.isStatic; });
+          if (sm.length) return invoke(sm[0], null, args, line);
+          return callOn(args[0], n.name, args.slice(1), line);
+        }
+        var statics = { String: { valueOf: 1, format: 1, join: 1 } };
+        var isStatic = cname !== 'String' || (statics.String[n.name] === 1);
+        if (isStatic && BUILTIN_STATIC[cname] && !(BOXED[cname] && /^(intValue|doubleValue|toString|compareTo|equals)$/.test(n.name) && args.length < 2 && n.name !== 'toString')) {
+          return staticCall(cname, n.name, args, line);
+        }
+        return callOn(args[0], n.name, args.slice(1), line);
+      });
     }
 
     function makeArray(type, dims, level) {
@@ -2186,6 +2360,11 @@ var JavaRun = (function () {
         case 'ArrayList': case 'LinkedList':
           if (args[0] instanceof JList) return new JList(args[0].a.slice(), cname);
           return new JList([], cname);
+        case 'HashMap': case 'LinkedHashMap': case 'TreeMap': {
+          var nm = new JMap(cname);
+          if (args[0] instanceof JMap) args[0].e.forEach(function (en) { mapPut(nm, en.k, en.v); });
+          return nm;
+        }
         case 'StringBuilder': case 'StringBuffer':
           return new JSb(args[0] instanceof JStr ? args[0].s : '');
         case 'Object': return instantiate(classes.Object, [], n.line);
@@ -2205,7 +2384,7 @@ var JavaRun = (function () {
       }
       if (/^[a-z]/.test(cname) || !cname) noSymbol(cname, n.line);
       if (KNOWN_NATIVE[cname]) throw new Unsupported('new ' + cname);
-      if (/^(HashMap|HashSet|TreeMap|TreeSet|Random|Date|LocalDate|Thread|Optional|Stack|Queue|PriorityQueue|ArrayDeque|LinkedHashMap)$/.test(cname)) throw new Unsupported(cname);
+      if (/^(HashSet|TreeSet|LinkedHashSet|Random|Date|LocalDate|LocalDateTime|Thread|Stack|Queue|PriorityQueue|ArrayDeque)$/.test(cname)) throw new Unsupported(cname);
       compileErr(n.line, 'cannot find symbol: class ' + cname, 'La clase ' + cname + ' no existe. Revisá el nombre, las mayúsculas y que hayas hecho el import.');
     }
 
@@ -2227,7 +2406,7 @@ var JavaRun = (function () {
       if (n.target.k !== 'name') return;
       var slot = lookup(n.target.name, f, sc);
       var decl = slot && classes[slot.type];
-      if (!decl || decl.builtin) return;
+      if (!decl || decl.builtin || decl.isEnum) return;
       if (n.name === 'toString' || n.name === 'equals' || n.name === 'hashCode' || n.name === 'getClass') return;
       var known = ancestors(decl).some(function (k) {
         return k.methods.some(function (m) { return m.name === n.name && m.params.length === n.args.length; });
@@ -2271,6 +2450,9 @@ var JavaRun = (function () {
       checkDeclared(n, f, sc);
       if (t instanceof ClassRef) {
         if (classes[t.name] && !BUILTIN_STATIC[t.name]) {
+          initClass(classes[t.name]);
+          if (classes[t.name].isEnum && n.name === 'values') return new JArr(t.name, classes[t.name].enumValues.slice());
+          if (classes[t.name].isEnum && n.name === 'valueOf') return enumValueOf(classes[t.name], args[0], n.line);
           var cm = findMethod(classes[t.name], n.name, args);
           if (!cm) missingMethod(n.name, args, n.line);
           if (!cm.isStatic) compileErr(n.line, 'non-static method ' + n.name + '() cannot be referenced from a static context', n.name + ' no es static: llamalo desde un objeto, no desde la clase.');
@@ -2280,6 +2462,7 @@ var JavaRun = (function () {
         return staticCall(t.name, n.name, args, n.line);
       }
       if (t === null) throwJava('NullPointerException', 'Cannot invoke "' + n.name + '()" because value is null', n.line);
+      if (t instanceof JFn) return lambdaCall(t, n, args, f, sc);
       if (t instanceof JObj) {
         var pm = findMethod(t.cls, n.name, args);
         if (pm) {
@@ -2295,6 +2478,29 @@ var JavaRun = (function () {
         return false;
       }
       return nativeCall(t, n.name, args, n.line);
+    }
+
+    function lambdaCall(fn, n, args, f, sc) {
+      if (n.name === 'reversed') return new JFn(function (a) { return fn.call([a[1], a[0]]); });
+      if (n.name === 'negate') return new JFn(function (a) { return !fn.call(a); });
+      // Una interfaz propia fija los tipos: op.aplicar(7, 2) con double trabaja en double
+      var slot = n.target.k === 'name' ? lookup(n.target.name, f, sc) : null;
+      var iface = slot && classes[slot.type];
+      var sig = null;
+      if (iface) {
+        ancestors(iface).some(function (k) {
+          sig = k.methods.filter(function (m) { return m.name === n.name && m.isAbstract; })[0] || null;
+          return !!sig;
+        });
+        if (!sig) {
+          var dm = findMethod(iface, n.name, args);
+          if (dm) throw new Unsupported('métodos default en una lambda');
+          missingMethod(n.name, args, n.line);
+        }
+      }
+      var vals = sig ? args.map(function (a, i) { return coerce(a, sig.params[i].type, n.line); }) : args;
+      var res = fn.call(vals);
+      return sig && sig.ret !== 'void' ? coerce(res, sig.ret, n.line) : res;
     }
 
     // remove(Integer.valueOf(x)) borra por valor; remove(i) borra por posición
@@ -2471,7 +2677,7 @@ var JavaRun = (function () {
         case 'Arrays': return arraysCall(name, a, line);
         case 'Collections': {
           var l = a[0];
-          if (name === 'sort') { l.a.sort(compareValues); return undefined; }
+          if (name === 'sort') { l.a.sort(a[1] ? fnCompare(a[1]) : compareValues); return undefined; }
           if (name === 'reverse') { l.a.reverse(); return undefined; }
           if (name === 'max' || name === 'min') {
             if (!l.a.length) throwJava('NoSuchElementException', null, line);
@@ -2481,6 +2687,42 @@ var JavaRun = (function () {
         }
         case 'List':
           if (name === 'of') return new JList(a.slice(), 'ImmutableCollections.ListN');
+          break;
+        case 'Optional':
+          if (name === 'of') {
+            if (a[0] === null) throwJava('NullPointerException', null, line);
+            return new JOpt(a[0]);
+          }
+          if (name === 'ofNullable') return new JOpt(a[0]);
+          if (name === 'empty') return new JOpt(null);
+          break;
+        case 'Stream':
+          if (name === 'of') return new JPipe(a.length === 1 && a[0] instanceof JArr ? a[0].a.slice() : a.slice());
+          break;
+        case 'IntStream':
+          if (name === 'range' || name === 'rangeClosed') {
+            var seq = [];
+            for (var r = a[0]; name === 'range' ? r < a[1] : r <= a[1]; r++) seq.push(r);
+            return new JPipe(seq, 'int');
+          }
+          break;
+        case 'Collectors':
+          if (name === 'toList') return new Collector('list');
+          if (name === 'joining') return new Collector('joining', a.length ? toStr(a[0]) : '');
+          break;
+        case 'Comparator':
+          if (name === 'comparing' || name === 'comparingInt' || name === 'comparingDouble') {
+            return new JFn(function (x) { return compareValues(a[0].call([x[0]]), a[0].call([x[1]])); });
+          }
+          if (name === 'naturalOrder') return new JFn(function (x) { return compareValues(x[0], x[1]); });
+          if (name === 'reverseOrder') return new JFn(function (x) { return compareValues(x[1], x[0]); });
+          break;
+        case 'Map':
+          if (name === 'of') {
+            var im = new JMap('LinkedHashMap');
+            for (var mi = 0; mi + 1 < a.length; mi += 2) mapPut(im, a[mi], a[mi + 1]);
+            return im;
+          }
           break;
         case 'Objects':
           if (name === 'equals') return sameValue(a[0], a[1]);
@@ -2517,8 +2759,10 @@ var JavaRun = (function () {
         case 'deepToString':
           return str((function deep(x) { return '[' + x.a.map(function (e) { return e instanceof JArr ? deep(e) : toStr(e); }).join(', ') + ']'; })(arr));
         case 'sort':
-          if (a.length === 1) { arr.a.sort(compareValues); return undefined; }
-          throw new Unsupported('Arrays.sort con comparador');
+          arr.a.sort(a[1] ? fnCompare(a[1]) : compareValues);
+          return undefined;
+        case 'stream':
+          return new JPipe(arr.a.slice(), arr.type === 'int' ? 'int' : arr.type === 'double' ? 'double' : 'obj');
         case 'fill': {
           var v = coerce(a[1], arr.type, line);
           for (var i = 0; i < arr.a.length; i++) arr.a[i] = v;
@@ -2590,6 +2834,16 @@ var JavaRun = (function () {
       if (t instanceof JStr) return stringCall(t, name, a, line);
       if (t instanceof JList) return listCall(t, name, a, line);
       if (t instanceof JSb) return sbCall(t, name, a, line);
+      if (t instanceof JMap) return mapCall(t, name, a, line);
+      if (t instanceof JOpt) return optCall(t, name, a, line);
+      if (t instanceof JPipe) return pipeCall(t, name, a, line);
+      if (t instanceof JFn) return t.call(a);
+      if (t instanceof JEntry) {
+        if (name === 'getKey') return t.k;
+        if (name === 'getValue') return t.v;
+        if (name === 'toString') return str(toStr(t));
+        missingMethod(name, a, line);
+      }
       if (t instanceof JArr) {
         if (name === 'clone') return new JArr(t.type, t.a.slice());
         if (name === 'length') compileErr(line, 'cannot find symbol: method length()', 'En un array el tamaño es un atributo: se escribe .length sin paréntesis.');
@@ -2700,7 +2954,16 @@ var JavaRun = (function () {
 
     function listCall(l, name, a, line) {
       var i;
+      if (l.kind === 'ImmutableCollections.ListN' && /^(add|remove|set|clear|addAll|sort)$/.test(name)) throwJava('UnsupportedOperationException', null, line);
       switch (name) {
+        case 'stream': return new JPipe(l.a.slice());
+        case 'forEach': l.a.slice().forEach(function (x) { a[0].call([x]); }); return undefined;
+        case 'removeIf': {
+          var before = l.a.length;
+          l.a = l.a.filter(function (x) { return !a[0].call([x]); });
+          return l.a.length !== before;
+        }
+        case 'sort': l.a.sort(a[0] ? fnCompare(a[0]) : compareValues); return undefined;
         case 'add':
           if (a.length === 2) {
             i = needInt(a[0], line);
@@ -2745,8 +3008,154 @@ var JavaRun = (function () {
         case 'getLast': return l.a[l.a.length - 1];
       }
       if (name === 'length') compileErr(line, 'cannot find symbol: method length()', 'En un ArrayList el tamaño se pide con .size().');
-      if (name === 'forEach' || name === 'stream' || name === 'iterator' || name === 'sort') throw new Unsupported('ArrayList.' + name);
+      if (name === 'iterator') throw new Unsupported('ArrayList.iterator');
       missingMethod(name, a, line);
+    }
+
+    function hashOf(v) {
+      if (v === null) return 0;
+      if (typeof v === 'number') return v;
+      if (typeof v === 'boolean') return v ? 1231 : 1237;
+      if (v instanceof JChar) return v.v;
+      if (v instanceof JLong) return Number(BigInt.asIntN(32, v.v ^ (v.v >> BigInt(32))));
+      if (v instanceof JStr) return stringCall(v, 'hashCode', [], curLine);
+      if (v instanceof JObj) return callVirtual(v, 'hashCode', [], curLine);
+      return 0;
+    }
+
+    function mapFind(m, key) {
+      for (var i = 0; i < m.e.length; i++) {
+        if (sameValue(key, m.e[i].k)) return i;
+      }
+      return -1;
+    }
+
+    function mapPut(m, k, v) {
+      var at = mapFind(m, k);
+      if (at !== -1) {
+        var old = m.e[at].v;
+        m.e[at].v = v;
+        return old;
+      }
+      m.e.push(new JEntry(k, v));
+      m.peak = Math.max(m.peak, m.e.length);
+      return null;
+    }
+
+    // Reproduce el orden de HashMap: tabla de potencia de 2 que nunca se achica, por cubeta y por llegada
+    function mapEntries(m) {
+      if (m.kind === 'LinkedHashMap') return m.e.slice();
+      if (m.kind === 'TreeMap') return m.e.slice().sort(function (x, y) { return compareValues(x.k, y.k); });
+      var n = 16;
+      while (m.peak > n * 0.75) n *= 2;
+      function bucket(en) {
+        var h = hashOf(en.k);
+        return (h ^ (h >>> 16)) & (n - 1);
+      }
+      return m.e.slice().sort(function (x, y) { return bucket(x) - bucket(y); });
+    }
+
+    function mapCall(m, name, a, line) {
+      var at;
+      switch (name) {
+        case 'put': return mapPut(m, a[0], a[1]);
+        case 'get': at = mapFind(m, a[0]); return at === -1 ? null : m.e[at].v;
+        case 'getOrDefault': at = mapFind(m, a[0]); return at === -1 ? a[1] : m.e[at].v;
+        case 'containsKey': return mapFind(m, a[0]) !== -1;
+        case 'containsValue': return m.e.some(function (en) { return sameValue(a[0], en.v); });
+        case 'putIfAbsent':
+          at = mapFind(m, a[0]);
+          if (at !== -1) return m.e[at].v;
+          mapPut(m, a[0], a[1]);
+          return null;
+        case 'remove':
+          at = mapFind(m, a[0]);
+          return at === -1 ? null : m.e.splice(at, 1)[0].v;
+        case 'putAll': a[0].e.forEach(function (en) { mapPut(m, en.k, en.v); }); return undefined;
+        case 'size': return m.e.length;
+        case 'isEmpty': return m.e.length === 0;
+        case 'clear': m.e = []; return undefined;
+        case 'keySet': return new JList(mapEntries(m).map(function (en) { return en.k; }), 'KeySet');
+        case 'values': return new JList(mapEntries(m).map(function (en) { return en.v; }), 'Values');
+        case 'entrySet': return new JList(mapEntries(m), 'EntrySet');
+        case 'forEach': mapEntries(m).forEach(function (en) { a[0].call([en.k, en.v]); }); return undefined;
+        case 'toString': return str(toStr(m));
+      }
+      missingMethod(name, a, line);
+    }
+
+    function optCall(o, name, a, line) {
+      var present = o.v !== null;
+      switch (name) {
+        case 'isPresent': return present;
+        case 'isEmpty': return !present;
+        case 'get': case 'getAsInt': case 'getAsDouble':
+          if (!present) throwJava('NoSuchElementException', 'No value present', line);
+          return o.v;
+        case 'orElse': return present ? o.v : a[0];
+        case 'orElseGet': return present ? o.v : a[0].call([]);
+        case 'orElseThrow':
+          if (present) return o.v;
+          if (!a.length) throwJava('NoSuchElementException', 'No value present', line);
+          throw new JThrow(a[0].call([]));
+        case 'ifPresent': if (present) a[0].call([o.v]); return undefined;
+        case 'map': return present ? new JOpt(a[0].call([o.v])) : o;
+        case 'filter': return present && a[0].call([o.v]) ? o : new JOpt(null);
+        case 'toString': return str(toStr(o));
+      }
+      missingMethod(name, a, line);
+    }
+
+    function fnCompare(fn) {
+      return function (x, y) { return asNumber(fn.call([x, y])); };
+    }
+
+    function pipeCall(s, name, a, line) {
+      switch (name) {
+        case 'filter': return new JPipe(s.a.filter(function (x) { return a[0].call([x]); }), s.kind);
+        case 'map': return new JPipe(s.a.map(function (x) { return a[0].call([x]); }), s.kind);
+        case 'mapToInt': return new JPipe(s.a.map(function (x) { return a[0].call([x]); }), 'int');
+        case 'mapToDouble': return new JPipe(s.a.map(function (x) { return coerce(a[0].call([x]), 'double', line); }), 'double');
+        case 'boxed': return new JPipe(s.a.slice());
+        case 'sorted': return new JPipe(s.a.slice().sort(a[0] ? fnCompare(a[0]) : compareValues), s.kind);
+        case 'limit': return new JPipe(s.a.slice(0, Number(toBig(a[0]))), s.kind);
+        case 'skip': return new JPipe(s.a.slice(Number(toBig(a[0]))), s.kind);
+        case 'peek': s.a.forEach(function (x) { a[0].call([x]); }); return s;
+        case 'distinct': {
+          var seen = [];
+          s.a.forEach(function (x) { if (!seen.some(function (y) { return sameValue(x, y); })) seen.push(x); });
+          return new JPipe(seen, s.kind);
+        }
+        case 'forEach': s.a.forEach(function (x) { a[0].call([x]); }); return undefined;
+        case 'toList': return new JList(s.a.slice(), 'ImmutableCollections.ListN');
+        case 'collect':
+          if (a[0].kind === 'joining') return str(s.a.map(toStr).join(a[0].sep));
+          return new JList(s.a.slice(), 'ArrayList');
+        case 'count': return new JLong(BigInt(s.a.length));
+        case 'sum':
+          if (s.kind === 'int') return s.a.reduce(function (t, x) { return (t + x) | 0; }, 0);
+          return new JDouble(s.a.reduce(function (t, x) { return t + asNumber(x); }, 0));
+        case 'average':
+          if (!s.a.length) return new JOpt(null);
+          return new JOpt(new JDouble(s.a.reduce(function (t, x) { return t + asNumber(x); }, 0) / s.a.length));
+        case 'max': case 'min': {
+          if (!s.a.length) return new JOpt(null);
+          var cmp = a[0] ? fnCompare(a[0]) : compareValues;
+          return new JOpt(s.a.slice().sort(cmp)[name === 'max' ? s.a.length - 1 : 0]);
+        }
+        case 'findFirst': case 'findAny': return new JOpt(s.a.length ? s.a[0] : null);
+        case 'anyMatch': return s.a.some(function (x) { return a[0].call([x]); });
+        case 'allMatch': return s.a.every(function (x) { return a[0].call([x]); });
+        case 'noneMatch': return !s.a.some(function (x) { return a[0].call([x]); });
+        case 'reduce': return s.a.reduce(function (acc, x) { return a[1].call([acc, x]); }, a[0]);
+      }
+      throw new Unsupported('Stream.' + name);
+    }
+
+    function enumValueOf(c, name, line) {
+      var hit = c.enumValues.filter(function (o) { return o.enumName === toStr(name); })[0];
+      if (!hit) throwJava('IllegalArgumentException', 'No enum constant ' + c.name + '.' + toStr(name), line);
+      return hit;
     }
 
     function sbCall(b, name, a, line) {

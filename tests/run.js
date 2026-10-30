@@ -21,11 +21,14 @@ function load(file) {
 }
 ['public/js/lessons.js', 'public/js/javarun.js', 'public/js/validate.js'].forEach(load);
 vm.runInContext('this.LESSONS = LESSONS;', ctx);
-for (const f of fs.readdirSync(path.join(ROOT, 'public/js'))) {
-  if (/^practica-.*\.js$/.test(f)) load('public/js/' + f);
+for (const f of fs.readdirSync(path.join(ROOT, 'public/js')).sort()) {
+  if (/^(practica-|fase2-).*\.js$/.test(f)) load('public/js/' + f);
 }
-if (fs.existsSync(path.join(ROOT, 'public/js/practica.js'))) load('public/js/practica.js');
-const LESSONS = ctx.LESSONS;
+load('public/js/apilab.js');
+load('public/js/practica.js');
+vm.runInContext('this.LESSONS_F2 = LESSONS_F2;', ctx);
+const LESSONS_F1 = ctx.LESSONS;
+const LESSONS = LESSONS_F1.concat(ctx.LESSONS_F2);
 const PRACTICA = vm.runInContext('typeof PRACTICA === "undefined" ? {} : PRACTICA', ctx);
 
 let failures = 0;
@@ -68,6 +71,7 @@ function checkData() {
         ok(q.correct >= 0 && q.correct < q.options.length, 'lección ' + l.id + ' pregunta ' + i + ': correct fuera de rango');
       });
     }
+    if (l.exercise && l.id > 100) ok(l.exercise.need && l.exercise.need.length, 'lección ' + l.id + ': faltan los conceptos a exigir');
     if (l.exercise) ok(l.exercise.expected.length > 0, 'lección ' + l.id + ': expected vacío deja aprobar sin programar');
     const r = l.exercise && !l.exercise.gitOnly ? ctx.localValidate(l.id, l.exercise.starter) : null;
     if (r) {
@@ -75,7 +79,9 @@ function checkData() {
       ok(!passes, 'lección ' + l.id + ': el código inicial sin tocar aprueba');
     }
   }
-  const validTypes = ['mc', 'tf', 'fill', 'bug', 'output', 'order', 'match', 'short', 'code'];
+  ok(LESSONS_F1.length === 35, 'la Fase 1 debe seguir con 35 lecciones: el certificado y el ranking dependen de eso');
+  ok(LESSONS_F1.every(l => l.id < 100) && ctx.LESSONS_F2.every(l => l.id > 100), 'los ids de cada fase no deben cruzarse');
+  const validTypes = ['mc', 'tf', 'fill', 'bug', 'output', 'order', 'match', 'short', 'code', 'http'];
   const seen = {};
   for (const id of Object.keys(PRACTICA)) {
     const p = PRACTICA[id];
@@ -86,6 +92,12 @@ function checkData() {
       const at = 'lección ' + id + ' ítem ' + i + ' (' + it.t + ')';
       ok(validTypes.includes(it.t), at + ': tipo desconocido');
       ok(it.q || it.t === 'code', at + ': sin consigna');
+      if (it.t === 'http') {
+        const server = ctx.ApiLab.seed();
+        let res = null;
+        it.demo.forEach(step => { res = Object.assign({ method: step[0], url: step[1] }, ctx.ApiLab.handle(server, step[0], step[1], step[2] || '')); });
+        ok(ctx.ApiLab.reached(it, res), at + ': el objetivo no se alcanza: ' + JSON.stringify(res).slice(0, 160));
+      }
       ok(it.why || it.t === 'code', at + ': sin explicación');
       const key = it.t + '|' + (it.q || it.title || '') + '|' + (it.code || '');
       ok(!seen[key], at + ': repetido con ' + seen[key]);
@@ -135,7 +147,7 @@ function collectSolutions() {
     });
   }
   for (const id of [31, 33]) {
-    const l = LESSONS.find(x => x.id === id);
+    const l = LESSONS_F1.find(x => x.id === id);
     const blocks = codeBlocks(l.exercise.hints.join('\n'));
     const v = ctx.localValidate(id, blocks[blocks.length - 1]);
     ok(v.ok, 'el validador rechaza los comandos oficiales de la lección ' + id + ': ' + JSON.stringify(v));

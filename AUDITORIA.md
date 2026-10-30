@@ -118,6 +118,32 @@ Ordenadas por impacto sobre el aprendizaje y el producto.
 | Baja | Unificar los archivos y minificarlos | El sitio creció y carga más JavaScript |
 | Baja | Encabezado Content-Security-Policy | Una capa más contra inyección de código |
 
+## Auditoría del segundo semestre
+
+**Fecha:** 30 de octubre de 2026. Se revisó `PR1 - Agosto 2026`: 9 clases en video, con transcripción automática.
+
+| Hallazgo | Decisión |
+|---|---|
+| El repositorio es público, y los videos muestran caras, nombres y voces de compañeros | Videos y transcripciones quedan fuera de git |
+| Cada video pesa más de 100 MB, el límite de GitHub | Quedan en Descargas |
+| Las transcripciones confunden términos: "Sprint" por Spring, "Moquito" por Mockito | Los conceptos se reescribieron y se verificaron con código real |
+| No está el enunciado escrito de los parciales | Se reconstruyeron los criterios desde las clases, con enunciados propios |
+| Faltan las clases 10 a 12 y el segundo parcial | Quedan como pendiente en el plan |
+
+### Error encontrado después de publicar
+
+La pestaña **Práctica se veía vacía en las lecciones con cuestionario** (14, 25, 30, 32 y 35). `buildQuiz` abría un `<div>` sin cerrarlo, y esa pestaña quedaba dentro de la del cuestionario, que está oculta. Las pruebas contaban elementos en el DOM y pasaban. Ahora se comprueba que se vea en cada lección.
+
+### Errores que detectó la verificación
+
+| Qué se probó | Qué apareció |
+|---|---|
+| Levantar la API de ejemplo | Un verbo no permitido daba 500 en vez de 405 |
+| Correr sus tests | `@EnableJpaAuditing` en la clase principal rompe `@WebMvcTest` |
+| Ejecutar el SQL en H2 | Una consulta "corregida" no era válida, y un `JOIN` sin `ON` no falla: combina todas las filas |
+
+Los tres quedaron como contenido de las lecciones.
+
 ## Cómo verificar
 
 ```bash
@@ -125,3 +151,9 @@ node tests/run.js
 ```
 
 Requiere Node y un JDK en el `PATH`. Compila cada programa con Java real y compara cada respuesta. Si alguien cambia una actividad y deja una respuesta incorrecta, la prueba falla.
+
+Para la Fase 2:
+
+```bash
+node tests/spring-check.js
+```

@@ -21,6 +21,61 @@ function generateCert() {
   setTimeout(function() { document.getElementById('cert-print').classList.remove('show-cert'); ps.remove(); }, 1500);
 }
 
+var CERT2 = {
+  title: 'CERTIFICADO DE FASE 2',
+  desc: 'Por haber completado la <b>Fase 1 de fundamentos de Java</b> y la <b>Fase 2 de desarrollo backend</b>, con parciales prácticos y coloquio, demostrando que puede construir, probar, documentar y empaquetar una API REST con Java y Spring Boot.',
+  skills: ['Java SE · POO', 'Spring Boot · Maven', 'API REST · DTO', 'JPA · SQL · MySQL', 'JUnit · Mockito', 'Docker · Swagger', 'Código limpio · SOLID'],
+  sign: '<b>BRIAN DANIEL LOTO</b><br>Autor del curso'
+};
+
+function showCert2Overlay() {
+  var box = document.getElementById('sim-box');
+  var user = typeof AuthUI !== 'undefined' && AuthUI.user ? AuthUI.user() : null;
+  var f1 = Progress.getCompletionDate();
+  var f2 = fase2Meta.completionDate;
+  var when = function (iso) { return iso ? new Date(iso).toLocaleDateString('es-AR') : '—'; };
+  box.innerHTML = `
+    <div class="sim-head"><h2>🎓 Fase 2 completada</h2><button type="button" class="hint-btn" onclick="document.getElementById('sim-overlay').classList.remove('show')">✕ Cerrar</button></div>
+    <p>Terminaste las dos fases. Este certificado resume tu avance.</p>
+    <table class="rank-table"><tbody>
+      <tr><td>Fase 1 · Fundamentos de Java</td><td>${LESSONS.length} lecciones</td><td>${when(f1)}</td></tr>
+      <tr><td>Fase 2 · Backend con Spring Boot</td><td>${LESSONS_F2.length} lecciones</td><td>${when(f2)}</td></tr>
+    </tbody></table>
+    <label for="cert2-name" class="f2-label">Nombre y apellido:</label>
+    <input type="text" id="cert2-name" value="${esc((user && user.displayName) || '')}" autocomplete="off">
+    <button type="button" class="btn-cert" onclick="generateCert2()">Emitir Certificado (PDF)</button>`;
+  document.getElementById('sim-overlay').classList.add('show');
+}
+
+// Reutiliza el diseño del primer certificado: cambia el texto solo mientras imprime
+function generateCert2() {
+  var printEl = document.getElementById('cert-print');
+  var saved = printEl.innerHTML;
+  var set = function (sel, html) { var el = printEl.querySelector(sel); if (el) el.innerHTML = html; };
+  var name = document.getElementById('cert2-name').value.trim() || 'Estudiante Java';
+  set('.cert-title', CERT2.title);
+  set('.cert-desc', CERT2.desc);
+  set('.cert-skills', CERT2.skills.map(function (s) { return '<span class="cert-skill">' + s + '</span>'; }).join(''));
+  set('.cert-name', esc(name));
+  var sign = printEl.querySelector('.cert-sign');
+  if (sign) {
+    var code = sign.querySelector('.cert-sig-code');
+    if (code) code.textContent = 'fase = 2; // completada';
+    sign.lastChild.remove();
+    sign.lastChild.remove();
+    sign.lastChild.remove();
+    sign.insertAdjacentHTML('beforeend', CERT2.sign);
+  }
+  set('#cert-date', new Date(fase2Meta.completionDate || Date.now()).toLocaleDateString('es-AR'));
+  document.getElementById('sim-overlay').classList.remove('show');
+  printEl.classList.add('show-cert');
+  var ps = document.createElement('style');
+  ps.textContent = '@page { size: 320mm 180mm; margin: 0mm; }';
+  document.head.appendChild(ps);
+  setTimeout(function() { window.print(); }, 800);
+  setTimeout(function() { printEl.classList.remove('show-cert'); printEl.innerHTML = saved; ps.remove(); }, 1500);
+}
+
 function resetGlobalProgress() {
   if (confirm("¿Estás seguro de que querés borrar todo tu progreso? Esto reiniciará todas las lecciones.")) {
     done = new Set();
@@ -41,6 +96,10 @@ function clearSessionProgress() {
   hintLevel = 0;
   if (typeof _quizAnswers !== 'undefined') _quizAnswers = {};
   if (typeof Practica !== 'undefined') Practica.setState(null);
+  fase = 1;
+  curF1 = 0;
+  doneF2 = new Set();
+  fase2Meta = { completionDate: null, certShown: false };
 }
 
 // ── State (empty until login loads this user's data) ───────────────────
@@ -50,8 +109,54 @@ var quizBestScores = {}; // lessonId -> best percent (0-100)
 let hintLevel = 0;
 var editorErrorLine = 0;
 
+// ── Fases ──────────────────────────────────────────────────────────────
+// La Fase 2 tiene su propia lista y su propio progreso: LESSONS, done, el
+// certificado y el ranking de la Fase 1 no cambian.
+var fase = 1;
+var curF1 = 0;
+var doneF2 = new Set();
+var fase2Meta = { completionDate: null, certShown: false };
+
+function lessonList() { return fase === 2 ? LESSONS_F2 : LESSONS; }
+function doneSet() { return fase === 2 ? doneF2 : done; }
+function fase2Unlocked() { return done.size === LESSONS.length; }
+
+function persistFase2() {
+  if (typeof Progress !== 'undefined' && Progress.saveFase2) {
+    Progress.saveFase2({ done: [...doneF2], completionDate: fase2Meta.completionDate, certShown: fase2Meta.certShown });
+  }
+}
+
+function showFase(n) {
+  if (n === 2 && !fase2Unlocked()) { showFase2Locked(); return; }
+  if (n === fase) return;
+  if (fase === 1) curF1 = cur;
+  fase = n;
+  cur = n === 1 ? curF1 : 0;
+  hintLevel = 0;
+  render();
+}
+
+function showFase2Locked() {
+  var rows = LESSONS_F2.map(function (l) { return '<li>' + l.title + '</li>'; }).join('');
+  document.getElementById('main').innerHTML = `
+    <div class="lh-header">
+      <div class="lv-badge badge-avanzado">Fase 2 · Backend con Spring Boot</div>
+      <div class="lh-title">🔒 Se desbloquea con el certificado de la Fase 1</div>
+      <div class="lh-desc">Completá las ${LESSONS.length} lecciones para abrir esta etapa. Llevás ${done.size} de ${LESSONS.length}.</div>
+    </div>
+    <div class="f2-roadmap"><h4>Lo que te espera</h4><ol>${rows}</ol></div>
+    <div class="nav-row"><button type="button" class="nav-btn-lesson" onclick="render()">← Volver a la Fase 1</button></div>`;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
 function saveDone() {
   if (typeof Progress === 'undefined' || !Progress.activeUid || !Progress.activeUid()) return;
+  if (fase === 2) {
+    if (doneF2.size === LESSONS_F2.length && !fase2Meta.completionDate) fase2Meta.completionDate = new Date().toISOString();
+    persistFase2();
+    return;
+  }
   Progress.saveLocalCache(Progress.activeUid(), [...done], quizBestScores);
   if (Progress.syncProgress) {
     Progress.syncProgress([...done], cur, done.size === LESSONS.length);
@@ -70,19 +175,28 @@ function filterLessons(query) {
 
 // ── Sidebar ────────────────────────────────────────────────────────────
 function buildSidebar() {
-  const groups = { super: [], basico: [], inter: [], avanzado: [], examen: [], entrevista: [] };
-  LESSONS.forEach(l => {
+  const list = lessonList();
+  const finished = doneSet();
+  const groups = fase === 2
+    ? { limpio: [], spring: [], api: [], calidad: [], entrega: [], extra: [], coloquio: [] }
+    : { super: [], basico: [], inter: [], avanzado: [], examen: [], entrevista: [] };
+  list.forEach(l => {
     if (groups[l.level]) groups[l.level].push(l);
   });
-  const labels = { super: '🌱 Super Básico', basico: '📘 Básico', inter: '🚀 Intermedio', avanzado: '🔧 Avanzado', examen: '🎓 Exámenes Finales', entrevista: '💼 Entrevista junior' };
-  let html = '';
+  const labels = fase === 2
+    ? { limpio: '🧹 Código limpio', spring: '🌱 Spring Boot', api: '🔌 API REST', calidad: '🧪 Calidad', entrega: '🐳 Entrega', extra: '➕ Para ir más lejos', coloquio: '🎓 Parciales y coloquio' }
+    : { super: '🌱 Super Básico', basico: '📘 Básico', inter: '🚀 Intermedio', avanzado: '🔧 Avanzado', examen: '🎓 Exámenes Finales', entrevista: '💼 Entrevista junior' };
+  let html = `<div class="fase-switch">
+    <button type="button" class="${fase === 1 ? 'active' : ''}" onclick="showFase(1)">Fase 1</button>
+    <button type="button" class="${fase === 2 ? 'active' : ''}" onclick="showFase(2)">${fase2Unlocked() ? '' : '🔒 '}Fase 2</button>
+  </div>`;
   for (const [key, lessons] of Object.entries(groups)) {
     html += `<div class="lv-group"><div class="lv-label">${labels[key]}</div>`;
     lessons.forEach(l => {
-      const isDone = done.has(l.id);
-      const isActive = l.id === LESSONS[cur].id;
-      html += `<button class="lb${isActive?' active':''}${isDone?' done':''}" onclick="goTo(${LESSONS.indexOf(l)})">
-        <span class="l-num">${String(l.id).padStart(2,'0')}</span>
+      const isDone = finished.has(l.id);
+      const isActive = l.id === list[cur].id;
+      html += `<button class="lb${isActive?' active':''}${isDone?' done':''}" onclick="goTo(${list.indexOf(l)})">
+        <span class="l-num">${String(l.id % 100).padStart(2,'0')}</span>
         <div class="l-dot"></div>
         <span style="flex:1">${l.title}</span>
         ${typeof Practica !== 'undefined' ? Practica.badge(l.id) : ''}
@@ -92,17 +206,21 @@ function buildSidebar() {
     html += '</div>';
   }
   document.getElementById('sb-list').innerHTML = html;
-  const pct = Math.round(done.size / LESSONS.length * 100);
+  const pct = Math.round(finished.size / list.length * 100);
   document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-lbl').textContent = `${done.size} de ${LESSONS.length} completados · ${pct}%`;
+  document.getElementById('prog-lbl').textContent = `${finished.size} de ${list.length} completados · ${pct}%`;
   var certBtn = document.getElementById('cert-btn');
-  if (certBtn) certBtn.style.display = done.size === LESSONS.length ? 'inline-flex' : 'none';
+  var fullList = finished.size === list.length;
+  if (certBtn) {
+    certBtn.style.display = fullList ? 'inline-flex' : 'none';
+    certBtn.onclick = fase === 2 ? showCert2Overlay : showCertOverlay;
+  }
 }
 
 // ── Main render ────────────────────────────────────────────────────────
 function render() {
-  const l = LESSONS[cur];
-  const badgeClass = { super:'badge-super', basico:'badge-basico', inter:'badge-inter', avanzado:'badge-avanzado', examen:'badge-examen', entrevista:'badge-entrevista' }[l.level];
+  const l = lessonList()[cur];
+  const badgeClass = { super:'badge-super', basico:'badge-basico', inter:'badge-inter', avanzado:'badge-avanzado', examen:'badge-examen', entrevista:'badge-entrevista', limpio:'badge-super', spring:'badge-basico', api:'badge-inter', calidad:'badge-avanzado', entrega:'badge-examen', extra:'badge-entrevista', coloquio:'badge-examen' }[l.level];
   const exBtnLabel = l.quiz ? '📝 Cuestionario' : '💻 Ejercicio';
   const exPaneHtml = l.quiz ? buildQuiz(l) : buildExercise(l);
   document.getElementById('main').innerHTML = `
@@ -124,7 +242,7 @@ function render() {
     <div class="tab-pane" id="pane-prac">${typeof Practica !== 'undefined' ? Practica.buildTab(l) : ''}</div>
     <div class="nav-row">
       <button type="button" class="nav-btn-lesson" onclick="goTo(cur-1)" ${cur===0?'disabled':''}>← Anterior</button>
-      <button type="button" class="nav-btn-lesson" onclick="goTo(cur+1)" ${cur===LESSONS.length-1?'disabled':''}>Siguiente →</button>
+      <button type="button" class="nav-btn-lesson" onclick="goTo(cur+1)" ${cur===lessonList().length-1?'disabled':''}>Siguiente →</button>
     </div>
   `;
   buildSidebar();
@@ -140,10 +258,7 @@ function render() {
     updateLineNumbers();
   }
   closeSuggest();
-  if (done.size === LESSONS.length && typeof Progress !== 'undefined' && !Progress.wasCertShown()) {
-    Progress.markCertShown();
-    setTimeout(function() { document.getElementById('grad-overlay').classList.add('show'); }, 600);
-  }
+  offerCertificate();
 }
 
 function showCertOverlay() {
@@ -184,7 +299,7 @@ function switchTab(t) {
 }
 
 function goTo(idx) {
-  if (idx < 0 || idx >= LESSONS.length) return;
+  if (idx < 0 || idx >= lessonList().length) return;
   cur = idx;
   hintLevel = 0;
   render();
@@ -289,7 +404,7 @@ function syncScroll() {
 // ── Exercise ───────────────────────────────────────────────────────────
 function buildExercise(l) {
   const ex = l.exercise;
-  const isDone = done.has(l.id);
+  const isDone = doneSet().has(l.id);
   const displayExpected = ex.expected.replace(/\\n/g,'\n');
   return `
     <div class="ex-task">
@@ -324,7 +439,7 @@ function buildExercise(l) {
 function resetCode() {
   const ed = document.getElementById('code-editor');
   if (ed) {
-    ed.value = LESSONS[cur].exercise.starter;
+    ed.value = lessonList()[cur].exercise.starter;
     editorErrorLine = 0;
     updateLineNumbers();
     closeSuggest();
@@ -557,7 +672,7 @@ function buildQuiz(l) {
   }
   html += '<div style="text-align:center;margin-top:16px">' +
     '<button type="button" class="run-btn" onclick="runQuiz(' + l.id + ')" style="display:inline-flex">✅ Verificar respuestas</button>' +
-    '</div><div id="quiz-result-' + l.id + '" style="margin-top:16px"></div>';
+    '</div><div id="quiz-result-' + l.id + '" style="margin-top:16px"></div></div>';
   return html;
 }
 
@@ -572,7 +687,7 @@ function selectQuizOption(qi, oi, el, lid) {
 
 function runQuiz(lid) {
   if (typeof AuthUI !== 'undefined' && !AuthUI.requireAuth()) return;
-  var l = LESSONS.find(function(x) { return x.id === lid; });
+  var l = lessonList().find(function(x) { return x.id === lid; });
   if (!l || !l.quiz) return;
   var correct = 0;
   var total = l.quiz.questions.length;
@@ -600,7 +715,7 @@ function runQuiz(lid) {
   var emoji = passed ? '🎉' : '😔';
   resultDiv.innerHTML = '<div class="quiz-score ' + cls + '">' + emoji + ' Obtuviste ' + correct + ' de ' + total + ' (' + pct + '%) — ' + (passed ? '¡Aprobado!' : 'No alcanzó el mínimo') + '</div>' +
     (passed ? '<button type="button" class="quiz-retry-btn" onclick="retryQuiz(' + lid + ')" style="display:none">Reintentar</button>' : '<button type="button" class="quiz-retry-btn" onclick="retryQuiz(' + lid + ')">🔄 Reintentar</button>');
-  if (typeof Progress !== 'undefined' && Progress.saveAttempt) {
+  if (fase === 1 && typeof Progress !== 'undefined' && Progress.saveAttempt) {
     Progress.saveAttempt({
       lessonId: lid,
       type: 'quiz',
@@ -610,26 +725,34 @@ function runQuiz(lid) {
       scorePercent: pct
     });
   }
-  if (passed) {
+  if (passed && fase === 1) {
     var prev = quizBestScores[lid] || 0;
     if (pct > prev) quizBestScores[lid] = pct;
     if (typeof Progress !== 'undefined' && Progress.saveQuizScores) {
       Progress.saveQuizScores(quizBestScores);
     }
   }
-  if (passed && !done.has(lid)) {
-    done.add(lid);
+  if (passed && !doneSet().has(lid)) {
+    doneSet().add(lid);
     saveDone();
     launchConfetti();
     buildSidebar();
     offerCertificate();
   }
-  if (typeof Ranking !== 'undefined' && Ranking.update) {
+  if (fase === 1 && typeof Ranking !== 'undefined' && Ranking.update) {
     Ranking.update([...done], quizBestScores, done.size === LESSONS.length);
   }
 }
 
 function offerCertificate() {
+  if (fase === 2) {
+    if (doneF2.size === LESSONS_F2.length && !fase2Meta.certShown) {
+      fase2Meta.certShown = true;
+      persistFase2();
+      setTimeout(showCert2Overlay, 600);
+    }
+    return;
+  }
   if (done.size === LESSONS.length && typeof Progress !== 'undefined' && !Progress.wasCertShown()) {
     Progress.markCertShown();
     setTimeout(function() { document.getElementById('grad-overlay').classList.add('show'); }, 600);
@@ -637,6 +760,14 @@ function offerCertificate() {
 }
 
 function completeExercise() {
+  if (fase === 2) {
+    doneF2.add(LESSONS_F2[cur].id);
+    saveDone();
+    launchConfetti();
+    buildSidebar();
+    offerCertificate();
+    return;
+  }
   done.add(LESSONS[cur].id);
   saveDone();
   if (typeof Progress !== 'undefined' && Progress.saveAttempt) {
@@ -659,7 +790,7 @@ function completeExercise() {
 
 function retryQuiz(lid) {
   _quizAnswers[lid] = {};
-  var l = LESSONS.find(function(x) { return x.id === lid; });
+  var l = lessonList().find(function(x) { return x.id === lid; });
   if (!l) return;
   var pane = document.getElementById('pane-ex');
   pane.innerHTML = buildQuiz(l);
@@ -691,7 +822,7 @@ function launchConfetti() {
 
 function runCode() {
   if (typeof AuthUI !== 'undefined' && !AuthUI.requireAuth()) return;
-  if (LESSONS[cur].quiz) return;
+  if (lessonList()[cur].quiz) return;
 
   const code = document.getElementById('code-editor').value;
   const btn = document.getElementById('run-btn');
@@ -705,11 +836,11 @@ function runCode() {
 
   setTimeout(() => {
     try {
-      const ex = LESSONS[cur].exercise;
+      const ex = lessonList()[cur].exercise;
       const expected = ex.expected.replace(/\\n/g,'\n').trimEnd();
       
-      const res = localValidate(LESSONS[cur].id, code);
-      const isGit = LESSONS[cur].id === 31 || LESSONS[cur].id === 33;
+      const res = localValidate(lessonList()[cur].id, code);
+      const isGit = lessonList()[cur].id === 31 || lessonList()[cur].id === 33;
       const style = (!isGit && typeof styleNotes === 'function') ? styleNotes(code) : '';
       const styleBox = style ? `<div class="out-box box-expected"><div class="out-head">Buenas prácticas</div><div class="out-body style-note">${style}</div></div>` : '';
 
@@ -808,7 +939,7 @@ function esc(s) {
 }
 
 function showHint() {
-  const hints = LESSONS[cur].exercise.hints;
+  const hints = lessonList()[cur].exercise.hints;
   const ha = document.getElementById('hints-area');
   if (!ha) return;
   if (hintLevel < hints.length) {
@@ -829,6 +960,9 @@ function applyUserProgress(state) {
   lessons.forEach(function (id) { done.add(id); });
   quizBestScores = Object.assign({}, (state && state.scores) || {});
   if (typeof Practica !== 'undefined') Practica.setState(state && state.practice);
+  var f2 = (state && state.fase2) || {};
+  doneF2 = new Set(f2.done || []);
+  fase2Meta = { completionDate: f2.completionDate || null, certShown: !!f2.certShown };
   if (typeof Progress !== 'undefined' && Progress.activeUid && Progress.activeUid()) {
     Progress.saveLocalCache(Progress.activeUid(), [...done], quizBestScores, {
       completionDate: state && state.completionDate,
