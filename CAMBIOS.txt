@@ -80,7 +80,7 @@ ARCHIVOS QUITADOS (estan en la Papelera de reciclaje)
 - repo original/public/index.html
 
 PENDIENTE
-- Publicar: firebase deploy --only hosting
+- Probar con una cuenta real el login y el guardado de la Fase 2.
 - Probar Docker: Dockerfile y docker-compose.yml no se ejecutaron.
 - Integrar la rama evaluaciones-y-auditoria a main.
 - El resto del ranking queda para más adelante.

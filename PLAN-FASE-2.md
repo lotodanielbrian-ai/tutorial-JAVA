@@ -2,7 +2,7 @@
 
 **Objetivo:** convertir el segundo semestre de Programación 1 (backend con Spring Boot) en una segunda etapa del tutorial, con la misma pedagogía que la primera, que se desbloquea al terminar la Fase 1 y otorga un segundo certificado.
 
-**Estado:** implementado en la rama `evaluaciones-y-auditoria`. Falta publicarlo.
+**Estado:** publicado el 31 de octubre de 2026, desde la rama `evaluaciones-y-auditoria`.
 
 ## Cómo funciona
 
@@ -77,7 +77,8 @@ El repositorio es **público**, así que no todo se puede subir.
 
 | Tema | Detalle |
 |---|---|
-| Publicar | `firebase deploy --only hosting` |
+| Integrar a `main` | La rama publicada todavía no está en `main` |
+| Probar con una cuenta real | Login y guardado de la Fase 2 con Firebase real |
 | Probar Docker | El `Dockerfile` y el `docker-compose.yml` no se ejecutaron: Docker no estaba corriendo en esta PC |
 | Clases 10 a 12 | Todavía no están en la carpeta. La 11 y la 12 son material anexo |
 | Segundo parcial | El enunciado se publica después de la clase 9. Conviene ajustar la lección 124 cuando esté |
