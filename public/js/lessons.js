@@ -2218,7 +2218,7 @@ public class Main {
 <div class="analogy-card"><h4>La playlist de musica</h4><p>ArrayList es como una playlist: agregas canciones (.add), quitas (.remove), ves cuantas hay (.size). A diferencia de un CD (array), la playlist crece y se achica.</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿ArrayList vs array?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Cuando no sabes cuantos elementos o necesitás agregar/quitar dinamicamente.</p></div>
-<div class="analogy-card"><p><strong>ArrayList<int> funciona?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ No. Solo objetos. Usa Integer (wrapper). Java hace autoboxing.</p></div>
+<div class="analogy-card"><p><strong>¿ArrayList&lt;int&gt; funciona?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ No. Solo objetos. Usa Integer (wrapper). Java hace autoboxing.</p></div>
 <div class="analogy-card"><p><strong>¿.length o .size()?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ size() CON paréntesis (METODO). Array usa .length (ATRIBUTO).</p></div>
 <div class="analogy-card"><p><strong>¿Elemento en posición 3?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ nums.get(3). Con .get() en vez de [3].</p></div>
 <div class="analogy-card"><p><strong>¿ArrayList es más lento?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Ligeramente. La flexibilidad lo compensa.</p></div>
@@ -2263,7 +2263,7 @@ ${cb('Wrapper types', `// ArrayList<int> NO funciona. Usá Integer:
 ArrayList<Integer> numeros = new ArrayList<>();
 numeros.add(42);   // autoboxing: int → Integer
 int n = numeros.get(0);   // unboxing: Integer → int`)}
-</div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>ArrayList<int></code></td><td>Error</td><td>Solo objetos. Usa Integer.</td></tr>
+</div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>ArrayList&lt;int&gt;</code></td><td>Error</td><td>Solo objetos. Usa Integer.</td></tr>
 <tr><td><code>nums.length</code></td><td>Error</td><td>ArrayList usa .size().</td></tr>
 <tr><td><code>Olvidar import</code></td><td>cannot find symbol</td><td>Agrega import java.util.ArrayList.</td></tr>
 </tbody></table></div>
@@ -3300,7 +3300,6 @@ git push -u origin main
 git push`)}
 <p><strong>Explicación:</strong> <code>git remote add</code> = "este es el servidor donde vive la copia compartida". <code>git push</code> = "mandale mis commits al servidor". <code>origin</code> es el nombre convencional del remoto principal. <code>main</code> es la rama principal (antes se llamaba <code>master</code>).</p>
 ${ann('tip','💡','Para el parcial: creá el repo en GitHub, hacé git push, y en el README.md poné el enlace. Así el profe puede clonar tu proyecto y ejecutarlo. GitHub también es tu portfolio profesional.')}
-</div>
 </div>
 `,
   exercise: {

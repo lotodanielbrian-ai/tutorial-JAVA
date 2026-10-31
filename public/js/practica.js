@@ -495,9 +495,17 @@ var Practica = (function () {
     if (typeof render === 'function') render();
   }
 
+  // Un reto de código o de laboratorio no se puede responder en un examen
+  function reviewable() {
+    return state.wrong.filter(function (k) {
+      var it = itemOf(k);
+      return it && it.t !== 'code' && it.t !== 'http';
+    });
+  }
+
   function showPanel() {
     if (typeof AuthUI !== 'undefined' && !AuthUI.requireAuth()) return;
-    var wrong = state.wrong.filter(function (k) { return itemOf(k); });
+    var wrong = reviewable();
     var last = state.sims.slice(-5).reverse();
     var html = '<div class="sim-head"><h2>🧪 Evaluaciones</h2><button type="button" class="hint-btn" onclick="Practica.closeSimulacro()">✕ Cerrar</button></div>' +
       '<p class="sim-lead">Un simulacro mezcla actividades al azar y no da pistas hasta el final, como un examen. Sirve para saber qué sabés de verdad.</p>' +
@@ -530,7 +538,7 @@ var Practica = (function () {
   }
 
   function startReview() {
-    var keys = shuffled(state.wrong.filter(function (k) { return itemOf(k); })).slice(0, 20);
+    var keys = shuffled(reviewable()).slice(0, 20);
     if (!keys.length) return;
     beginExam(keys, 'Repaso de errores', 0, true);
   }
@@ -538,6 +546,9 @@ var Practica = (function () {
   function beginExam(keys, label, seconds, review) {
     picks = {};
     tries = {};
+    // Los ids de cada actividad se repiten en la lección de atrás: closeSimulacro la vuelve a dibujar
+    var pane = $('pane-prac');
+    if (pane) pane.innerHTML = '';
     sim = { keys: keys, label: label, left: seconds, review: review, timer: null };
     var html = '<div class="sim-head"><h2>🧪 ' + e(label) + '</h2><span class="sim-clock" id="sim-clock"></span></div>';
     keys.forEach(function (k, i) {

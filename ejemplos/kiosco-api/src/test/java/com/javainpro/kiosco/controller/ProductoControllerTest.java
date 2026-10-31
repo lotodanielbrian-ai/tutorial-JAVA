@@ -83,6 +83,17 @@ class ProductoControllerTest {
     }
 
     @Test
+    void idQueNoEsNumeroResponde400() throws Exception {
+        mockMvc.perform(get("/api/productos/abc")).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void cuerpoQueNoEsJsonResponde415() throws Exception {
+        mockMvc.perform(post("/api/productos").contentType(MediaType.TEXT_PLAIN).content("hola"))
+                .andExpect(status().isUnsupportedMediaType());
+    }
+
+    @Test
     void eliminarResponde204() throws Exception {
         mockMvc.perform(delete("/api/productos/1")).andExpect(status().isNoContent());
     }

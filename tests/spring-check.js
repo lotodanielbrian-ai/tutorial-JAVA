@@ -126,7 +126,8 @@ const script = [
   ['POST', '/api/productos', '{"nombre":"","precio":900,"stock":4}'], ['POST', '/api/productos', '{"nombre":"X","precio":-5,"stock":1}'],
   ['POST', '/api/productos', '{"nombre":'], ['PUT', '/api/productos/1', '{"nombre":"Alfajor triple","precio":1500,"stock":20}'],
   ['PUT', '/api/productos/99', '{"nombre":"Nada","precio":1,"stock":1}'], ['DELETE', '/api/productos/2'], ['GET', '/api/productos/2'],
-  ['DELETE', '/api/productos/2'], ['PATCH', '/api/productos/1'], ['GET', '/api/productos']
+  ['DELETE', '/api/productos/2'], ['PATCH', '/api/productos/1'], ['GET', '/api/productos/abc'], ['DELETE', '/api/productos/abc'],
+  ['PATCH', '/api/productos/abc'], ['GET', '/api/nada'], ['POST', '/api/nada', '{}'], ['GET', '/api/productos']
 ];
 (async () => {
   let up = false;

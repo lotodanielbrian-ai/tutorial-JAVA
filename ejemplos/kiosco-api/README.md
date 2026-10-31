@@ -8,7 +8,7 @@ Proyecto de referencia de la Fase 2 de Java INPRO: una API REST para gestionar l
 - Capas: `controller`, `service`, `repository`, `model`, `dto` y `exception`
 - JPA con H2 en memoria y perfil para MySQL
 - Validación de datos, manejo global de errores y logs
-- 18 tests: unitarios con Mockito, de controller con MockMvc y de integración
+- 20 tests: unitarios con Mockito, de controller con MockMvc y de integración
 - Documentación con Swagger
 - `Dockerfile` y `docker-compose.yml`
 

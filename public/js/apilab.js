@@ -90,6 +90,10 @@ var ApiLab = (function () {
       }
       return error(405, 'Ese verbo no existe en esta ruta');
     }
+    if (/^\/api\/productos\/[^/]+$/.test(path)) {
+      if (method === 'GET' || method === 'PUT' || method === 'DELETE') return error(400, 'El pedido no es válido');
+      return error(405, 'Ese verbo no existe en esta ruta');
+    }
     return error(404, 'La ruta no existe');
   }
 

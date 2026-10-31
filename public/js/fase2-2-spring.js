@@ -591,7 +591,7 @@ List<Producto> buscarConPocoStock(@Param("minimo") Integer minimo);`)}
 <p>Se escribe en <strong>JPQL</strong>: se parece a SQL, pero nombra la clase y sus atributos, no la tabla.</p>
 </div>`,
   exercise: {
-    desc: 'Simulá un repositorio. Creá la interfaz Repositorio con Optional<String> findById(int id) y int count(), e implementala en RepositorioMemoria con un HashMap. El main busca el id 1 y el 9.',
+    desc: 'Simulá un repositorio. Creá la interfaz Repositorio con Optional&lt;String&gt; findById(int id) y int count(), e implementala en RepositorioMemoria con un HashMap. El main busca el id 1 y el 9.',
     expected: 'Yerba\nNo existe\nTotal: 2',
     need: [['\\binterface\\s+Repositorio', 'Definí la interfaz Repositorio.'], ['implements\\s+Repositorio', 'Implementala en RepositorioMemoria.'], ['Map<', 'Guardá los datos en un Map.'], ['Optional', 'findById debe devolver un Optional.']],
     starter: `import java.util.HashMap;

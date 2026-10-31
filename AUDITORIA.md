@@ -134,6 +134,21 @@ Ordenadas por impacto sobre el aprendizaje y el producto.
 
 La pestaña **Práctica se veía vacía en las lecciones con cuestionario** (14, 25, 30, 32 y 35). `buildQuiz` abría un `<div>` sin cerrarlo, y esa pestaña quedaba dentro de la del cuestionario, que está oculta. Las pruebas contaban elementos en el DOM y pasaban. Ahora se comprueba que se vea en cada lección.
 
+### Auditoría previa a publicar la Fase 2
+
+Se revisó con ojo crítico lo que las pruebas todavía no cubrían. Todo quedó corregido.
+
+| Hallazgo | Efecto | Solución |
+|---|---|---|
+| Ids repetidos entre el simulacro y la lección abierta | El simulacro leía la respuesta de la lección de atrás y la daba por errónea | Se vacía la práctica de atrás mientras dura el simulacro |
+| Las 64 preguntas de cuestionario de la Fase 2 tenían la correcta en la opción A | Se aprobaba sin leer | Las opciones se mezclan en cada intento |
+| El repaso de errores incluía retos de código | Quedaban como "sin responder" | Solo entran actividades que se puedan responder ahí |
+| `ArrayList<int>` y `Optional<String>` sin escapar | El navegador borraba el `<...>` | Escapados, con prueba permanente de HTML |
+| El certificado 2 ocupaba 3 páginas | Se repetía al imprimir | Se oculta el resto de la página, solo para este certificado |
+| El manejador global convertía en 500 los errores de Spring | Una ruta o un id inválidos daban 500 | Hereda de `ResponseEntityExceptionHandler` |
+| Falsos errores del intérprete en Java válido | Atributo privado repetido en una hija, clase anidada calificada, `getClass` en un número | Corregidos, con un corpus de casos difíciles |
+| Etiquetas, bloques de texto y clases internas | Daban un error falso | Ahora figuran como no soportados |
+
 ### Errores que detectó la verificación
 
 | Qué se probó | Qué apareció |

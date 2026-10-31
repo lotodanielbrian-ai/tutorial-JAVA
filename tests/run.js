@@ -57,12 +57,33 @@ function addProgram(tag, code, stdin) {
   return p;
 }
 
+// Una etiqueta desconocida se traga el texto: ArrayList<int> se mostraba como ArrayList
+const HTML_TAGS = new Set('a b br code div em h3 h4 h5 i input label li ol p pre small span strong sub sup table tbody td th thead tr u ul'.split(' '));
+function checkHtml(html, at) {
+  if (typeof html !== 'string') return;
+  const open = [];
+  const re = /<(\/?)([a-zA-Z][a-zA-Z0-9]*)[^>]*>/g;
+  let m;
+  while ((m = re.exec(html))) {
+    const tag = m[2].toLowerCase();
+    if (tag === 'br' || tag === 'input') continue;
+    ok(HTML_TAGS.has(tag), at + ': etiqueta desconocida <' + tag + '>. Escribí &lt; si es código');
+    if (!HTML_TAGS.has(tag)) continue;
+    if (!m[1]) open.push(tag);
+    else ok(open.pop() === tag, at + ': </' + tag + '> sin abrir');
+  }
+  ok(!open.length, at + ': sin cerrar ' + open.join(','));
+}
+
 // ── 1. Datos ───────────────────────────────────────────────────────────
 function checkData() {
   console.log('1. Datos');
   const ids = LESSONS.map(l => l.id);
   ok(new Set(ids).size === ids.length, 'ids de lección repetidos');
   for (const l of LESSONS) {
+    [l.desc, l.simple(), l.tutorial()].forEach(h => checkHtml(h, 'lección ' + l.id));
+    if (l.exercise) [l.exercise.desc].concat(l.exercise.hints).forEach(h => checkHtml(h, 'ejercicio ' + l.id));
+    if (l.quiz) l.quiz.questions.forEach(q => [q.question].concat(q.options).forEach(h => checkHtml(h, 'cuestionario ' + l.id)));
     ok(!!l.exercise !== !!l.quiz, 'lección ' + l.id + ' debe tener exercise o quiz');
     if (l.quiz) {
       ok(l.quiz.passing <= l.quiz.questions.length, 'lección ' + l.id + ': passing mayor que la cantidad de preguntas');
@@ -92,6 +113,8 @@ function checkData() {
       const at = 'lección ' + id + ' ítem ' + i + ' (' + it.t + ')';
       ok(validTypes.includes(it.t), at + ': tipo desconocido');
       ok(it.q || it.t === 'code', at + ': sin consigna');
+      [it.q, it.why, it.hint, it.task, it.model].concat(it.o || []).forEach(h => checkHtml(h, at));
+      if (it.t === 'order') ok(new Set(it.lines).size === it.lines.length, at + ': líneas repetidas: no se puede corregir por posición');
       if (it.t === 'http') {
         const server = ctx.ApiLab.seed();
         let res = null;

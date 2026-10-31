@@ -8,7 +8,7 @@ FASE 2 (segundo semestre)
 - 161 actividades nuevas, con un Laboratorio de API que simula un servidor.
 - Primer y segundo parcial simulados, y coloquio con defensa oral.
 - Segundo certificado, con el avance de las dos fases.
-- Proyecto Spring Boot de referencia en ejemplos/kiosco-api, con 18 tests.
+- Proyecto Spring Boot de referencia en ejemplos/kiosco-api, con 20 tests.
 - La Fase 2 no cambia el primer certificado ni el ranking.
 
 SUMADO A LA FASE 1
@@ -16,6 +16,13 @@ SUMADO A LA FASE 1
 
 CORREGIDO
 - La pestaña Práctica se veía vacía en las lecciones con cuestionario.
+- El simulacro leía las respuestas de la lección abierta detrás y las daba por erróneas.
+- Las opciones de los cuestionarios ahora se mezclan: en la Fase 2 la correcta era siempre la A.
+- El repaso de errores ya no incluye retos que no se pueden responder ahí.
+- ArrayList<int> y Optional<String> perdían el <...> al mostrarse.
+- El segundo certificado sale en una sola página.
+- La API de ejemplo devolvía 500 en errores que son 400, 404 o 415.
+- El intérprete aceptaba mal atributos repetidos en hijas y clases anidadas con nombre calificado.
 
 MATERIAL ORDENADO
 - material/fase-1: PDF del módulo.

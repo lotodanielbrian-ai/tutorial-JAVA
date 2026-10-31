@@ -42,8 +42,9 @@ function showCert2Overlay() {
       <tr><td>Fase 2 · Backend con Spring Boot</td><td>${LESSONS_F2.length} lecciones</td><td>${when(f2)}</td></tr>
     </tbody></table>
     <label for="cert2-name" class="f2-label">Nombre y apellido:</label>
-    <input type="text" id="cert2-name" value="${esc((user && user.displayName) || '')}" autocomplete="off">
+    <input type="text" id="cert2-name" autocomplete="off">
     <button type="button" class="btn-cert" onclick="generateCert2()">Emitir Certificado (PDF)</button>`;
+  document.getElementById('cert2-name').value = (user && user.displayName) || '';
   document.getElementById('sim-overlay').classList.add('show');
 }
 
@@ -69,11 +70,17 @@ function generateCert2() {
   set('#cert-date', new Date(fase2Meta.completionDate || Date.now()).toLocaleDateString('es-AR'));
   document.getElementById('sim-overlay').classList.remove('show');
   printEl.classList.add('show-cert');
+  document.body.classList.add('printing-cert2');
   var ps = document.createElement('style');
   ps.textContent = '@page { size: 320mm 180mm; margin: 0mm; }';
   document.head.appendChild(ps);
   setTimeout(function() { window.print(); }, 800);
-  setTimeout(function() { printEl.classList.remove('show-cert'); printEl.innerHTML = saved; ps.remove(); }, 1500);
+  setTimeout(function() {
+    printEl.classList.remove('show-cert');
+    printEl.innerHTML = saved;
+    document.body.classList.remove('printing-cert2');
+    ps.remove();
+  }, 1500);
 }
 
 function resetGlobalProgress() {
@@ -653,6 +660,18 @@ function caretClientPos(el) {
 // ── Quiz ────────────────────────────────────────────────────────────────
 var _quizAnswers = {};
 
+function shuffledIndexes(n) {
+  var list = [];
+  for (var i = 0; i < n; i++) list.push(i);
+  for (var j = n - 1; j > 0; j--) {
+    var k = Math.floor(Math.random() * (j + 1));
+    var t = list[j];
+    list[j] = list[k];
+    list[k] = t;
+  }
+  return list;
+}
+
 function buildQuiz(l) {
   var qz = l.quiz;
   _quizAnswers[l.id] = {};
@@ -660,9 +679,11 @@ function buildQuiz(l) {
   for (var qi = 0; qi < qz.questions.length; qi++) {
     var q = qz.questions[qi];
     html += '<div class="quiz-question"><h4>' + (qi + 1) + '. ' + q.question + '</h4>';
-    for (var oi = 0; oi < q.options.length; oi++) {
-      var letter = String.fromCharCode(65 + oi);
-      html += '<label class="quiz-option" onclick="selectQuizOption(' + qi + ',' + oi + ',this,' + l.id + ')">' +
+    var order = shuffledIndexes(q.options.length);
+    for (var pos = 0; pos < order.length; pos++) {
+      var oi = order[pos];
+      var letter = String.fromCharCode(65 + pos);
+      html += '<label class="quiz-option" data-oi="' + oi + '" onclick="selectQuizOption(' + qi + ',' + oi + ',this,' + l.id + ')">' +
         '<span class="quiz-opt-letter">' + letter + '</span>' +
         '<span>' + q.options[oi] + '</span>' +
         '<input type="radio" name="q' + l.id + '_' + qi + '" value="' + oi + '" style="display:none">' +
@@ -702,10 +723,11 @@ function runQuiz(lid) {
     var selected = _quizAnswers[lid][qi];
     var qDiv = questionsDiv[qi];
     var opts = qDiv.querySelectorAll('.quiz-option');
-    for (var oi = 0; oi < opts.length; oi++) {
-      opts[oi].classList.add('disabled');
-      if (oi === q.correct) { opts[oi].classList.add('correct'); }
-      else if (oi === selected && selected !== q.correct) { opts[oi].classList.add('incorrect'); }
+    for (var pos = 0; pos < opts.length; pos++) {
+      var oi = Number(opts[pos].dataset.oi);
+      opts[pos].classList.add('disabled');
+      if (oi === q.correct) { opts[pos].classList.add('correct'); }
+      else if (oi === selected && selected !== q.correct) { opts[pos].classList.add('incorrect'); }
     }
     if (selected === q.correct) correct++;
   }

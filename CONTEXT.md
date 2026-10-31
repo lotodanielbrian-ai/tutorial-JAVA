@@ -150,7 +150,7 @@ Es un intérprete sin análisis de tipos completo. Sí detecta, porque el curso 
 
 Soporta `record`, `enum`, `Map`, `Optional`, lambdas, referencias a métodos y streams básicos.
 
-No detecta símbolos inexistentes en ramas que no se ejecutan. No soporta Spring, `HashSet`, varargs, clases anónimas ni `break` con etiqueta: devuelve `unsupported`, y el validador lo informa.
+No detecta símbolos inexistentes en ramas que no se ejecutan. No soporta Spring, `HashSet`, varargs, clases anónimas, clases internas que usan al objeto externo, etiquetas ni bloques de texto: devuelve `unsupported`, y el validador lo informa.
 
 ## Comandos
 

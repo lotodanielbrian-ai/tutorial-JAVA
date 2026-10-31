@@ -24,7 +24,7 @@ var JavaRun = (function () {
   function JArr(type, a) { this.type = type; this.a = a; this.id = nextId(); }
   function JList(a, kind) { this.a = a; this.kind = kind || 'ArrayList'; this.id = nextId(); }
   function JSb(s) { this.s = s; this.id = nextId(); }
-  function JObj(cls) { this.cls = cls; this.f = Object.create(null); this.id = nextId(); }
+  function JObj(cls) { this.cls = cls; this.f = Object.create(null); this.byClass = Object.create(null); this.id = nextId(); }
   function ClassRef(name) { this.name = name; }
   function ClassOf(name) { this.name = name; }
   function Native(kind, st) { this.kind = kind; this.st = st || {}; this.id = nextId(); }
@@ -78,6 +78,7 @@ var JavaRun = (function () {
         i += 2;
         continue;
       }
+      if (src.substr(i, 3) === '"""') throw new Unsupported('bloques de texto');
       if (ch === '"') {
         var s = '';
         i++;
@@ -444,6 +445,7 @@ var JavaRun = (function () {
       if (eat(';')) return { k: 'empty', line: line };
       if (is('@')) { modifiers(); return stmt(); }
       if (x.k === 'id') {
+        if (la(1).v === ':' && !RESERVED[x.v]) throw new Unsupported('etiquetas');
         switch (x.v) {
           case 'if': {
             p++;
@@ -1416,7 +1418,13 @@ var JavaRun = (function () {
     function initFields(o, c) {
       var sup = supOf(c);
       if (sup) initFields(o, sup);
-      c.fields.forEach(function (f) { if (!f.isStatic) o.f[f.name] = { type: f.type, v: defaultValue(f.type), cls: c.name, access: f.access, isFinal: f.isFinal, set: false }; });
+      o.byClass[c.name] = Object.create(null);
+      c.fields.forEach(function (f) {
+        if (f.isStatic) return;
+        var slot = { type: f.type, v: defaultValue(f.type), cls: c.name, access: f.access, isFinal: f.isFinal, set: false };
+        o.f[f.name] = slot;
+        o.byClass[c.name][f.name] = slot;
+      });
     }
 
     function runInits(o, c) {
@@ -1424,8 +1432,9 @@ var JavaRun = (function () {
       c.inits.forEach(function (s) {
         if (s.kind === 'block') { execBlock(s.body, frame, newScope()); return; }
         if (s.init) {
-          o.f[s.name].v = coerce(ev(s.init, frame, newScope(), s.type), s.type, s.line);
-          o.f[s.name].set = true;
+          var slot = o.byClass[c.name][s.name];
+          slot.v = coerce(ev(s.init, frame, newScope(), s.type), s.type, s.line);
+          slot.set = true;
         }
       });
     }
@@ -1827,11 +1836,19 @@ var JavaRun = (function () {
     }
 
     // ── Expresiones ────────────────────────────────────────────────────
+    // Una hija puede declarar un atributo con el nombre de uno de su padre: cada clase ve el suyo
+    function ownField(o, name, f) {
+      for (var k = f.cls; k; k = supOf(k)) {
+        if (o.byClass[k.name] && o.byClass[k.name][name]) return o.byClass[k.name][name];
+      }
+      return o.f[name];
+    }
+
     function lookup(name, f, sc) {
       var slot = sc[name];
       if (slot) return slot;
       if (f.self) {
-        var fs = f.self.f[name];
+        var fs = ownField(f.self, name, f);
         if (fs) {
           checkAccess(fs, name, f, curLine);
           return fs;
@@ -2019,6 +2036,7 @@ var JavaRun = (function () {
           var slot = lookup(n.name, f, sc);
           if (slot) return readSlot(slot, n.name, n.line);
           if (isClassName(n.name)) return new ClassRef(n.name);
+          if (f.cls.outer) throw new Unsupported('clases internas');
           noSymbol(n.name, n.line);
         }
         // falls through
@@ -2222,7 +2240,7 @@ var JavaRun = (function () {
         compileErr(n.line, 'cannot find symbol: ' + n.name, 'Un array solo tiene el atributo length.');
       }
       if (t instanceof JObj) {
-        var slot = t.f[n.name];
+        var slot = t === f.self ? ownField(t, n.name, f) : t.f[n.name];
         if (slot) {
           checkAccess(slot, n.name, f, n.line);
           return slot.v;
@@ -2252,6 +2270,7 @@ var JavaRun = (function () {
         if (classes[cname].fields.some(function (x) { return x.name === name; })) {
           compileErr(line, 'non-static variable ' + name + ' cannot be referenced from a static context', name + ' pertenece a cada objeto, no a la clase.');
         }
+        if (classes[name] && classes[name].outer === cname) return new ClassRef(name);
         compileErr(line, 'cannot find symbol: ' + name, cname + ' no tiene ' + name + '.');
       }
       if (cname === 'System') {
@@ -2284,6 +2303,7 @@ var JavaRun = (function () {
     function lvalue(n, f, sc, reading) {
       if (n.k === 'name') {
         var slot = lookup(n.name, f, sc);
+        if (!slot && f.cls.outer) throw new Unsupported('clases internas');
         if (!slot) noSymbol(n.name, n.line);
         return {
           type: slot.type,
@@ -2311,7 +2331,7 @@ var JavaRun = (function () {
           initClass(classes[t.name]);
           ancestors(classes[t.name]).some(function (k) { fs = k.st[n.name]; return !!fs; });
         } else if (t instanceof JObj) {
-          fs = t.f[n.name];
+          fs = t === f.self ? ownField(t, n.name, f) : t.f[n.name];
           if (!fs) ancestors(t.cls).some(function (k) { fs = k.st[n.name]; return !!fs; });
         }
         if (!fs) {
@@ -2859,6 +2879,7 @@ var JavaRun = (function () {
       // Primitivos en cajas (Integer, Double, Character...)
       switch (name) {
         case 'equals': return sameValue(t, a[0]);
+        case 'getClass': return new ClassOf({ 'int': 'Integer', 'double': 'Double', 'float': 'Float', 'long': 'Long', 'char': 'Character', 'boolean': 'Boolean' }[typeName(t)]);
         case 'toString': return str(toStr(t));
         case 'hashCode': return asNumber(t) | 0;
         case 'intValue': return castTo(t, 'int', line);

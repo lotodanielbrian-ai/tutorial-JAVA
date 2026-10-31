@@ -525,4 +525,4 @@ body.authed #login-gate{display:none!important}
 .lab-row select,.lab-row input{background:var(--code-bg);color:var(--text);border:1px solid var(--border2);border-radius:var(--r);padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;min-width:0}
 .lab-body{margin-top:8px}
 @media(max-width:640px){.f2-roadmap ol{columns:1}}
-@media print{#sim-overlay{display:none!important}}
+@media print{#sim-overlay{display:none!important}body.printing-cert2 .layout{display:none!important}}

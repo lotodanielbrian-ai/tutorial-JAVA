@@ -340,7 +340,7 @@ ${cb('application-mysql.yml', `spring:
   jpa:
     hibernate:
       ddl-auto: update`)}
-${ann('warn', '⚠️', 'Si falta el driver en el <code>pom.xml</code>, la aplicación falla al arrancar. Eso le pasó al profesor en vivo: leé el error, que suele decir exactamente qué falta.')}
+${ann('warn', '⚠️', 'Si falta el driver en el <code>pom.xml</code>, la aplicación falla al arrancar. Leé el error: suele decir exactamente qué falta.')}
 <p>Con <strong>perfiles</strong> tenés las dos configuraciones: <code>SPRING_PROFILES_ACTIVE=mysql</code> activa ese archivo. Para mirar la base, usá un cliente gráfico como <strong>DBeaver</strong>.</p>
 </div>
 <div class="ts"><h3>SQL esencial</h3>
@@ -449,22 +449,20 @@ ${ann('java', '☕', 'Hereda de <code>RuntimeException</code>: así no obliga a 
 </div>
 <div class="ts"><h3>El manejador global</h3>
 ${cb('GlobalExceptionHandler.java', `@RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(RecursoNoEncontradoException.class)
-    public ResponseEntity<ErrorResponse> noEncontrado(RecursoNoEncontradoException e) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ErrorResponse.de(404, e.getMessage()));
+    public ResponseEntity<Object> noEncontrado(RecursoNoEncontradoException e) {
+        return responder(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> inesperado(Exception e) {
+    public ResponseEntity<Object> inesperado(Exception e) {
         log.error("Error inesperado", e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ErrorResponse.de(500, "Ocurrió un error inesperado"));
+        return responder(HttpStatus.INTERNAL_SERVER_ERROR, "Ocurrió un error inesperado");
     }
 }`)}
-${ann('warn', '⚠️', 'Cuidado con <code>@ExceptionHandler(Exception.class)</code>: también atrapa errores propios de Spring. En el proyecto de ejemplo, un verbo no permitido daba 500 en lugar de 405 hasta que le agregamos su propio manejador.')}
+${ann('warn', '⚠️', 'Cuidado con <code>@ExceptionHandler(Exception.class)</code>: también atrapa errores propios de Spring. En el proyecto de ejemplo, un verbo no permitido daba 500 en lugar de 405. Heredar de <code>ResponseEntityExceptionHandler</code> deja que esos errores conserven su código.')}
 ${ann('warn', '⚠️', 'Nunca devuelvas al cliente el detalle técnico de un error. El mensaje amable va en la respuesta, y el detalle, en el log.')}
 </div>`,
   exercise: {
