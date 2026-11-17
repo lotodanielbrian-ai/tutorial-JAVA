@@ -70,7 +70,7 @@ var Ranking = (function () {
    */
   function update(completedLessons, quizScores, certificateEarned) {
     var user = currentUser();
-    if (!firebaseReady || !user) return Promise.resolve();
+    if (!firebaseReady || !user || Progress.isFrozen()) return Promise.resolve();
     var progRef = firebaseDb.collection('progress').doc(user.uid);
     var rankRef = firebaseDb.collection('rankings').doc(user.uid);
     var total = typeof LESSONS !== 'undefined' ? LESSONS.length : 35;
@@ -78,6 +78,13 @@ var Ranking = (function () {
       return Promise.all([tx.get(progRef), tx.get(rankRef)]).then(function (snaps) {
         var prog = snaps[0].exists ? snaps[0].data() : {};
         var prev = snaps[1].exists ? snaps[1].data() : {};
+        // Una pestaña de antes de un reinicio no recrea el ranking borrado
+        if (Progress.isStale(prog)) {
+          var err = new Error('El progreso se reinició desde otra sesión');
+          err.code = Progress.RESET_ELSEWHERE;
+          err.gen = prog.resetAt || null;
+          throw err;
+        }
         var lessons = Progress.phase1Ids(Progress.union(prog.completedLessons, completedLessons));
         var cert = !!certificateEarned || !!prog.certificateEarned || lessons.length === total;
         var score = calcScore(lessons, quizScores, cert);
@@ -93,6 +100,7 @@ var Ranking = (function () {
         }, { merge: true });
       });
     }).catch(function (err) {
+      if (err && err.code === Progress.RESET_ELSEWHERE) { Progress.notifyReset(err.gen); return; }
       console.warn('[Ranking] update failed', err);
     });
   }

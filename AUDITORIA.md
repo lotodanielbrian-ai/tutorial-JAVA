@@ -394,16 +394,18 @@ El trabajo de la segunda auditoría estuvo 17 días sin commitear ni publicar, y
 | El ranking podía publicar el email | Sin nombre, o con un nombre que es un email, se publica "Estudiante". Solo se publican fotos `https` |
 | Las reglas del ranking no limitaban texto ni campos | `hasOnly` con los 7 campos, nombre de hasta 60 caracteres y sin `@`, foto de hasta 500 |
 | Lo que no se pudo subir se perdía hasta el próximo cambio | Se reintenta con el evento `online`, y al entrar se sube la práctica y la Fase 2 combinadas |
+| Reiniciar en un navegador no llegaba a los otros, y el otro volvía a subir lo viejo a la nube (lo vio el autor con dos navegadores) | El reinicio deja una marca `resetAt` en la nube. Un navegador con otra marca descarta su caché al entrar; una pestaña abierta deja de escribir, avisa y se recarga. Sin conexión, reiniciar avisa que no se pudo en vez de recargar como si hubiera funcionado |
 
 **Cómo se verificó:**
-- `tests/sync.js`, nuevo, simula Firestore con lecturas que fallan y dos pestañas sobre la misma nube: 27 verificaciones. Contra el código anterior, la misma prueba muestra el error: la nube pasaba de 35 lecciones a cero y perdía el certificado.
+- `tests/sync.js`, nuevo, simula Firestore con lecturas que fallan, dos pestañas sobre la misma nube y reinicios desde otro navegador: 51 verificaciones. Contra el código anterior, la misma prueba muestra los errores: la nube pasaba de 35 lecciones a cero y perdía el certificado, y después de reiniciar, una caché vieja de 20 lecciones volvía.
 - `tests/browser.js` suma `#offline`: sin poder leer la nube, la app abre, avisa y no sube lecciones.
 - Las reglas compilan con `firebase deploy --dry-run`.
 - En producción había 2 documentos de ranking y ninguno con email, así que el cambio de reglas no deja ninguno inválido.
 
-**Sigue pendiente:**
-- Reiniciar el progreso solo borra la caché de ese navegador.
+**Para tener en cuenta:**
 - La práctica se combina por actividad: si dos pestañas responden la misma actividad a la vez, gana el repaso con la fecha más reciente, que es lo esperado.
+- Una pestaña abierta en otro navegador se entera del reinicio la próxima vez que guarda algo; hasta entonces muestra lo de antes.
+- Los reinicios hechos antes de este cambio no dejaron marca: si otro navegador ya volvió a subir lo viejo, hay que reiniciar otra vez.
 
 ## Cómo verificar
 

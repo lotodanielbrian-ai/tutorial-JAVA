@@ -29,7 +29,12 @@ var Progress = (function () {
     try { localStorage.setItem(ACTIVE_UID_KEY, uid); } catch (e) { /* ignore */ }
   }
 
+  // Una pestaña que detectó un reinicio hecho en otra sesión queda congelada hasta
+  // recargar: no escribe ni en la nube ni en este navegador, para no reponer lo viejo
+  var frozen = false;
+
   function keyFor(base, uid) {
+    if (frozen) return null;
     var id = uid || activeUid();
     if (!id) return null;
     return base + ':' + id;
@@ -140,7 +145,64 @@ var Progress = (function () {
    * Merge ONLY this user's uid-scoped local cache with their Firestore data.
    * Never reads global/legacy keys.
    */
+  // ── Marca de reinicio ───────────────────────────────────────────────
+  // Reiniciar deja en progress/{uid} un resetAt nuevo. Cada navegador recuerda el
+  // último que vio: si la nube tiene otro, lo guardado acá es de antes del reinicio.
+  var RESET_ELSEWHERE = 'RESET_ELSEWHERE';
+  var sessionGen = null;
+  var resetHandler = null;
+
+  function storedGen(uid) { return getStr('java_reset_gen', uid) || null; }
+
+  function isStale(remoteData) {
+    return ((remoteData && remoteData.resetAt) || null) !== sessionGen;
+  }
+
+  function setResetHandler(fn) { resetHandler = fn; }
+
+  function resetElsewhere(gen) {
+    var err = new Error('El progreso se reinició desde otra sesión');
+    err.code = RESET_ELSEWHERE;
+    err.gen = gen || null;
+    return err;
+  }
+
+  // Descarta lo de antes del reinicio y adopta la marca nueva: al recargar, aunque
+  // la lectura falle, esta pestaña ya no se considera vieja (no hay bucle de recargas)
+  function notifyReset(gen) {
+    if (frozen) return;
+    var uid = activeUid();
+    if (uid) {
+      clearLocalForUid(uid);
+      if (gen) setStr('java_reset_gen', uid, gen);
+      else removeKey('java_reset_gen', uid);
+    }
+    sessionGen = gen || null;
+    frozen = true;
+    if (practiceTimer) clearTimeout(practiceTimer);
+    if (placeTimer) clearTimeout(placeTimer);
+    practiceTimer = null;
+    placeTimer = null;
+    pendingPractice = null;
+    pendingRetry = Object.create(null);
+    if (resetHandler) resetHandler();
+  }
+
+  function isFrozen() { return frozen; }
+
   function loadUserState(uid, remote) {
+    if (remote && !remote.failed) {
+      var gen = remote.resetAt || null;
+      // Lo de este navegador es de antes de un reinicio: se descarta, como en el que reinició
+      if (gen !== storedGen(uid)) {
+        clearLocalForUid(uid);
+        if (gen) setStr('java_reset_gen', uid, gen);
+        else removeKey('java_reset_gen', uid);
+      }
+      sessionGen = gen;
+    } else {
+      sessionGen = storedGen(uid);
+    }
     var local = loadLocalCache(uid);
     var remoteDone = (remote && remote.completedLessons) || [];
     var remoteScores = (remote && remote.scores) || {};
@@ -217,15 +279,24 @@ var Progress = (function () {
    * aunque haya entrado sin poder leerlo: lo de la nube siempre se suma.
    */
   function mergeIntoProgress(uid, build) {
+    if (frozen) return Promise.reject(resetElsewhere(sessionGen));
     var ref = firebaseDb.collection('progress').doc(uid);
     return firebaseDb.runTransaction(function (tx) {
       return tx.get(ref).then(function (snap) {
-        var fields = build(snap.exists ? snap.data() : {});
+        var remote = snap.exists ? snap.data() : {};
+        // Esta pestaña tiene datos de antes de un reinicio: no se suben
+        if (isStale(remote)) throw resetElsewhere(remote.resetAt);
+        var fields = build(remote);
         tx.set(ref, fields, { merge: true });
         return fields;
       });
+    }).catch(function (err) {
+      if (err && err.code === RESET_ELSEWHERE) notifyReset(err.gen);
+      throw err;
     });
   }
+
+  function isResetError(err) { return !!(err && err.code === RESET_ELSEWHERE); }
 
   // Lo que no se pudo subir se reintenta al volver la conexión
   var pendingRetry = Object.create(null);
@@ -268,6 +339,7 @@ var Progress = (function () {
     }).then(function (fields) {
       return fields.fase2;
     }).catch(function (err) {
+      if (isResetError(err)) return;
       console.warn('[Progress] saveFase2 failed', err);
       retryLater('fase2', function () { saveFase2(getJson('java_fase2', uid, fase2)); });
     });
@@ -287,6 +359,7 @@ var Progress = (function () {
     return mergeIntoProgress(pending.uid, function (remote) {
       return { practice: mergePractice(pending.practice, remote.practice) };
     }).catch(function (err) {
+      if (isResetError(err)) return;
       console.warn('[Progress] savePractice failed', err);
       retryLater('practice', function () {
         if (!pendingPractice) pendingPractice = { uid: pending.uid, practice: getJson('java_practice', pending.uid, pending.practice) };
@@ -308,12 +381,12 @@ var Progress = (function () {
 
   function savePlace(place) {
     var uid = activeUid();
-    if (!uid) return;
+    if (!uid || frozen) return;
     setJson('java_place', uid, place);
     if (placeTimer) clearTimeout(placeTimer);
     placeTimer = setTimeout(function () {
       var user = currentUser();
-      if (!firebaseReady || !user || user.uid !== uid) return;
+      if (!firebaseReady || !user || user.uid !== uid || frozen) return;
       firebaseDb.collection('progress').doc(uid).set({ place: place }, { merge: true }).catch(function (err) {
         console.warn('[Progress] savePlace failed', err);
       });
@@ -355,6 +428,7 @@ var Progress = (function () {
     }).then(function (payload) {
       return { completedLessons: payload.completedLessons, certificateEarned: payload.certificateEarned };
     }).catch(function (err) {
+      if (isResetError(err)) return null;
       console.warn('[Progress] sync failed', err);
       retryLater('lessons', function () {
         syncProgress(getJson('java_done_v2', uid, completedLessons), currentLesson, certificateEarned);
@@ -365,9 +439,13 @@ var Progress = (function () {
 
   function saveAttempt(opts) {
     var user = currentUser();
-    if (!firebaseReady || !user || !opts) return Promise.resolve();
+    if (!firebaseReady || !user || !opts || frozen) return Promise.resolve();
     var ref = firebaseDb.collection('attempts').doc(user.uid).collection('lessons').doc(String(opts.lessonId));
-    return ref.get().then(function (snap) {
+    // Un intento de una pestaña de antes de un reinicio no vuelve a la nube
+    return firebaseDb.collection('progress').doc(user.uid).get().then(function (prog) {
+      if (isStale(prog.exists ? prog.data() : {})) throw resetElsewhere(prog.exists ? prog.data().resetAt : null);
+      return ref.get();
+    }).then(function (snap) {
       var prev = snap.exists ? snap.data() : {};
       var attemptNumber = (prev.attemptNumber || 0) + 1;
       var bestPercent = Math.max(prev.scorePercent || 0, opts.scorePercent || 0);
@@ -381,6 +459,7 @@ var Progress = (function () {
         lastAttemptAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     }).catch(function (err) {
+      if (isResetError(err)) { notifyReset(err.gen); return; }
       console.warn('[Progress] saveAttempt failed', err);
     });
   }
@@ -450,7 +529,8 @@ var Progress = (function () {
         completionDate: finished,
         practice: progData.practice || null,
         fase2: progData.fase2 || null,
-        place: progData.place || null
+        place: progData.place || null,
+        resetAt: progData.resetAt || null
       };
     }).catch(function (err) {
       console.warn('[Progress] loadRemote failed', err);
@@ -458,9 +538,14 @@ var Progress = (function () {
     });
   }
 
+  /**
+   * Borra todo el progreso y deja una marca de reinicio en progress/{uid}: así los
+   * otros navegadores saben que lo que tienen guardado es de antes y lo descartan.
+   * Devuelve true si se pudo reiniciar en la nube.
+   */
   function resetRemote() {
     var user = currentUser();
-    if (!user) return Promise.resolve();
+    if (!user) return Promise.resolve(false);
     // Lo pendiente de antes del reinicio no tiene que volver a subir
     if (practiceTimer) clearTimeout(practiceTimer);
     if (placeTimer) clearTimeout(placeTimer);
@@ -468,16 +553,28 @@ var Progress = (function () {
     placeTimer = null;
     pendingPractice = null;
     pendingRetry = Object.create(null);
-    clearLocalForUid(user.uid);
-    if (!firebaseReady) return Promise.resolve();
+    var uid = user.uid;
+    if (!firebaseReady) {
+      clearLocalForUid(uid);
+      return Promise.resolve(true);
+    }
+    var gen = Date.now() + '-' + Math.random().toString(36).slice(2, 10);
     var batch = firebaseDb.batch();
-    batch.delete(firebaseDb.collection('progress').doc(user.uid));
-    batch.delete(firebaseDb.collection('rankings').doc(user.uid));
-    return firebaseDb.collection('attempts').doc(user.uid).collection('lessons').get().then(function (snap) {
+    // Sin merge: el documento queda solo con la marca
+    batch.set(firebaseDb.collection('progress').doc(uid), { resetAt: gen });
+    batch.delete(firebaseDb.collection('rankings').doc(uid));
+    return firebaseDb.collection('attempts').doc(uid).collection('lessons').get().then(function (snap) {
       snap.forEach(function (doc) { batch.delete(doc.ref); });
       return batch.commit();
+    }).then(function () {
+      clearLocalForUid(uid);
+      setStr('java_reset_gen', uid, gen);
+      sessionGen = gen;
+      return true;
     }).catch(function (err) {
+      // Sin conexión la nube queda como estaba: no se borra nada acá para no mentir
       console.warn('[Progress] resetRemote failed', err);
+      return false;
     });
   }
 
@@ -515,6 +612,11 @@ var Progress = (function () {
   }
 
   return {
+    isFrozen: isFrozen,
+    isStale: isStale,
+    notifyReset: notifyReset,
+    setResetHandler: setResetHandler,
+    RESET_ELSEWHERE: RESET_ELSEWHERE,
     flushPractice: flushPractice,
     retryPending: retryPending,
     phase1Ids: phase1Ids,

@@ -90,7 +90,11 @@ function resetGlobalProgress() {
     quizBestScores = {};
     cur = 0;
     if (typeof Progress !== 'undefined' && Progress.resetRemote) {
-      Progress.resetRemote().finally(function() { location.reload(); });
+      Progress.resetRemote().then(function (ok) {
+        // Si falló, recargar muestra el progreso real, que sigue guardado
+        if (!ok) alert('No se pudo reiniciar: no hay conexión. Tu progreso sigue guardado; probá de nuevo en un rato.');
+        location.reload();
+      });
     } else {
       location.reload();
     }

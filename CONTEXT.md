@@ -27,7 +27,7 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 | `public/js/auth.js` | Login obligatorio con Google o Facebook |
 | `firestore.rules` | Reglas de seguridad |
 | `tests/run.js` | Suite completa. `tests/JavaOracle.java` compila y ejecuta con el JDK |
-| `tests/sync.js` | Guardado contra un Firestore simulado: carga fallida, dos pestañas y ranking sin emails |
+| `tests/sync.js` | Guardado contra un Firestore simulado: carga fallida, dos pestañas, reiniciar en varios navegadores y ranking sin emails |
 | `tests/spring-check.js` | Compila fragmentos con Spring, ejecuta SQL en H2 y compara `ApiLab` con la API real |
 | `tests/browser.js` | Prueba en Edge o Chrome con Firebase simulado, y mide cada pantalla a 360 px. El guion está en `tests/browser-scenario.js` |
 | `tests/corpus/` | Programas para comparar el intérprete con Java. `Valido.java` junta casos correctos que una revisión torpe rechazaría |
@@ -138,6 +138,8 @@ Los simulacros solo usan actividades con corrección objetiva: ni `short`, que v
 **Repaso espaciado.** `reviews` decide cuándo vuelve cada actividad. Acertar sube de caja (1, 3, 7, 14 y 30 días) y fallar la trae mañana, con `box: 0`. Mientras espera queda bloqueada, para que ver la respuesta y repetir no cuente. Repetir antes de la fecha no suma. Una actividad con `box: 0` vale como máximo 0.5 en el dominio. Entre dispositivos gana el `at` más reciente (`mergePractice`).
 
 **Escrituras que suman.** `syncProgress`, `saveFase2`, la práctica y `Ranking.update` escriben dentro de una transacción que lee lo que ya está en la nube y lo combina: las lecciones se unen, las fechas se quedan con la primera y el puntaje no baja. Así ninguna pestaña ni dispositivo borra lo de otro. Si `loadRemote` falla devuelve `{ failed: true }`: la app abre con la caché, avisa y reintenta, y nunca lo toma como cero lecciones. Lo que no se pudo subir se reintenta con el evento `online`.
+
+**Reiniciar.** `resetRemote` no borra `progress/{uid}`: lo reemplaza por `{ resetAt: <id único> }` y borra ranking e intentos. Cada navegador guarda la última marca que vio en `java_reset_gen:<uid>`. Al entrar, si la nube tiene otra marca, la caché local es de antes del reinicio y se descarta. Una pestaña abierta que escribe con una marca vieja recibe `RESET_ELSEWHERE`: no sube nada, borra su caché, adopta la marca nueva (así no entra en un bucle de recargas) y queda congelada hasta recargar. `saveAttempt` también lo comprueba.
 
 `place` guarda `{ fase, f1, f2, at }`, con ids de lección: el reingreso vuelve ahí. Los borradores del editor quedan solo en `localStorage`, en `java_draft_<id>:<uid>`.
 

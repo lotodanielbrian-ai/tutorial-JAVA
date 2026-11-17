@@ -221,6 +221,18 @@ var AuthUI = (function () {
     });
   }
 
+  // Otra sesión reinició el progreso: esta pestaña tiene datos viejos. Se recarga para
+  // quedar igual que la nube (la caché local ya la borró Progress)
+  var reloading = false;
+  if (typeof Progress !== 'undefined' && Progress.setResetHandler) {
+    Progress.setResetHandler(function () {
+      if (reloading) return;
+      reloading = true;
+      syncNote('Tu progreso se reinició desde otra sesión. Actualizando…');
+      setTimeout(function () { location.reload(); }, 1500);
+    });
+  }
+
   var RETRY_MS = [5000, 15000, 30000, 60000, 120000, 300000];
 
   function examOpen() {

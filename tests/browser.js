@@ -40,7 +40,7 @@ window.__writes = [];
   };
   var db = {
     collection: function (n) { return ref(n); },
-    batch: function () { return { delete: function () {}, commit: function () { return Promise.resolve(); } }; },
+    batch: function () { return { delete: function () {}, set: function (r, d) { r.set(d); }, commit: function () { return Promise.resolve(); } }; },
     runTransaction: function (fn) { return fn({ get: function (r) { return r.get(); }, set: function (r, d) { r.set(d); } }); }
   };
   var auth = { currentUser: user, onAuthStateChanged: function (cb) { setTimeout(function () { cb(user); }, 10); }, signOut: function () { return Promise.resolve(); } };
