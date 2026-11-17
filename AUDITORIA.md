@@ -211,6 +211,180 @@ Los tres quedaron como contenido de las lecciones.
 | Pistas por opción elegida | Hoy la pista es una por actividad, no una por cada error posible |
 | CSP | Primero hay que sacar los `onclick` en línea |
 
+## Tercera auditoría: 17 de noviembre de 2026
+
+**Pregunta:** ¿alguien que nunca programó sale sabiendo Java: qué es, para qué sirve, qué se puede hacer y qué no?
+
+**Conclusión:** el motor sigue siendo lo más sólido del proyecto. Lo que falla es lo que lo rodea:
+- el progreso se puede perder;
+- 7 cuestionarios se aprueban sin leer;
+- unas 25 afirmaciones del contenido enseñan algo falso;
+- falta el primer paso: no hay una entrada que explique qué es Java antes de escribir `public static void main`.
+
+Se cruzó con una auditoría externa: lo que se pudo confirmar en el código está incluido y lo que no, descartado al final.
+
+### Puntaje
+
+| Área | Nota | Por qué |
+|---|---|---|
+| Corrección automática e intérprete | 8,5 | 40.899 verificaciones; igual que Java en 321 programas. Algunos falsos rechazos y un fallo interno sin atrapar |
+| Actividades de la Fase 1 | 7,5 | Variadas y explicadas; unas 15 con una respuesta discutible o demasiado estrecha |
+| Interfaz y móvil | 7 | Sin errores de JavaScript ni desborde a 360 px, pero con fallas de teclado y de diálogos |
+| Contenido de la Fase 2 | 7 | Fiel al proyecto real; 8 errores, uno de configuración que rompe Docker |
+| Contenido de la Fase 1 | 6,5 | La escalera funciona; unas 15 afirmaciones falsas y consignas que contradicen la salida |
+| Validez de los cuestionarios | 5 | 7 de 16 se aprueban eligiendo siempre la opción más larga |
+| Guardado del progreso | 4 | Una carga fallida o dos pestañas abiertas pueden borrar el avance |
+| Práctica de código en la Fase 2 | 4 | Solo 3 de 25 lecciones hacen escribir código |
+| Orientación para alguien de cero | 4 | No explica qué es Java, dónde se usa, qué no conviene hacer con él ni cómo instalarlo |
+| **Global** | **6** | Base técnica muy sólida; faltan el primer paso, un guardado confiable y corregir contenido |
+
+### Mediciones
+
+| Prueba | Resultado |
+|---|---|
+| `node tests/run.js` | OK, 40.899 verificaciones |
+| `node tests/browser.js` | OK, sin errores de JavaScript; 9 pantallas sin desborde |
+| 40 programas típicos de principiante, contra Java 21 | 35 iguales, 5 distintos |
+| Elegir siempre la opción más larga en los 16 cuestionarios | Aprueba 7: L25, L113, L116, L119, L120, L121 y L125 |
+| Preguntas de cuestionario cuya correcta mide más de 1,3 veces cualquier otra | 37 de 93 |
+
+### Guardado del progreso
+
+| Prioridad | Hallazgo | Efecto | Arreglo propuesto |
+|---|---|---|---|
+| Crítica | Si `loadRemote` falla, devuelve cero lecciones, y `afterLogin` igual sincroniza (`progress.js:358`, `auth.js:185`) | Con una red inestable en un dispositivo nuevo, se pisa el progreso de la nube con cero | No escribir si la carga falló; usar `arrayUnion` para las lecciones |
+| Crítica | Cada pestaña escribe su copia completa de `completedLessons`, `fase2` y `practice` | Con dos pestañas o dispositivos abiertos, una borra lo que hizo la otra | Escrituras por clave, o escuchar los cambios y combinarlos |
+| Alta | El ranking usa el email cuando la cuenta no tiene nombre (`ranking.js:59`), y esa colección es de lectura pública | El email queda visible para cualquiera | Usar "Estudiante" como nombre de respaldo |
+| Alta | Las reglas de `rankings` no limitan `displayName`, `photoURL` ni los campos extra | Se puede guardar texto enorme o una imagen de cualquier servidor | `hasOnly` y largo máximo |
+| Alta | Sin conexión, la entrada espera para siempre | Queda en "Sincronizando…" | Abrir con la caché y sincronizar después |
+| Alta | Reiniciar el progreso solo borra la caché de ese navegador | Otro dispositivo lo vuelve a subir | Guardar la fecha del reinicio |
+
+### Intérprete
+
+| Caso | JavaRun | Java |
+|---|---|---|
+| `import java.time.LocalDate;` | Falso error "cannot find symbol" | Funciona. Debería dar `unsupported` |
+| `java.util.Arrays.sort(a)` con el nombre completo | Falso error "cannot find symbol: java" | Funciona |
+| `Integer c = 128, d = 128; c == d` | `true` | `false`, porque Java solo reutiliza los objetos `Integer` de -128 a 127 |
+| `new Random()` | No soportado | Muy usado al empezar: dados, adivinar un número |
+| `printf("%.2f", 1.6543)` en una PC en español | `1.65` | `1,65`. `JavaOracle.java` fija `Locale.ROOT` y lo oculta |
+| `Arrays.sort(a, 1, 3)` | Error interno sin atrapar: traba "Entregar" en el parcial práctico | Ordena el rango |
+| `sb.setCharAt`, `map.merge`, `list.subList` | "El método no existe" | Existen. Deberían dar `unsupported` |
+
+### Errores de contenido que enseñan algo falso
+
+| Lección | Dice | En realidad |
+|---|---|---|
+| 6 | Pide redondear con `Math.round` y la pista dice que con `int` "no hace falta" | Truncar no es redondear. `int p = Math.round(x)` no compila porque devuelve `long`, y la lección 5 no lo explica |
+| 18 | "Sin `new`, la variable es `null`" | Una variable local sin valor no compila; solo los atributos empiezan en `null` |
+| 33 | "Si olvido `git add`, el commit se crea vacío" | Git no hace el commit y avisa que no hay nada preparado |
+| 14 | "Todo es un objeto" | `int`, `double`, `boolean` y `char` son primitivos |
+| 4 | Muestra `==` con dos literales `"hola"` | Da `true`, porque Java reutiliza los textos literales iguales, así que el alumno prueba la regla y deja de creerle. Usar `new String` o Scanner |
+| 9 | `null!=null && obj.isValid()`; "`&` es AND bit a bit" | El ejemplo está roto; con `boolean`, `&` es un AND que evalúa los dos lados |
+| 3 | "`% 2 == 1` es impar" | Falla con negativos: usar `!= 0` |
+| 10 y 26 | No cerrar es un "memory leak" | Sin `close`, el archivo puede quedar incompleto; cerrar `System.in` trae más problemas |
+| 27 | Dividir por cero detiene el programa | Solo con enteros; `10.0 / 0` da `Infinity` |
+| 17 | `int sumar(3, 4)` | No es Java: mezcla declarar con llamar |
+| 22 | "El polimorfismo se logra con `@Override`" | Lo logra la sobrescritura; la anotación solo la verifica |
+| 31 | "Commit sin `-m` aborta" | Abre vim; hay que enseñar a salir |
+| 32 | VS Code necesita una extensión para Git | Lo trae incorporado, así que la respuesta del quiz es discutible |
+| 1 | "Todo lo demás termina con `;`" | Induce a escribir `if (...);` |
+| P3 #8 | Marca la línea 2 como la que "falla al ejecutar" | Falla la 3 |
+| P102 #5 | El IVA como `neto + 21` | Es `neto * 1.21` |
+| P112 #3 | Sin `@PathVariable` el endpoint da error | Responde 200 con `producto null` |
+| 118 | "El Dockerfile define un contenedor" | Define una imagen |
+| 116 y 118 | El yml fija `localhost:3306` y Compose pasa `DB_HOST` | Nadie lee `DB_HOST`: Docker falla. El proyecto real usa `${DB_HOST:localhost}` |
+| 121 | `@Min` sin `@NotNull` en `stock` | Un stock nulo pasa la validación y termina en 500 |
+| 117 y 121 | Sumar `@ExceptionHandler(MethodArgumentNotValidException)` | Choca con `ResponseEntityExceptionHandler` y la app no arranca. Hay que sobrescribir `handleMethodArgumentNotValid` |
+
+### Consignas y corrección
+
+| Dónde | Problema |
+|---|---|
+| Lección 29 | Ofrece dos temas pero solo acepta uno; muestra el prompt "Elegí una opción:" y la salida esperada no lo tiene |
+| Lección 34 | Pide "género" y no está ni en la entrada ni en la salida |
+| Lección 8 | La pista no tiene tildes y la salida sí |
+| Lección 23 | El texto del tutorial no coincide con el del ejercicio, y la lección de abstractas no usa ninguna clase abstracta |
+| `conceptCheck` | Rechaza código correcto: L3 `b + a`, L11 `i = i + 1`, L18 y L19 con espacio antes de `(`, y `git commit -m '...'` con comillas simples |
+| `conceptCheck` | Aprueba sin el concepto: L10 sin Scanner y L20 sin validar en `setEdad` |
+| Ejercicios que no ejercitan | L7 prueba una sola nota, en L8 el `default` nunca corre, L9 no usa `\|\|` ni `!`, y en L29 `contarCompletadas` siempre da 0 |
+| Ítems de error | Con más de una línea válida: L8 #6, L10 #6, L17 #7 y #8, L23 #7, L25 #8 y L107 #4 |
+| Huecos de completar | Demasiado estrictos: distingue mayúsculas en SQL (L116 #7), y no acepta `+=1` (L11 #8) ni `var` (L2 #5) |
+| Respuestas abiertas | L9 #9 se aprueba con casi cualquier texto; en L125, varias se cumplen repitiendo la pregunta |
+| Práctica | Acertar en el segundo intento muestra la tarjeta en rojo, como si hubiera fallado |
+| Cuestionario | Con el teclado se puede cambiar la respuesta después de "Verificar" |
+| Resaltador `jHL` | Colorea palabras clave y números dentro de comentarios y textos |
+| kiosco-api y ApiLab | Un `PUT` con nombre duplicado da 500 en vez de 409 |
+| Leyenda del ranking | Dice "máx 60 · 500", y el cálculo real es 75 y 525 |
+
+### Pedagogía para alguien de cero
+
+**Lo que más falta es la orientación.** La lección 1 arranca con `public static void main` y una tabla de modificadores. Falta una entrada previa que responda:
+
+- Qué es programar y qué es un algoritmo.
+- Dónde se usa Java: Android, sistemas de bancos y comercios, aplicaciones empresariales, big data (Kafka, Hadoop), Minecraft y tarjetas SIM.
+- Qué no conviene hacer con Java: lo que corre en el navegador (eso es JavaScript), scripts rápidos, drivers y el día a día de machine learning.
+- Que Java y JavaScript son lenguajes distintos.
+- JDK, JRE y JVM, juntos y con un dibujo.
+- Las versiones LTS y el recolector de basura.
+- Por qué Java es estricto con los tipos.
+- Error de compilación frente a error de ejecución.
+- Instalar el JDK y un IDE, y correr el primer programa fuera del navegador. Hoy recién aparece en la lección 32, y solo como comparación de IDEs.
+
+Conviene empezar con una victoria rápida (cambiar el texto y ejecutar) y explicar después.
+
+**Temas ausentes:**
+- bucles anidados y matrices;
+- alcance de variables;
+- `toString()`, `StringBuilder` y `Random`;
+- `long` y desbordamiento;
+- aritmética con `char`;
+- inmutabilidad de String (recién en L35);
+- `static` frente a instancia;
+- recursión, sobrecarga y paso por valor.
+
+**Solo al pasar:** `printf`, `do-while`, `break`/`continue` y el error de `nextInt` seguido de `nextLine`.
+
+**Saltos:**
+- La lección 26 (archivos) usa try-catch antes de la 27, que es la que lo enseña.
+- La lección 29 junta de golpe bucle, Scanner, interfaz, ArrayList, try-catch y `parseInt(nextLine())`, y entre la 11 y la 28 no se vuelve a leer entrada.
+- La lección 28 mezcla excepciones, depuración, aserciones, logging y `.jar`.
+- Las lecciones 8, 13 y 17 repiten el mini-quiz de la anterior.
+
+**Recursos que ayudarían:**
+- un dibujo de la variable apuntando al objeto, en L4, L13 y L18;
+- una tabla de traza, vuelta por vuelta, en L11 y L12;
+- que un `;` faltante no destape pistas solo.
+
+### Ejercicios propuestos
+
+| Dónde | Qué sumar |
+|---|---|
+| Lecciones con pocas actividades | L6 y L15 tienen 3, L29 tiene 4, L33 tiene 3 y L34 tiene 5: llevarlas a 6 o más. L33 promete "revertir un commit" y no tiene ningún ítem de `revert` |
+| Fase 1, con `push` en `practica-5-extra.js` | Bucles anidados, una matriz, alcance de variables, `toString`, `StringBuilder`, inmutabilidad, `static`, `nextLine` después de `nextInt`, y borrar de un `ArrayList` dentro de un bucle |
+| Fase 2, en Java puro (el intérprete ya soporta records, interfaces, Map, Optional y streams) | SRP en `Factura` (103), regla de negocio en el service (107), query methods en memoria (110), inyectar una `Tasa` (111), Request → entidad → Response (112), elegir el código HTTP (106), bordes y excepciones (114), `verify(never())` a mano (115), borrado lógico (116), mensaje amable con detalle en el log (117), JOIN con streams (120), `@Valid` propio (121), Builder (122) y 409 por duplicado (124) |
+| Fase 2, avisos | `jakarta` frente a `javax`, `FetchType` por defecto, `@Data` con relaciones (`StackOverflowError`), `201` con `Location`, `.dockerignore`, y que `down -v` borra los datos |
+
+### Prioridades
+
+1. Guardado: no escribir si la carga falló, usar `arrayUnion` y sacar el email del ranking.
+2. Cuestionarios: reescribir los distractores de los 7 vulnerables y sumar una prueba que falle si se aprueban eligiendo la opción más larga.
+3. Una lección 0 de orientación, fuera de `LESSONS` para no tocar el certificado.
+4. Corregir las tablas de errores de contenido y de consignas.
+5. Actividades nuevas para los temas ausentes y código en la Fase 2.
+6. Intérprete: `unsupported` en vez de falsos errores, `Random`, la caché de `Integer` y un aviso sobre la coma decimal.
+
+### Descartado de la auditoría externa
+
+| Afirmación | Por qué no |
+|---|---|
+| "Ninguna lección define `antes`" | 18 lo tienen, en `practica-6-ayudas.js` |
+| La lección 16 rechaza un espacio antes de `(` | La regla no incluye el paréntesis: pasa |
+
+### Estado del repositorio
+
+El trabajo de la segunda auditoría estuvo 17 días sin commitear ni publicar, y la CI nunca había corrido. Quedó commiteado y publicado junto con este informe.
+
 ## Cómo verificar
 
 ```bash
