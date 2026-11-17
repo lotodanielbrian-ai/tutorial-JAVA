@@ -917,18 +917,29 @@ var Practica = (function () {
   }
 
   function finishExam(timeUp) {
-    if (!sim) return;
+    if (!sim) return Promise.resolve();
     stopTimer();
+    var keys = sim.keys;
+    var blank = timeUp ? 0 : keys.filter(function (k) { return readAnswer(itemOf(k), k) === null; }).length;
+    if (!blank) { gradeExam(timeUp); return Promise.resolve(); }
+    var current = sim;
+    return UI.confirm({
+      title: blank === 1 ? 'Te falta 1 pregunta' : 'Te faltan ' + blank + ' preguntas',
+      message: 'Las que dejes sin responder cuentan como incorrectas. ¿Entregás igual?',
+      okText: 'Entregar',
+      cancelText: 'Seguir respondiendo',
+      icon: '📝'
+    }).then(function (yes) {
+      if (sim !== current) return;
+      if (yes) gradeExam(false);
+      else if (sim.left) startClock();
+    });
+  }
+
+  function gradeExam(timeUp) {
     var byLesson = {};
     var correct = 0;
     var keys = sim.keys;
-    if (!timeUp) {
-      var blank = keys.filter(function (k) { return readAnswer(itemOf(k), k) === null; }).length;
-      if (blank && !confirm('Te faltan ' + blank + ' preguntas sin responder. ¿Entregás igual?')) {
-        if (sim.left) startClock();
-        return;
-      }
-    }
     keys.forEach(function (k) {
       var it = itemOf(k);
       var ans = readAnswer(it, k);

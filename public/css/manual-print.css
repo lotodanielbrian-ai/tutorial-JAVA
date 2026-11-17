@@ -1,0 +1,144 @@
+/* Java INPRO — Manual en hojas A4, tema claro de libro.
+   Se aplica al imprimir y, con ?print=1, también en pantalla para que Paged.js
+   (tools/manual-pdf.js) pagine el libro con índice y números de página. */
+
+@page {
+  size: A4;
+  margin: 20mm 17mm 20mm 17mm;
+  @top-left { content: "Java desde cero"; font: 600 8pt Inter, sans-serif; color: #9ca3af; }
+  @top-right { content: element(capitulo); }
+  @bottom-center { content: counter(page); font: 600 9pt Inter, sans-serif; color: #6b7280; }
+}
+@page tapa { margin: 0; @top-left { content: none; } @top-right { content: none; } @bottom-center { content: none; } }
+@page parte { @top-left { content: none; } @top-right { content: none; } @bottom-center { content: none; } }
+@page inicio { @top-right { content: none; } }
+
+:root, html.libro-claro {
+  --bg:#ffffff; --bg2:#f7f7f8; --bg3:#eef0f3; --bg4:#e5e7eb; --code-bg:#f6f7f9;
+  --text:#1f2937; --text2:#374151; --text3:#6b7280;
+  --border:#e5e7eb; --border2:#d1d5db;
+  --java:#b45309; --java2:#92400e; --java-bg:#fef3c7; --java-b:#f59e0b;
+  --green:#059669; --greentx:#047857; --red:#dc2626; --blue:#1d4ed8; --teal:#0f766e; --yellow:#ca8a04; --pink:#db2777;
+  --shadow:none;
+  --f-fill:#f6f7f9; --f-line:#4b5563; --f-text:#1f2937; --f-muted:#4b5563;
+  --f-acc:#d97706; --f-acc-bg:#fef3c7; --f-ok:#059669; --f-ok-bg:#d1fae5;
+  --f-bad:#dc2626; --f-bad-bg:#fee2e2; --f-blue:#2563eb; --f-blue-bg:#dbeafe;
+}
+
+html, body, .mn-body { background:#fff !important; color:var(--text); }
+/* main.css oculta todo al imprimir para sacar solo el certificado: en el libro, todo se ve */
+.mn-body, .mn-body * { visibility:visible !important; }
+body { font-size:10pt; line-height:1.55; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.mn-book { max-width:none; padding:0; margin:0; }
+.mn-screen, .mn-run-bar, .mn-bar, .mn-sol, .mn-loading, .sync-note, .ui-dialog-overlay { display:none !important; }
+
+/* Colores fijos de main.css, pasados a claro */
+.ts h3, .ann strong { color:var(--text) !important; }
+.ts p, .ts ul, .analogy-card p { color:var(--text2); font-size:10pt; line-height:1.6; }
+.analogy-card { background:#fffaf0; border-color:#fcd9a0; padding:10pt 12pt; margin:8pt 0; }
+.ann { font-size:9.5pt; color:var(--text2); padding:7pt 10pt; }
+.ann code, .mn-q code, .mn-ans code, .mn-ref-tbl code { background:#f1f5f9; color:#0f766e; }
+.cblock { background:var(--code-bg); border:1px solid #d9dde3; box-shadow:none; border-radius:6pt; margin:8pt 0; }
+.cblock-head { background:#eef0f3; color:#6b7280; padding:4pt 10pt; }
+.cblock-body { color:#1f2937; font-size:8.4pt; line-height:1.6; padding:8pt 11pt; white-space:pre-wrap; overflow:visible; }
+.mn-code, .mn-out { font-size:8.4pt; line-height:1.6; white-space:pre-wrap; overflow:visible; }
+.mn-code { background:var(--code-bg); color:#1f2937; border-color:#d9dde3; }
+.mn-out { background:#f0fdf4; color:#065f46; border-color:#bbf7d0; border-left-color:#059669; }
+.ck { color:#b45309 } .ct { color:#0f766e } .cs { color:#15803d } .cn { color:#1d4ed8 } .cc { color:#6b7280 } .cm { color:#92400e } .ca { color:#4d7c0f } .co { color:#0e7490 }
+.sym-tbl { font-size:8.8pt; overflow:visible !important; }
+.sym-tbl th { background:#f3f4f6; color:#4b5563; padding:5pt 7pt; }
+.sym-tbl td { color:var(--text2); padding:5pt 7pt; }
+.sym-tbl td:first-child { color:#b45309; white-space:normal; }
+.sym-tbl tr:nth-child(even) td { background:#fafafa; }
+.glossary { color:var(--text); text-decoration:underline dotted #9ca3af; }
+.glossary:hover::after { display:none; }
+
+/* Las preguntas de "Ver respuesta" de las lecciones: en papel se ve la respuesta */
+.quiz-reveal { display:none !important; }
+.quiz-reveal + p { display:block !important; color:#047857 !important; font-size:9pt !important; margin-top:3pt; }
+
+/* Tapa */
+.mn-cover { page:tapa; height:297mm; width:210mm; margin:0; padding:34mm 22mm 20mm; border:none; border-radius:0;
+  background:linear-gradient(170deg,#fff7e6 0%,#ffffff 55%,#fff7e6 100%); display:flex; flex-direction:column; break-after:page; }
+.mn-cover-band { height:14mm; background:linear-gradient(90deg,#f59e0b,#d97706,#db2777); }
+.mn-cover-kicker { color:#b45309; font-size:12pt; }
+.mn-cover h1 { color:#111827; font-size:58pt; margin:8mm 0 7mm; }
+.mn-cover-sub { color:#374151; font-size:14pt; max-width:140mm; }
+.mn-cover-art { margin:16mm 0 0; flex:1; }
+.mn-cover-foot { color:#6b7280; font-size:10pt; border-top:1px solid #fcd9a0; padding-top:5mm; }
+
+/* Inicio e índice */
+.mn-front, .mn-toc { page:inicio; break-before:page; margin:0; }
+.mn-front-title, .mn-ap-title { font-size:22pt; color:#111827; margin-bottom:10pt; }
+.mn-front p { color:var(--text2); }
+.mn-toc ol { columns:1; }
+.mn-toc li { font-size:9.5pt; padding:1.6pt 0; }
+.mn-toc a { color:var(--text2); display:flex; align-items:baseline; }
+.mn-toc-dots { display:block !important; flex:1; border-bottom:1px dotted #cbd5e1; margin:0 4pt; min-width:8mm; transform:translateY(-3pt); }
+.mn-toc a::after { content:target-counter(attr(href), page); color:#4b5563; font-variant-numeric:tabular-nums; }
+.mn-toc-part { margin-top:7pt !important; font-size:10.5pt !important; }
+.mn-toc-part a { color:#b45309; }
+
+/* Partes: una hoja propia */
+.mn-part { page:parte; break-before:page; break-after:page; margin:0; height:240mm; border:none; border-radius:0; padding:60mm 6mm 0;
+  background:none; border-left:6pt solid #f59e0b; }
+.mn-part-title { font-size:34pt; color:#111827; }
+.mn-part-text { font-size:12pt; color:#374151; }
+.mn-part-list { display:block; margin-top:12mm; }
+.mn-part-list li { font-size:11pt; padding:2pt 0; color:#374151; }
+
+/* Capítulos */
+.mn-chapter { break-before:page; margin:0; padding:0; border:none; }
+.mn-ch-head { border-bottom:2pt solid #f59e0b; padding-bottom:8pt; margin-bottom:12pt; }
+.mn-ch-num { font-size:9pt; }
+.mn-ch-title { font-size:24pt; color:#111827; }
+.mn-run-head { position:running(capitulo); display:block !important; font:600 8pt Inter, sans-serif; color:#b45309; text-align:right; }
+.pagedjs_page_content .mn-run-head { display:none !important; }
+.mn-ch-desc { font-size:11pt; }
+.mn-h { font-size:8.5pt; margin:12pt 0 6pt; break-after:avoid; }
+.mn-h-big { font-size:14pt; margin-top:16pt; border-bottom-width:1.5pt; color:#111827; break-after:avoid; }
+.mn-goals ul { line-height:1.6; }
+.mn-escalera li { background:#fafafa; padding:6pt 10pt; border-radius:6pt; }
+.mn-escalera ol { gap:5pt; }
+.mn-escalera p { font-size:9.5pt; line-height:1.5; }
+.mn-step-ico { width:24pt; height:24pt; font-size:14pt; }
+.mn-fig { background:#fff; border:1px solid #e5e7eb; padding:8pt; margin:10pt 0; }
+.mn-fig figcaption { font-size:8.5pt; color:#4b5563; }
+.mn-before { border-color:#f59e0b; padding:8pt 12pt; }
+.mn-print-only { display:block !important; }
+.mn-c0 { margin:16pt 0 6pt; }
+.mn-c0-title { break-after:avoid; }
+.mn-c0-title { font-size:16pt; color:#111827; }
+.mn-q { font-size:9.8pt; color:var(--text); }
+.mn-item { padding:7pt 0; border-bottom:1px solid #eceef1; }
+.mn-num { background:#fef3c7; color:#92400e; min-width:34pt; height:18pt; font-size:9pt; }
+.mn-write { height:26pt; border-bottom-color:#cbd5e1; }
+.mn-write.tall { height:46pt; }
+.mn-challenge { background:#fffaf0; border:1px solid #fcd9a0; padding:2pt 14pt 10pt; }
+.mn-small { color:#6b7280; font-size:8.5pt; }
+.mn-small a, .mn-ref { color:#b45309; text-decoration:none; }
+
+/* Apéndices */
+.mn-part-ap { break-before:page; }
+.mn-appendix { break-before:page; margin:0; }
+.mn-ans { font-size:8.8pt; color:var(--text2); padding:3.5pt 0; }
+.mn-ans .mn-num { min-width:32pt; height:16pt; font-size:8pt; }
+.mn-ans .mn-out { font-size:7.8pt; padding:4pt 8pt; }
+.mn-ans-ch h3, .mn-sol-ch h3 { color:#b45309; font-size:11pt; margin:10pt 0 4pt; break-after:avoid; }
+.mn-why { font-size:8.6pt; color:#4b5563; }
+.mn-gloss { columns:2; column-gap:10mm; display:block; }
+.mn-gloss dt { font-size:9.5pt; break-after:avoid; margin-top:6pt; }
+.mn-gloss dd { font-size:8.8pt; break-inside:avoid; }
+.mn-ref-tbl th { width:24mm; color:#b45309; }
+.mn-ref-tbl code { font-size:7.8pt; }
+.mn-err td { font-size:8.3pt; }
+.mn-back { break-before:page; border:none; padding-top:110mm; }
+
+/* Que nada importante quede partido entre dos hojas */
+.mn-item, .mn-fig, .analogy-card, .ann, .mn-escalera li, .mn-before, .mn-ans, tr, .mn-sol-ch h3, .mn-goals, figure { break-inside:avoid; }
+.cblock { break-inside:avoid; overflow:visible !important; }
+.cblock.mn-long { break-inside:auto; }
+h2, h3, h4, .ts h3, .mn-h-big { break-after:avoid; }
+.mn-h-big + *, .ts h3 + * { break-before:avoid; }
+p { orphans:3; widows:3; }
+a { color:inherit; text-decoration:none; }

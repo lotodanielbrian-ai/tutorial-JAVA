@@ -170,9 +170,9 @@
       'El historial te protege incluso de vos: podés probar sin miedo a perder lo que funcionaba.'
     ],
     32: [
-      'IntelliJ trae el soporte de Git incluido desde la instalación.',
+      'Los IDE solo muestran botones para Git: el que hace el trabajo es Git, que tiene que estar instalado.',
       'En Eclipse, las acciones de Git están en el menú Team.',
-      'VS Code es un editor con extensiones: arranca liviano y sumás lo que necesitás.',
+      'El debugger frena el programa en una línea (breakpoint) y te deja avanzar de a una mirando cuánto vale cada variable.',
       'Formatear con un atajo te ahorra acomodar el código a mano.'
     ],
     35: [

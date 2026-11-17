@@ -196,6 +196,60 @@ async function connect(url) {
     }
   }
 
+  // El manual: se arma solo, sus ejemplos se ejecutan y se editan, y entra en un teléfono
+  if (!onlyViews || onlyViews.includes('manual')) {
+    await c.send('Page.addScriptToEvaluateOnNewDocument', { source: "window.__errs = []; addEventListener('error', function (e) { __errs.push(e.message + ' @' + e.lineno); }); window.confirm = function (m) { __errs.push('confirm nativo: ' + m); }; window.alert = function (m) { __errs.push('alert nativo: ' + m); };" });
+    const checkManual = async label => {
+      for (let i = 0; i < 40 && await evaluate("document.documentElement.getAttribute('data-ready')") !== '1'; i++) await delay(250);
+      const r = await evaluate(`(async () => {
+        const out = [];
+        const ok = (c, m) => out.push((c ? 'ok    ' : 'FALLA ') + '${label}: ' + m);
+        const caps = document.querySelectorAll('.mn-chapter').length;
+        ok(caps === 36, 'el libro tiene el capítulo 0 y las 35 lecciones (' + caps + ')');
+        ok(document.querySelectorAll('.mn-fig svg').length >= 40, 'cada capítulo tiene su figura (' + document.querySelectorAll('.mn-fig svg').length + ')');
+        ok(document.querySelectorAll('.mn-item').length > 300, 'hay actividades para comprobar (' + document.querySelectorAll('.mn-item').length + ')');
+        ok(document.querySelectorAll('.mn-sol-ch').length === 30 && document.querySelectorAll('.mn-ans').length === document.querySelectorAll('.mn-item').length, 'cada actividad y cada desafío tienen su respuesta');
+        const toc = Array.from(document.querySelectorAll('.mn-toc a')).filter(a => !document.getElementById(a.getAttribute('href').slice(1)));
+        ok(!toc.length, 'cada entrada del índice lleva a su sección');
+        const block = document.querySelector('#cap-1 .mn-runnable');
+        block.querySelector('[data-act="run"]').click();
+        ok(/Hola/.test(block.querySelector('.mn-result').textContent), 'un ejemplo se ejecuta en el navegador');
+        block.querySelector('[data-act="edit"]').click();
+        const ta = block.querySelector('textarea.mn-editor');
+        ta.value = ta.value.replace(/println\\("[^"]*"\\)/, 'println("Lo cambié yo")');
+        block.querySelector('[data-act="run"]').click();
+        ok(block.querySelector('.mn-result').textContent.indexOf('Lo cambié yo') !== -1, 'un ejemplo se puede editar y volver a ejecutar');
+        ta.value = ta.value.replace(';', '');
+        block.querySelector('[data-act="run"]').click();
+        ok(/compilación/.test(block.querySelector('.mn-result').textContent), 'un error de compilación se explica');
+        const scan = Array.from(document.querySelectorAll('.mn-runnable')).find(b => b.querySelector('.mn-stdin'));
+        ok(!!scan, 'los ejemplos con Scanner piden la entrada');
+        ok(!/[≥≤≠]/.test(Array.from(document.querySelectorAll('.cblock-body')).map(b => getComputedStyle(b).fontVariantLigatures).join('')) && getComputedStyle(document.querySelector('.cblock-body')).fontVariantLigatures === 'none', 'el código se ve como se tipea: sin ligaduras');
+        const sol = document.querySelector('.mn-sol');
+        ok(!!sol && !sol.open, 'las respuestas arrancan tapadas');
+        ok(!!document.querySelector('a[href="manual/java-desde-cero.pdf"]'), 'se puede descargar el PDF');
+        ok(!window.__errs.length, 'sin errores: ' + JSON.stringify(window.__errs));
+        return out.join('\\n');
+      })()`);
+      report(r + '\nerrores JS: []');
+    };
+    await open('', 1280, 900);
+    await c.send('Page.navigate', { url: `http://127.0.0.1:${port}/manual.html` });
+    await delay(800);
+    await checkManual('manual');
+    await evaluate("document.getElementById('cap-7').scrollIntoView(); true");
+    await shot('manual-escritorio');
+    await c.send('Emulation.setDeviceMetricsOverride', { width: PHONE, height: 800, deviceScaleFactor: 1, mobile: true });
+    await c.send('Page.navigate', { url: `http://127.0.0.1:${port}/manual.html?m=${Date.now()}` });
+    await delay(800);
+    for (let i = 0; i < 40 && await evaluate("document.documentElement.getAttribute('data-ready')") !== '1'; i++) await delay(250);
+    await evaluate("document.getElementById('cap-18').scrollIntoView(); true");
+    await shot('manual-movil');
+    const docW = await evaluate('document.documentElement.scrollWidth');
+    console.log((docW <= PHONE ? 'ok    ' : 'FALLA ') + 'manual a ' + PHONE + ' px: el documento mide ' + docW);
+    if (docW > PHONE) { failed++; console.log('      se salen: ' + await evaluate(WIDEST.replace("'#main *, #sim-box *'", "'#libro *'"))); }
+  }
+
   c.close();
   console.log('\n' + (failed ? failed + ' fallas' : 'OK: navegador sin fallas ni errores de JavaScript'));
   finish();

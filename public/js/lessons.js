@@ -92,7 +92,7 @@ ${cb('Diferencias de impresión', `public class Main {
 <div class="ts">
 <h3>El punto y coma ;</h3>
 <p>Cada instrucción en Java <strong>termina con punto y coma</strong>. Sin él, Java no sabe dónde termina una y empieza la siguiente.</p>
-${ann('warn','⚠️','<strong>NO termina con ;</strong>: la declaración de clase, la declaración de método, las llaves. <strong>SÍ termina con ;</strong>: todo lo demás.')}
+${ann('warn','⚠️','<strong>SÍ termina con ;</strong>: cada instrucción, como <code>System.out.println("Hola");</code> o <code>int x = 5;</code>. <strong>NO termina con ;</strong>: lo que abre un bloque con llaves (la clase, un método, <code>if (...)</code>, <code>for (...)</code>, <code>while (...)</code>), las llaves mismas y los comentarios. Un <code>;</code> después de <code>if (...)</code> deja al if vacío.')}
 </div>
 <div class="ts">
 <div class="ts">
@@ -281,7 +281,7 @@ int resto      = a % b;   // 3  ← el sobrante de dividir 15 entre 4`)}
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿Cuánto da 15 / 4 en Java?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ 3. Como ambos son int, Java trunca los decimales. No es 3.75.</p></div>
 <div class="analogy-card"><p><strong>¿Cuánto da 15 % 4?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ 3. Es el RESTO de dividir 15 entre 4.</p></div>
-<div class="analogy-card"><p><strong>¿Cómo saber si un número es PAR?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Con %. Si número % 2 == 0, es PAR. Si == 1, es IMPAR.</p></div>
+<div class="analogy-card"><p><strong>¿Cómo saber si un número es PAR?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Con %. Si número % 2 == 0, es PAR. Si es distinto de 0, es IMPAR. Ojo: con negativos, -7 % 2 da -1, por eso conviene preguntar != 0 y no == 1.</p></div>
 <div class="analogy-card"><p><strong>¿Qué significa x++?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ "Aumentale 1 a x". Igual que x = x + 1 o x += 1.</p></div>
 <div class="analogy-card"><p><strong>¿Diferencia entre ++x y x++?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ ++x: suma primero, después usa. x++: usa primero, después suma.</p></div>
 ${ann('warn','⚠️','<strong>División entre enteros siempre da entero</strong>. <code>15 / 4</code> en Java es <code>3</code>, no <code>3.75</code>. Si necesitás decimales, usá <code>15.0 / 4</code>.')}
@@ -364,7 +364,7 @@ int r2 = (2 + 3) * 4;    // 20 — paréntesis primero`)}
 <div class="analogy-card"><h4>El control remoto del String</h4><p>Un String es un objeto con "botones" (metodos). .toUpperCase() = boton MAYUSCULAS. .length() = boton CONTAR. .charAt(0) = boton PRIMERA LETRA. Cada boton hace algo distinto.</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿"Java".charAt(0) devuelve...?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ J. Las posiciones empiezan en 0: J=0, a=1, v=2, a=3.</p></div>
-<div class="analogy-card"><p><strong>¿Forma correcta de comparar Strings?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ texto1.equals(texto2). NUNCA ==. == compara direcciones de memoria, .equals() compara contenido.</p></div>
+<div class="analogy-card"><p><strong>¿Forma correcta de comparar Strings?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ texto1.equals(texto2). NUNCA ==. == pregunta si las dos variables apuntan al MISMO objeto; .equals() compara el contenido.</p></div>
 <div class="analogy-card"><p><strong>¿"Hola".length() devuelve 4?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Si. H(1)+o(2)+l(3)+a(4)=4. Los espacios también cuentan.</p></div>
 <div class="analogy-card"><p><strong>¿Qué hace .toUpperCase()?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Convierte a MAYUSCULAS. "java" -> "JAVA". Lo opuesto: .toLowerCase().</p></div>
 <div class="analogy-card"><p><strong>¿Por qué .length() lleva () y .length de array no?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ .length() es METODO (accion). .length es ATRIBUTO (propiedad fija). Métodos llevan ().</p></div>
@@ -386,10 +386,10 @@ ${ann('warn','⚠️','<strong>Los índices empiezan en 0</strong>. El primer ca
 <div class="ts">
 <h3>Comparar Strings — equals(), no ==</h3>
 ${cb('Error clásico vs forma correcta', `String a = "hola";
-String b = "hola";
+String b = new String("hola");  // mismo texto, otro objeto
 
-// MAL (compara referencias en memoria, no el contenido)
-if (a == b) { }         // puede dar resultados inesperados
+// MAL (pregunta si es el mismo objeto, no si dice lo mismo)
+if (a == b) { }         // false, aunque los dos digan "hola"
 
 // BIEN (compara el contenido del texto)
 if (a.equals(b)) { }    // siempre correcto`)}
@@ -541,12 +541,12 @@ String s = String.valueOf(42);            // "42" como String`)}
   <li>Eliminá los espacios del nombre con <code>.trim()</code></li>
   <li>Convertilo a MAYÚSCULAS con <code>.toUpperCase()</code></li>
   <li>Calculá el promedio de las 3 notas (sumá y dividí)</li>
-  <li>Redondeá el promedio con <code>Math.round()</code></li>
+  <li>Calculá el promedio como número entero: con <code>int</code>, la división descarta los decimales (247 / 3 da 82, no 82,33)</li>
   <li>Imprimí exactamente:<br><code>NOMBRE: JAVA STUDENT</code><br><code>PROMEDIO: 82</code></li>
 </ol>
 </div>`,
   exercise: {
-    desc: 'Procesá el nombre (trim + toUpperCase) y calculá el promedio redondeado de las 3 notas.',
+    desc: 'Procesá el nombre (trim + toUpperCase) y calculá el promedio entero de las 3 notas: sin decimales.',
     expected: 'NOMBRE: JAVA STUDENT\nPROMEDIO: 82',
     starter: `public class Main {
     public static void main(String[] args) {
@@ -561,8 +561,8 @@ String s = String.valueOf(42);            // "42" como String`)}
       'Eliminá espacios: <code>String nombreLimpio = nombre.trim();</code>',
       'Mayúsculas: <code>String nombreMayus = nombreLimpio.toUpperCase();</code>',
       'Promedio: <code>int promedio = (nota1 + nota2 + nota3) / 3;</code> — con int la división trunca decimales.',
-      'Al usar int, (85+72+90)/3 = 247/3 = 82 (trunca). Justo lo que necesitás, no hace falta Math.round.',
-      '<strong>Errores comunes:</strong><ul><li><strong>Olvidar ()</strong>: .trim() y .toUpperCase() llevan paréntesis.</li><li><strong>División entera</strong>: con int ya trunca, no necesitás Math.round.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>' + cb('Solución', 'public class Main {\n    public static void main(String[] args) {\n        String nombre = "  Java Student  ";\n        int nota1 = 85, nota2 = 72, nota3 = 90;\n        nombre = nombre.trim().toUpperCase();\n        int promedio = (nota1 + nota2 + nota3) / 3;\n        System.out.println("NOMBRE: " + nombre);\n        System.out.println("PROMEDIO: " + promedio);\n    }\n}')
+      'Al usar int, (85+72+90)/3 = 247/3 = 82: descarta los decimales. Ojo: eso es <strong>truncar</strong>, no redondear. Para redondear (82,7 → 83) se usa <code>Math.round(suma / 3.0)</code>, que devuelve un <code>long</code>.',
+      '<strong>Errores comunes:</strong><ul><li><strong>Olvidar ()</strong>: .trim() y .toUpperCase() llevan paréntesis.</li><li><strong>División entera</strong>: con int se descartan los decimales. Truncar no es redondear: 82,7 trunca a 82 y redondea a 83.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>' + cb('Solución', 'public class Main {\n    public static void main(String[] args) {\n        String nombre = "  Java Student  ";\n        int nota1 = 85, nota2 = 72, nota3 = 90;\n        nombre = nombre.trim().toUpperCase();\n        int promedio = (nota1 + nota2 + nota3) / 3;\n        System.out.println("NOMBRE: " + nombre);\n        System.out.println("PROMEDIO: " + promedio);\n    }\n}')
     ]
   }
 },
@@ -695,7 +695,6 @@ switch (opcion) {
     default:
         System.out.println("Opción no válida");
 }`)}
-<div class="analogy-card"><h4>El GPS que recalcula</h4><p>else if es como un GPS cuando hay multiples rutas. Java evalua de ARRIBA hacia ABAJO. La PRIMERA condicion que se cumple, se ejecuta. Las demas se ignoran.</p></div>
 <div class="analogy-card"><h4>El control remoto del switch</h4><p>Boton 1=Netflix, 2=YouTube, 3=Spotify. Cada boton dispara una app distinta. Sin break, al apretar 1 tambien ejecuta 2 y 3. ¡Error comun!</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿Para qué sirve break en switch?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Para SALIR del switch. Sin break, Java ejecuta los cases siguientes (fall-through).</p></div>
@@ -703,12 +702,6 @@ switch (opcion) {
 <div class="analogy-card"><p><strong>¿Switch con double o boolean?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ NO. Solo int, char, String y enum.</p></div>
 <div class="analogy-card"><p><strong>¿Cuándo switch vs if-else?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Switch: UNA variable contra VALORES EXACTOS. If-else: RANGOS (>18, entre 60 y 90).</p></div>
 <div class="analogy-card"><p><strong>¿Ventaja de agrupar cases sin break?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Varios cases comparten código. Ej: lunes a viernes -> "dia laboral". Unico caso intencional.</p></div>
-<h3>🧪 Mini-Quiz</h3>
-<div class="analogy-card"><p><strong>¿Qué evalua un if?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Un boolean (true/false). La condición DEBE ser true o false.</p></div>
-<div class="analogy-card"><p><strong>¿Diferencia entre = y ==?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ = ASIGNA (x=5). == COMPARA (if x==5). Error comun: if(x=5) en vez de if(x==5).</p></div>
-<div class="analogy-card"><p><strong>¿Qué pasa con ; después del if()?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ El ; cierra el if con cuerpo VACIO. El {} de abajo se ejecuta SIEMPRE. Error silencioso.</p></div>
-<div class="analogy-card"><p><strong>¿Necesito else siempre?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ No. Es OPCIONAL. Usa solo if cuando solo queres actuar si se cumple.</p></div>
-<div class="analogy-card"><p><strong>¿Cuándo usar ternario?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Para asignaciones simples: String r = (edad>=18)?"Mayor":"Menor"; Para lógica compleja, if-else.</p></div>
 ${ann('warn','⚠️','<strong>No te olvides del break</strong>. Sin él, Java sigue ejecutando los cases siguientes (fall-through).')}
 </div>
 <div class="ts">
@@ -760,7 +753,7 @@ ${ann('tip','💡','Podés agrupar cases sin break para que compartan el mismo b
 }`,
     hints: [
       'Usá <code>switch (dia)</code> con cases del 1 al 7. Cada case imprime el nombre.',
-      'Case 3: <code>System.out.println("Dia " + dia + ": Miercoles");</code> seguido de <code>break;</code>',
+      'Case 3: <code>System.out.println("Día " + dia + ": Miércoles");</code> seguido de <code>break;</code>',
       'El default es para valores fuera de 1-7: <code>System.out.println("Día inválido");</code>',
       `<strong>Posibles errores comunes:</strong><ul><li><strong>Olvidar el break:</strong> Si te olvidás de poner <code>break;</code> al final de cada case, Java va a ejecutar todos los demás cases seguidos.</li><li><strong>Sintaxis del case:</strong> El case lleva dos puntos al final, no punto y coma: <code>case 1:</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
@@ -821,12 +814,12 @@ if (texto != null && texto.length() > 0) {
 <div class="analogy-card"><h4>La receta de cocina - &&</h4><p>&& es como una receta: necesitas TODOS los ingredientes. "Si tengo harina Y huevos -> hago torta". Falta uno -> no hay torta.</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿Cuándo da true &&?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Solo cuando AMBAS son true. true&&true=true. Todo lo demas=false.</p></div>
-<div class="analogy-card"><p><strong>¿Qué es el cortocircuito?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Con &&, si la primera es false, NO evalua la segunda. Permite null!=null && obj.isValid().</p></div>
+<div class="analogy-card"><p><strong>¿Qué es el cortocircuito?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Con &&, si la primera es false, NO evalúa la segunda. Por eso obj != null && obj.isValid() nunca falla: si obj es null, ni mira la segunda parte.</p></div>
 <div class="analogy-card"><p><strong>¿Diferencia & vs &&?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ && hace cortocircuito. & evalua AMBAS siempre. && es más eficiente.</p></div>
 <div class="analogy-card"><p><strong>¿Qué hace ! (NOT)?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Invierte: !true=false, !false=true. Util: if(!lista.isEmpty()).</p></div>
 <div class="analogy-card"><p><strong>¿Paréntesis en condiciones mixtas?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ && antes que ||. Ante duda, pone paréntesis: (a&&b)||c.</p></div>
 ${ann('tip','💡','Con <code>&&</code> si la primera es false, la segunda ni se evalúa. Con <code>||</code> si la primera es true, la segunda ni se evalúa.')}
-</div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>if(x&y) en vez de &&</code></td><td>Sin cortocircuito</td><td>& es AND bit a bit. Evalua ambos siempre.</td></tr>
+</div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>if(x&y) en vez de &&</code></td><td>Sin cortocircuito</td><td>Con boolean, & también es un Y, pero evalúa siempre los dos lados. && corta apenas sabe el resultado.</td></tr>
 <tr><td><code>if(a&&b||c) sin ()</code></td><td>Ambiguo</td><td>&& antes que ||. Agrega parentesis.</td></tr>
 <tr><td><code>if(x=5&&y=3)</code></td><td>Error</td><td>= asigna. Usa == para comparar.</td></tr>
 </tbody></table></div>
@@ -924,7 +917,7 @@ scanner.close();`)}
 </div><div class="ts"><h3>Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>Olvidaste import java.util.Scanner;</code></td><td>cannot find symbol</td><td>Java no conoce la clase Scanner sin el import.</td></tr>
 <tr><td><code>nextInt() recibe "abc"</code></td><td>InputMismatchException</td><td>El usuario escribio texto donde esperabas un numero.</td></tr>
 <tr><td><code>nextInt() y despues nextLine()</code></td><td>nextLine() lee vacio</td><td>El Enter del nextInt() quedo en el buffer. Solucion: sc.nextLine() extra.</td></tr>
-<tr><td><code>Olvidaste scanner.close()</code></td><td>Memory leak</td><td>El scanner queda abierto consumiendo recursos del sistema.</td></tr>
+<tr><td><code>Olvidaste scanner.close()</code></td><td>Aviso del IDE: recurso sin cerrar</td><td>Con un Scanner de System.in en un programa chico no es grave. Ojo: cerrarlo también cierra System.in, y después ningún otro Scanner puede leer el teclado.</td></tr>
 </tbody></table></div>
 `,
   exercise: {
@@ -1010,7 +1003,7 @@ do {
 </tbody>
 </table>
 </div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>Olvidaste incrementar</code></td><td>Bucle infinito</td><td>La variable de control nunca cambia.</td></tr>
-<tr><td><code>while(i<=5);</code></td><td>Bucle vacio infinito</td><td>El ; cierra el while. El {} corre una vez despues.</td></tr>
+<tr><td><code>while(i<=5);</code></td><td>Bucle vacío infinito</td><td>El ; cierra el while: queda un bucle sin cuerpo que nunca cambia i. El programa se cuelga y el bloque {} nunca llega a ejecutarse.</td></tr>
 <tr><td><code>while(i=5)</code></td><td>Error</td><td>= asigna. La condicion debe ser booleana.</td></tr>
 </tbody></table></div>
 `,
@@ -1138,19 +1131,12 @@ Casilla 0: 8 | Casilla 1: 5 | Casilla 2: 9 | Casilla 3: 7</p>
 Para saber cuántas casillas: <code>notas.length</code> → <code>4</code> (¡sin paréntesis!)</p>
 </div>
 <div class="analogy-card"><h4>Caja de DVDs</h4><p>6 discos numerados 0-5. Cada disco tiene un capitulo. No podes meter un septimo disco. Capacidad fija. Para expandir: ArrayList.</p></div>
-<div class="analogy-card"><h4>La cinta transportadora</h4><p>Los items pasan uno por uno por la cinta. Los procesas en orden. Cuando se acaban, el for termina. Sabes exactamente cuantos son.</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿Primer índice de un array?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ 0. El último es length-1.</p></div>
 <div class="analogy-card"><p><strong>¿.length o .length() para arrays?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ .length SIN paréntesis (ATRIBUTO). String usa .length() CON paréntesis (METODO).</p></div>
 <div class="analogy-card"><p><strong>¿Qué pasa con nums[5] en array de 5?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ ArrayIndexOutOfBoundsException. Indices validos: 0 a 4.</p></div>
 <div class="analogy-card"><p><strong>¿println(nums) directo que imprime?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Hash [I@1a2b3c. NO imprime valores. Recorrelo con for.</p></div>
 <div class="analogy-card"><p><strong>¿Puedo cambiar el tamano después de crear?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ NO. Tamano FIJO. Para dinamico: ArrayList.</p></div>
-<h3>🧪 Mini-Quiz</h3>
-<div class="analogy-card"><p><strong>¿Qué hace cada parte del for?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Inicio: declara variable (1 vez). Condicion: antes de cada iteracion. Paso: después del cuerpo.</p></div>
-<div class="analogy-card"><p><strong>¿Qué hace break en un for?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ SALE del bucle inmediatamente. No ejecuta más iteraciones.</p></div>
-<div class="analogy-card"><p><strong>¿Qué hace continue?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Salta a la SIGUIENTE iteracion. No ejecuta el resto del cuerpo.</p></div>
-<div class="analogy-card"><p><strong>¿Error off-by-one?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ <5 = 0,1,2,3,4 (5 vueltas). <=5 = 0,1,2,3,4,5 (6 vueltas). Revisa siempre.</p></div>
-<div class="analogy-card"><p><strong>¿for(;;) es valido?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Si, bucle INFINITO. Las 3 partes son opcionales. Necesitas break adentro.</p></div>
 ${ann('warn','⚠️','El tamaño del array es <strong>fijo</strong>. Una vez creado, no podés agregar ni quitar casillas. Para eso necesitás <code>ArrayList</code>.')}`,
   tutorial: () => `
 <div class="ts">
@@ -1280,7 +1266,7 @@ System.out.println("Suma: " + calc.sumar());`)}
 <div class="analogy-card"><h4>⏳ Cronología: de POP a POO</h4>
 <p><strong>1970s — Programación procedural (POP)</strong>: Con C y Pascal, los programas eran secuencias de funciones. Datos y lógica separados. Funcionaba bien para proyectos chicos, pero al crecer el código se volvía difícil de mantener.</p>
 <p><strong>1980s — Nace la POO</strong>: Smalltalk y C++ introducen el concepto de <strong>objetos</strong> que agrupan datos Y comportamiento. Un objeto "Factura" sabe calcular su propio total, en vez de tener una función suelta <code>calcularTotal(factura)</code>.</p>
-<p><strong>1995 — Java populariza la POO</strong>: James Gosling diseña Java para electrodomésticos inteligentes, pero la web explota y Java se convierte en el lenguaje de Internet. Su filosofía: todo es un objeto, todo pertenece a una clase.</p>
+<p><strong>1995 — Java populariza la POO</strong>: James Gosling diseña Java para electrodomésticos inteligentes, pero la web explota y Java se convierte en el lenguaje de Internet. Su filosofía: todo el código vive dentro de clases. Casi todo es un objeto; la excepción son los tipos primitivos (int, double, boolean, char).</p>
 ${ann('java','📌','Java llevó la POO al mainstream corporativo. Bancos, gobiernos, empresas — todos adoptaron Java porque la POO permitía sistemas enormes, mantenibles y con equipos de cientos de programadores.')}
 </div>
 
@@ -1423,7 +1409,7 @@ public static void main(String[] args) {
 }`)}
 </div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>static void dentro de main</code></td><td>Error compilación</td><td>Método no puede estar dentro de otro. Va FUERA.</td></tr>
 <tr><td><code>imprimir; sin ()</code></td><td>Error</td><td>Siempre parentesis: imprimir().</td></tr>
-<tr><td><code>void imprimir() // sin static</code></td><td>Error</td><td>Desde static solo llamas static.</td></tr>
+<tr><td><code>imprimir();</code> desde main, con <code>void imprimir()</code> sin static</td><td>non-static method cannot be referenced from a static context</td><td>main es static: solo puede llamar directamente a métodos static. Agregale static o creá un objeto.</td></tr>
 </tbody></table></div>
 `,
   exercise: {
@@ -1464,7 +1450,7 @@ public static void main(String[] args) {
   simple: () => `
 <div class="analogy-card"><span class="emoji-big">🏭</span><h4>Pensalo así...</h4>
 <p>Un método con retorno es como una <strong>máquina expendedora</strong>: le metés algo (parámetros), la máquina trabaja, y te devuelve algo (return).</p>
-<p><code>int sumar(3, 4)</code> → la máquina recibe 3 y 4, y te devuelve <code>7</code>.</p>
+<p><code>int resultado = sumar(3, 4);</code> → la máquina recibe 3 y 4, y te devuelve <code>7</code>, que se guarda en <code>resultado</code>.</p>
 <p>La diferencia con <code>void</code>: void es una máquina que hace algo pero no te da nada de vuelta (como un triturador de basura).</p>
 </div>`,
   tutorial: () => `
@@ -1480,19 +1466,12 @@ public static void main(String[] args) {
     System.out.println(sumar(10, 20));   // 30
 }`)}
 <div class="analogy-card"><h4>El cajero que da el vuelto</h4><p>Le pasas tu tarjeta y el monto. El cajero procesa y te DEVUELVE el dinero. Return = te da algo que podes usar despues. Void = solo imprime el recibo.</p></div>
-<div class="analogy-card"><h4>El chef que recibe ordenes</h4><p>Decis "chef, prepara la mesa para 4" -> el chef pone platos y cubiertos. No te devuelve nada, solo ejecuta la orden. Asi funciona void.</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿Diferencia void vs int en método?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ void=no devuelve nada. int=devuelve número. El tipo antes del nombre indica QUE devuelve.</p></div>
 <div class="analogy-card"><p><strong>¿Puedo usar el resultado sin guardarlo?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Si. println(sumar(3,4)) imprime 7 directo.</p></div>
 <div class="analogy-card"><p><strong>¿Return dentro de if?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Todos los caminos deben terminar en return. Si el if no se ejecuta, da error.</p></div>
 <div class="analogy-card"><p><strong>¿Return y parámetros a la vez?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Son independientes. Podes recibir datos Y devolver resultado.</p></div>
 <div class="analogy-card"><p><strong>¿Cuándo return vs void?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Return: necesitás el resultado. Void: solo ejecutar accion.</p></div>
-<h3>🧪 Mini-Quiz</h3>
-<div class="analogy-card"><p><strong>¿Qué significa void?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ El método ejecuta una accion pero NO devuelve valor. Como "hace esto" sin esperar respuesta.</p></div>
-<div class="analogy-card"><p><strong>¿Puede tener parámetros un método void?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Si. Recibe datos pero sigue sin devolver nada.</p></div>
-<div class="analogy-card"><p><strong>¿Dónde se declara: dentro o fuera del main?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ FUERA del main, DENTRO de la clase.</p></div>
-<div class="analogy-card"><p><strong>¿Por qué se declaran static?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ main es static y solo llama métodos static. Con objetos no hara falta.</p></div>
-<div class="analogy-card"><p><strong>¿Cuándo usar métodos void?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Para REUTILIZAR código. Si una tarea se repite, la pones en un método.</p></div>
 ${ann('java','📌','El tipo antes del nombre define QUÉ devuelve. Si es <code>int</code>, el <code>return</code> debe devolver un <code>int</code>.')}
 </div>
 <div class="ts">
@@ -1574,12 +1553,12 @@ public class Main {
 </div>
 <div class="ts">
 <h3>El operador new</h3>
-<p><code>new Persona()</code> reserva memoria para el objeto. Sin <code>new</code>, la variable es <code>null</code>.</p>
+<p><code>new Persona()</code> reserva memoria para el objeto. Sin <code>new</code> no hay objeto: si escribís <code>Persona p;</code> dentro de un método y la usás, el programa no compila (<em>variable p might not have been initialized</em>). Con <code>Persona p = null;</code> sí compila, pero <code>p.nombre</code> da <code>NullPointerException</code> al ejecutar.</p>
 <div class="analogy-card"><h4>El molde de galletitas</h4><p>La clase es el molde con forma de estrella. Cada objeto es una galletita hecha con ese molde. Todas tienen la misma forma, pero distinto color y chispas.</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿Clase vs objeto: diferencia?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Clase=MOLDE. Objeto=INSTANCIA concreta con valores reales.</p></div>
 <div class="analogy-card"><p><strong>¿Para qué sirve new?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Reserva memoria y llama al constructor. Sin new, la variable es null.</p></div>
-<div class="analogy-card"><p><strong>¿Persona p; sin new que pasa?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ p=null. p.nombre da NullPointerException.</p></div>
+<div class="analogy-card"><p><strong>¿Persona p; sin new que pasa?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Si es una variable dentro de un método, no compila: Java exige darle un valor antes de usarla. Si le asignás null (Persona p = null;), compila, pero p.nombre da NullPointerException al ejecutar.</p></div>
 <div class="analogy-card"><p><strong>¿Cuántos objetos por clase?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Infinitos. Como un plano puede generar miles de casas.</p></div>
 <div class="analogy-card"><p><strong>¿Cuándo crear una clase?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Para agrupar datos relacionados (nombre+edad de persona, título+autor de libro).</p></div>
 <div class="analogy-card"><h4>Glosario de símbolos POO - que significa cada palabra</h4><table class="sym-tbl"><thead><tr><th>Símbolo/Palabra</th><th>Nombre</th><th>Que hace</th><th>Cuando usarlo</th></tr></thead><tbody><tr><td><code>class</code></td><td>Clase</td><td>Define un nuevo TIPO de dato</td><td>Siempre que creas un objeto nuevo</td></tr><tr><td><code>new</code></td><td>Instanciador</td><td>Crea un OBJETO en memoria</td><td>Siempre antes del constructor</td></tr><tr><td><code>private</code></td><td>Privado</td><td>Oculta el atributo del exterior</td><td>SIEMPRE en atributos de instancia</td></tr><tr><td><code>public</code></td><td>Publico</td><td>Permite acceso desde cualquier clase</td><td>En getters, setters y métodos principales</td></tr><tr><td><code>this</code></td><td>Auto-referencia</td><td>"Yo mismo" - el objeto actual</td><td>Para diferenciar atributo de parámetro</td></tr><tr><td><code>extends</code></td><td>Herencia</td><td>Hereda de una clase padre</td><td>Relacion "ES UN" (Perro ES Animal)</td></tr><tr><td><code>implements</code></td><td>Implementa</td><td>Cumple un contrato (interfaz)</td><td>Para definir capacidades (Volador, Nadador)</td></tr><tr><td><code>@Override</code></td><td>Sobrescritura</td><td>Redefine un método del padre</td><td>Al cambiar comportamiento heredado</td></tr></tbody></table></div>
@@ -1890,7 +1869,7 @@ public class Main {
 <p><code>super()</code> llama al constructor del padre. <code>super.metodo()</code> llama a un método del padre.</p>
 <div class="analogy-card"><h4>El catalogo de productos</h4><p>class Producto tiene nombre y precio (comun). class Libro extends Producto hereda eso y agrega autor y paginas. class Electrodomestico extends Producto agrega consumo y garantia.</p></div>
 <h3>🧪 Mini-Quiz</h3>
-<div class="analogy-card"><p><strong>¿Qué hereda la clase hija?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ TODO lo public y protected del padre. Private existe pero no accesible.</p></div>
+<div class="analogy-card"><p><strong>¿Qué hereda la clase hija?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Todo lo que no es private: lo public, lo protected y, si están en el mismo paquete, lo que no tiene modificador. Lo private existe en el objeto, pero la hija no puede usarlo directamente.</p></div>
 <div class="analogy-card"><p><strong>¿Para qué sirve super()?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Llama al CONSTRUCTOR del padre. DEBE ser primera línea.</p></div>
 <div class="analogy-card"><p><strong>¿Herencia multiple en Java?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ No. Solo UNA clase. Para multiples capacidades: interfaces.</p></div>
 <div class="analogy-card"><p><strong>¿Cuándo usar herencia?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Relacion "ES UN": Perro ES Animal. Si es "TIENE UN" -> composicion.</p></div>
@@ -1977,7 +1956,7 @@ public class Main {
 <div class="analogy-card"><p><strong>¿Sin @Override que pasa?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Funciona pero sin red de seguridad. El compilador no verifica.</p></div>
 <div class="analogy-card"><p><strong>¿Por qué guardar Perro en variable Animal?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Código GENERICO: un método recibe Animal y sirve para Perro, Gato, etc.</p></div>
 <div class="analogy-card"><p><strong>¿Cuándo usar polimorfismo?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Tratar objetos relacionados uniformemente. Ej: procesar pagos.</p></div>
-${ann('java','📌','En Java, el polimorfismo se logra con <strong>@Override</strong> (sobrescritura de métodos). Una clase hija puede redefinir un método de la clase padre para darle su propio comportamiento.')}
+${ann('java','📌','En Java, el polimorfismo se logra <strong>sobrescribiendo métodos</strong>. La anotación <strong>@Override</strong> es opcional: le pide al compilador que verifique que de verdad estás sobrescribiendo. Una clase hija puede redefinir un método de la clase padre para darle su propio comportamiento.')}
 <div class="analogy-card"><h4>🔄 Sobrescritura vs Sobrecarga</h4>
 <p><strong>Sobrescritura (@Override):</strong> misma firma, distinto comportamiento (clase hija cambia lo que hace el padre)<br>
 <strong>Sobrecarga:</strong> mismo nombre, distintos parámetros (ej: <code>sumar(int, int)</code> y <code>sumar(double, double)</code>)</p>
@@ -2140,7 +2119,7 @@ class Documento implements Imprimible {
 
 class Foto implements Imprimible {
     public void imprimir() {
-        System.out.println("Imprimiendo foto en alta calidad...");
+        System.out.println("Imprimiendo foto...");
     }
 }`)}
 </div>
@@ -2402,7 +2381,7 @@ ${ann('ok','✅','El comando <code>javac -d bin</code> compila y organiza los .c
   simple: () => `
 <div class="analogy-card"><span class="emoji-big">📄</span><h4>Pensalo así...</h4>
 <p>Leer y escribir archivos es como trabajar con un <strong>block de notas conectado a tu programa</strong>:</p>
-<p>✍️ <strong>FileWriter</strong> → abre el block y escribe carácter por carácter<br>
+<p>✍️ <strong>FileWriter</strong> → abre el block para escribir texto<br>
 ✍️ <strong>BufferedWriter</strong> → escribe de a bloques, más rápido (como escribir párrafos enteros)<br>
 📖 <strong>BufferedReader</strong> → lee de a bloques, más eficiente</p>
 <p><strong>try-with-resources</strong> cierra automáticamente los archivos. Sin eso, tenés que cerrarlos manualmente con <code>.close()</code>.</p>
@@ -2466,7 +2445,7 @@ try (BufferedReader reader = new BufferedReader(new FileReader("entrada.txt"))) 
 </table>
 </div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>FileReader sin try</code></td><td>Error</td><td>IOException requiere try-catch.</td></tr>
 <tr><td><code>Ruta absoluta</code></td><td>No portable</td><td>Usa rutas relativas.</td></tr>
-<tr><td><code>Olvidar close()</code></td><td>Memory leak</td><td>Usa try-with-resources.</td></tr>
+<tr><td><code>Olvidar close()</code></td><td>El archivo queda vacío o incompleto</td><td>BufferedWriter junta el texto y lo escribe al cerrar. Usá try-with-resources: cierra solo.</td></tr>
 </tbody></table></div>
 `,
   exercise: {
@@ -2520,7 +2499,7 @@ public class Main {
 <div class="analogy-card"><p><strong>¿Varios catch para un try?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Si. Mas especificos primero.</p></div>
 <div class="analogy-card"><p><strong>¿No atrapar excepción?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ CRASH. Stack trace en rojo.</p></div>
 <div class="analogy-card"><p><strong>¿Cuándo usar try-catch?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Errores RECUPERABLES (archivo, input). Deja crashear bugs de código.</p></div>
-${ann('tip','💡','Sin try-catch, si tu programa intenta dividir por cero o convertir "abc" a número, se detiene completamente. Con try-catch, podés manejarlo elegantemente.')}`,
+${ann('tip','💡','Sin try-catch, si tu programa intenta dividir un entero por cero o convertir "abc" a número, se detiene completamente (con double, 10.0 / 0 no falla: da Infinity). Con try-catch, podés manejarlo elegantemente.')}`,
   tutorial: () => `
 <div class="ts">
 <h3>Estructura try-catch</h3>
@@ -2738,9 +2717,8 @@ public class Main {
 🔄 <strong>switch + while</strong>: menú interactivo<br>
 🥅 <strong>try-catch</strong>: manejo de errores de entrada<br>
 📦 <strong>Encapsulamiento</strong>: atributos privados con getters</p>
-<p>Vas a construir una <strong>aplicación de consola</strong> con menú interactivo. Podés elegir entre dos temáticas (o inventar la tuya):</p>
-<p>📐 <strong>Calculadora de áreas</strong>: menú con opciones para calcular área de rectángulo, círculo y triángulo. Usá una interfaz <code>Calculable</code> que cada figura implemente.<br>
-📋 <strong>Gestor de tareas</strong>: menú para agregar, listar y eliminar tareas usando <code>ArrayList</code>. ¡Es un mini programa real!</p>
+<p>Vas a construir una <strong>aplicación de consola</strong> con menú interactivo. La temática es un <strong>gestor de tareas</strong>:</p>
+<p>📋 Un menú para agregar tareas, listarlas y contar las completadas, guardándolas en un <code>ArrayList</code>. ¡Es un mini programa real! Cuando lo termines, podés inventar tu propia versión: una calculadora de áreas, una lista de compras o lo que quieras.</p>
 </div>
 ${ann('java','📌','Este es el proyecto que podés mostrar en tu portfolio. Demuestra que entendés cómo se estructura una aplicación Java completa.')}`,
   tutorial: () => `
@@ -2759,8 +2737,8 @@ ${cb('Menú esperado', `=== GESTOR DE TAREAS ===
 1. Agregar tarea
 2. Listar tareas
 3. Contar completadas
-4. Salir
-Elegí una opción: `)}
+4. Salir`)}
+<p>El menú se imprime <strong>una sola vez</strong>, al empezar. Después el programa lee cada opción sin volver a mostrarlo.</p>
 </div>
 <div class="ts">
 <h3>Ejemplo de interacción</h3>
@@ -3093,7 +3071,7 @@ git log --oneline -5         # reviso los últimos 5 commits`)}
 </div>
 <div class="ts"><h3>Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>Escribiste "git comit" en vez de "commit"</code></td><td>git: comit is not a git command</td><td>Error de tipeo. Git es estricto con los nombres de comandos.</td></tr>
 <tr><td><code>git add sin haber hecho git init</code></td><td>fatal: not a git repository</td><td>Necesitas inicializar el repositorio primero con git init.</td></tr>
-<tr><td><code>git commit sin mensaje (-m)</code></td><td>Aborts the commit</td><td>Git necesita un mensaje. Usa -m "descripcion".</td></tr>
+<tr><td><code>git commit</code> sin <code>-m</code></td><td>Se abre un editor (a menudo vim)</td><td>Git pide el mensaje en un editor. Para salir de vim sin guardar: Esc y después :q! Más simple: git commit -m "descripción".</td></tr>
 <tr><td><code>git log muestra muchas lineas</code></td><td>Dificil de leer</td><td>Usa git log --oneline para ver una linea por commit.</td></tr>
 </tbody></table></div>
 <div class="ts"><h3>Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>git push sin haber configurado remote</code></td><td>fatal: No configured push destination</td><td>Necesitas git remote add origin URL primero.</td></tr>
@@ -3147,12 +3125,12 @@ git checkout abc123 -- Main.java`)}`
 </div>
 
 <div class="analogy-card"><h4>🪶 VS Code — la navaja suiza</h4>
-<p>Liviano, rápido, modular. No es un IDE Java "puro" pero con las extensiones correctas se convierte en uno. Ideal si trabajás con varios lenguajes (Java, Python, HTML, JavaScript). Git se integra con una extensión oficial.</p>
+<p>Liviano, rápido, modular. No es un IDE Java "puro" pero con las extensiones correctas se convierte en uno. Ideal si trabajás con varios lenguajes (Java, Python, HTML, JavaScript). Trae Git incorporado: solo necesita que Git esté instalado en la computadora.</p>
 </div>
 
 <h3>🧪 Mini-Quiz: ¿entendiste los IDEs?</h3>
 <div class="analogy-card"><p><strong>¿1. ¿Cuál es el IDE más liviano en consumo de recursos?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ VS Code. Consume ~1 GB de RAM. Eclipse ~2 GB. IntelliJ ~4 GB. Si tenés una compu con poca memoria, VS Code es tu mejor opción.</p></div>
-<div class="analogy-card"><p><strong>¿2. ¿Qué IDE tiene Git nativo sin necesidad de plugins?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ IntelliJ IDEA. Viene con Git integrado de fábrica. Eclipse necesita el plugin EGit (que suele venir preinstalado). VS Code necesita la extensión oficial de Git.</p></div>
+<div class="analogy-card"><p><strong>¿2. ¿Qué IDE tiene Git nativo sin necesidad de plugins?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Los tres: IntelliJ IDEA y VS Code traen Git incorporado, y Eclipse lo trae con el plugin EGit, que viene preinstalado. En todos hace falta tener Git instalado.</p></div>
 <div class="analogy-card"><p><strong>¿3. ¿Cómo se hace un commit en Eclipse?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Clic derecho en el proyecto → Team → Commit. O desde la perspectiva Git: seleccionás los archivos, escribís el mensaje, y apretás Commit.</p></div>
 <div class="analogy-card"><p><strong>¿4. ¿Qué atajo formatea el código automáticamente en Eclipse?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Ctrl+Shift+F. También útil: Ctrl+Space (autocompletar), Ctrl+Shift+O (organizar imports), Ctrl+/ (comentar/descomentar).</p></div>
 <div class="analogy-card"><p><strong>¿5. ¿Podés usar Git desde la terminal aunque tengas un IDE?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Sí. Todos los IDEs tienen una terminal integrada. Podés usar los comandos git directamente desde ahí. De hecho, muchos desarrolladores senior prefieren la terminal para Git porque es más rápido y preciso.</p></div>
@@ -3215,9 +3193,9 @@ ${ann('tip','💡','No necesitás memorizar todos. Empezá con Ctrl+Space (autoc
     passing: 4,
     desc: 'Responde las 4 preguntas. Necesitás todas correctas para completar la lección.',
     questions: [
-      { question: '¿Qué IDE tiene Git integrado nativamente sin necesidad de plugins?', options:['Eclipse','IntelliJ IDEA','VS Code','NetBeans'], correct:1 },
+      { question: 'Para usar Git desde IntelliJ, Eclipse o VS Code, ¿qué hace falta además del IDE?', options:['Tener Git instalado en la PC','Una cuenta paga de GitHub','Usar IntelliJ y no otro IDE','Un plugin pago de Oracle'], correct:0 },
       { question: 'En Eclipse, ¿cómo se hace un commit?', options:['Team → Commit','File → Save','Ctrl+S','Git → Push'], correct:0 },
-      { question: '¿Cuál es el IDE más liviano en consumo de recursos?', options:['Eclipse','IntelliJ IDEA','VS Code','NetBeans'], correct:2 },
+      { question: '¿Para qué sirve el depurador (debugger) de un IDE?', options:['Para subir el proyecto a GitHub','Para borrar solo los errores','Para ir paso a paso y ver las variables','Para pasar el código a JavaScript'], correct:2 },
       { question: '¿Qué atajo formatea el código en Eclipse?', options:['Ctrl+Shift+F','Ctrl+S','Ctrl+Z','F5'], correct:0 }
     ]
   }
@@ -3240,7 +3218,7 @@ ${ann('tip','💡','No necesitás memorizar todos. Empezá con Ctrl+Space (autoc
 
 <h3>🧪 Mini-Quiz: ¿listo para el integrador?</h3>
 <div class="analogy-card"><p><strong>¿1. ¿Cuál es el orden correcto de comandos?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ init → add → commit → (trabajar) → add → commit → log → checkout. Primero inicializás, después versionás cada cambio, y si algo sale mal, consultás el historial y recuperás.</p></div>
-<div class="analogy-card"><p><strong>¿2. ¿Qué pasa si me olvido de git add antes de commit?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ El commit se crea VACÍO (no guarda nada). Git solo guarda en el commit los archivos que estaban en el staging area (los que hiciste add). Sin add = sin cambios en el commit.</p></div>
+<div class="analogy-card"><p><strong>¿2. ¿Qué pasa si me olvido de git add antes de commit?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Git no hace el commit: avisa "nothing added to commit". Solo guarda lo que está en el staging area, y sin add no hay nada preparado.</p></div>
 <div class="analogy-card"><p><strong>¿3. ¿git checkout borra los cambios actuales?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ SÍ. Reemplaza el archivo actual por la versión del commit que elegiste. Por eso es importante commitear seguido: si no guardaste tus cambios actuales, los perdés al hacer checkout.</p></div>
 `,
   tutorial: () => `
@@ -3294,6 +3272,7 @@ ${cb('Conectar tu repo local con GitHub', `# 1. Creá un repositorio vacío en g
 git remote add origin https://github.com/tuusuario/MiTP.git
 
 # 4. Subí tu código (la primera vez)
+git branch -M main          # la rama se llama main (algunos Git la crean como master)
 git push -u origin main
 
 # 5. A partir de ahora, cada vez que quieras subir cambios:
@@ -3339,7 +3318,7 @@ git checkout abc123 -- GestorNotas.java`)}`
 <p>Este es el examen más cercano a un parcial universitario real. ¡Demostrá todo lo que sabés!</p>
 </div>
 <div class="analogy-card"><h4>📋 Requisitos mínimos</h4>
-<p><strong>1.</strong> Clase <code>Libro</code> con atributos privados (título, autor, año, género), constructor y getters.<br>
+<p><strong>1.</strong> Clase <code>Libro</code> con atributos privados (título, autor y año), constructor y getters.<br>
 <strong>2.</strong> Clase <code>Biblioteca</code> con <code>ArrayList&lt;Libro&gt;</code> y métodos agregar/listar/buscar/eliminar.<br>
 <strong>3.</strong> Menú interactivo con <code>while</code> + <code>switch</code> + <code>try-catch</code>.<br>
 <strong>4.</strong> Versionar con Git: <code>init</code>, <code>add</code>, <code>commit</code>. El flujo se practica en la pestaña <strong>Práctica</strong> de esta lección.</p>

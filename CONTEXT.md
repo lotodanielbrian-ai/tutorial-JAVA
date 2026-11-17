@@ -10,7 +10,11 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 
 | Archivo | Responsabilidad |
 |---|---|
-| `public/index.html` | Esqueleto, certificado, manual y overlays |
+| `public/index.html` | Esqueleto, certificado y overlays |
+| `public/js/ui.js` | `UI.confirm` y `UI.alert`: diálogos propios. No usar `confirm()` ni `alert()` del navegador (la prueba de navegador falla si aparecen) |
+| `public/manual.html` | El libro "Java desde cero": se arma con `LESSONS` y `PRACTICA`, más `manual-contenido.js` (capítulo 0, partes, apéndices) y `manual-figuras.js` (una figura SVG por capítulo). Lo arma `manual.js` |
+| `public/css/manual.css` · `manual-print.css` | El libro en pantalla (oscuro, interactivo) y en hojas A4 (claro, con índice paginado) |
+| `tools/manual-pdf.js` | Genera `public/manual/java-desde-cero.pdf` con Paged.js 0.4.3 y Edge o Chrome. Corre solo antes de cada deploy |
 | `public/css/main.css` | Estilos. La sección "Práctica y evaluaciones" está al final |
 | `public/js/lessons.js` | `LESSONS`: las 35 lecciones y los helpers `cb`, `ann`, `gl`, `jHL` |
 | `public/js/javarun.js` | `JavaRun.run(fuente, { stdin })`: intérprete de Java |
@@ -155,6 +159,16 @@ Los simulacros solo usan actividades con corrección objetiva: ni `short`, que v
 - **Mapas en `javarun.js`:** creá los diccionarios con `dict()`. Con un objeto común, `toString` parece una clave existente.
 - **No tocar `@media print` sin probar la impresión** del manual y del certificado.
 
+## El manual
+
+`manual.html` no tiene texto propio de las lecciones: cada capítulo sale de la lección y de su práctica (escalera, objetivos, pregunta previa, "La idea en simple", "En detalle", actividades y desafío). **Corregir una lección corrige el libro.** Las respuestas van al apéndice A y las soluciones (la última pista de cada ejercicio) al B; el glosario sale de los `gl()` de las lecciones.
+
+- En pantalla, los bloques con `main` tienen ▶ Ejecutar y ✎ Editar (usa `JavaRun`), y las respuestas arrancan tapadas.
+- Con `?print=1` queda listo para paginar. `node tools/manual-pdf.js` genera el PDF y **falla** si hay errores de JavaScript, entradas del índice sin página o algo más ancho que la hoja. `SHOTS=1,20 REPORT=1` deja capturas y detalles en `tools/.cache`.
+- Paged.js aplica las reglas `@media print` de `main.css`, que ocultan todo para imprimir el certificado: `manual-print.css` lo vuelve visible.
+- Paged.js descarta los nodos de texto que son solo espacios: `manual.js` pasa los saltos del código a `<br>` en modo impresión. Las cajas con `overflow:hidden` no se parten entre hojas: en la hoja impresa van visibles.
+- El PDF no se versiona (pesa ~14 MB): `firebase.json` lo genera en `predeploy`.
+
 ## Cómo agregar actividades
 
 1. Agregá el ítem al final de `items` en el `practica-*.js` que corresponda.
@@ -176,6 +190,7 @@ No soporta Spring, varargs, clases anónimas, clases internas que usan al objeto
 ```bash
 node tests/run.js                                  # pruebas: requiere Node y un JDK
 node tests/sync.js                                 # guardado del progreso: solo Node
+node tools/manual-pdf.js                           # el manual en PDF A4: requiere Edge o Chrome
 node tests/spring-check.js                         # Spring, SQL y API real: requiere además Maven
 node tests/browser.js                              # navegador real: requiere Edge o Chrome
 VIEWS=practica,pasos node tests/browser.js         # solo esas pantallas, a 360 px

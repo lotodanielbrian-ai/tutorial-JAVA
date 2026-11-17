@@ -244,68 +244,6 @@ hr.div{border:none;border-top:1px solid var(--border);margin:20px 0}
   .cert-seal { width: 40px; height: 40px; border: 2px solid #f59e0b; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 4px; background: rgba(245,158,11,0.08); box-shadow: 0 0 8px rgba(245,158,11,0.2); }
   .cert-sig-code { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #5382a1 !important; margin-bottom: 2px; }
   #grad-overlay { display:none !important; }
-  #manual-overlay.show { visibility:visible !important; position:absolute !important; left:0 !important; top:0 !important; width:100% !important; opacity:1 !important; background:#111217 !important; display:block !important; z-index:99999 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  #manual-overlay.show .grad-box { max-height:none !important; overflow:visible !important; position:static !important; background:#1a1b23 !important; border:none !important; box-shadow:none !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  #manual-overlay.show * { visibility:visible !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  #manual-overlay.show button { display:none !important; }
-  #manual-overlay.show .manual-content { font-family:'Inter',sans-serif !important; font-size:11pt !important; }
-
-  body.printing-manual { background:#111217 !important; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  body.printing-manual .layout,
-  body.printing-manual .mobile-hamburger,
-  body.printing-manual .sidebar-overlay,
-  body.printing-manual #login-gate,
-  body.printing-manual #grad-overlay,
-  body.printing-manual #cert-print,
-  body.printing-manual #ranking-overlay,
-  body.printing-manual #history-overlay { display:none !important; }
-  body.printing-manual #manual-overlay,
-  body.printing-manual #manual-overlay.show {
-    visibility:visible !important;
-    display:block !important;
-    position:static !important;
-    inset:auto !important;
-    left:auto !important;
-    top:auto !important;
-    width:auto !important;
-    height:auto !important;
-    max-height:none !important;
-    overflow:visible !important;
-    opacity:1 !important;
-    background:#111217 !important;
-    z-index:auto !important;
-    pointer-events:auto !important;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
-  }
-  body.printing-manual #manual-overlay.show .grad-box {
-    max-width:none !important;
-    width:auto !important;
-    max-height:none !important;
-    overflow:visible !important;
-    position:static !important;
-    background:#1a1b23 !important;
-    color:#d1d5e0 !important;
-    border:none !important;
-    box-shadow:none !important;
-    padding:0 !important;
-    border-radius:0 !important;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
-  }
-  body.printing-manual #manual-overlay.show * { visibility:visible !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-  body.printing-manual #manual-overlay.show button { display:none !important; }
-  body.printing-manual #manual-overlay .manual-head { position:static !important; background:#1a1b23 !important; border-bottom:2px solid #f59e0b !important; }
-  body.printing-manual #manual-overlay .manual-content { font-family:'Inter',sans-serif !important; font-size:11pt !important; line-height:1.45 !important; text-align:left !important; color:#d1d5e0 !important; }
-  body.printing-manual #manual-overlay .manual-content h2,
-  body.printing-manual #manual-overlay .manual-content h3 { break-after:avoid; page-break-after:avoid; }
-  body.printing-manual #manual-overlay .manual-content pre,
-  body.printing-manual #manual-overlay .manual-content table,
-  body.printing-manual #manual-overlay .manual-content tr,
-  body.printing-manual #manual-overlay .manual-content thead { break-inside:avoid; page-break-inside:avoid; }
-  body.printing-manual #manual-overlay .manual-content pre { white-space:pre-wrap !important; overflow:visible !important; word-break:break-word; background:#0d0e12 !important; color:#d1d5e0 !important; }
-  body.printing-manual #manual-overlay .manual-content table,
-  body.printing-manual #manual-overlay .manual-content .sym-tbl { display:table !important; width:100% !important; overflow:visible !important; }
 }
 
 .badge-avanzado { background: rgba(167,139,250,.1); color: var(--purple); border: 1px solid rgba(167,139,250,.2); }
@@ -350,8 +288,7 @@ body.auth-pending .mobile-hamburger,
 body.auth-pending .sidebar-overlay,
 body.auth-pending #ranking-overlay,
 body.auth-pending #history-overlay,
-body.auth-pending #grad-overlay,
-body.auth-pending #manual-overlay{display:none!important}
+body.auth-pending #grad-overlay{display:none!important}
 
 body.authed #login-gate{display:none!important}
 
@@ -572,3 +509,24 @@ body.authed #login-gate{display:none!important}
 /* Aviso de progreso sin sincronizar */
 .sync-note{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:2000;max-width:min(560px,calc(100vw - 32px));background:var(--bg3);color:var(--text);border:1px solid var(--yellow);border-radius:10px;padding:10px 14px;font-size:13px;line-height:1.45;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 @media print{.sync-note{display:none!important}}
+/* Diálogos propios (ui.js): reemplazan a confirm() y alert() del navegador */
+.ui-dialog-overlay{position:fixed;inset:0;z-index:20000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px;animation:uiFade .12s ease-out}
+.ui-dialog{background:var(--bg2);border:1px solid var(--border2);border-top:3px solid var(--java);border-radius:var(--rlg);box-shadow:var(--shadow);width:100%;max-width:440px;padding:24px 24px 20px;color:var(--text);text-align:left}
+.ui-dialog.is-danger{border-top-color:var(--red)}
+.ui-dialog-icon{font-size:26px;line-height:1;margin-bottom:10px}
+.ui-dialog-title{font-size:18px;font-weight:700;color:var(--text);margin:0 0 8px}
+.ui-dialog-msg{font-size:14px;line-height:1.6;color:var(--text2);margin:0 0 20px;white-space:pre-line;overflow-wrap:anywhere}
+.ui-dialog-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.ui-btn{font:inherit;font-size:14px;font-weight:600;border-radius:var(--r);padding:9px 18px;cursor:pointer;border:1px solid transparent;min-width:110px}
+.ui-btn:focus-visible{outline:2px solid var(--java);outline-offset:2px}
+.ui-btn-primary{background:var(--java);color:#1a1100}
+.ui-btn-primary:hover{background:var(--java2)}
+.ui-btn-danger{background:var(--red);color:#1f0d0d}
+.ui-btn-danger:hover{filter:brightness(1.08)}
+.ui-btn-ghost{background:var(--bg4);color:var(--text);border-color:var(--border2)}
+.ui-btn-ghost:hover{border-color:var(--text3)}
+@keyframes uiFade{from{opacity:0}to{opacity:1}}
+@media(max-width:420px){.ui-dialog-actions{flex-direction:column-reverse}.ui-btn{width:100%}}
+@media print{.ui-dialog-overlay{display:none!important}}
+/* La fuente de código no une símbolos: quien aprende tiene que ver >= y != tal como se tipean */
+body,code,pre,kbd,textarea,input,button,select,svg text{font-variant-ligatures:none;font-feature-settings:"liga" 0,"calt" 0}

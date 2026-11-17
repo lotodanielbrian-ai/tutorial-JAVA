@@ -318,7 +318,7 @@ var AuthUI = (function () {
   function signInGoogle() {
     if (!firebaseReady) {
       setStatus('Firebase no está configurado.');
-      alert('Firebase no está configurado.');
+      UI.alert({ title: 'No se puede iniciar sesión', message: 'Firebase no está configurado.', icon: '⚙️' });
       return;
     }
     setStatus('Abriendo Google…');
@@ -329,14 +329,14 @@ var AuthUI = (function () {
       console.error(err);
       setStatus('');
       if (err.code === 'auth/popup-closed-by-user') return;
-      alert(authErrorMessage('Google', err));
+      UI.alert({ title: 'No se pudo entrar con Google', message: authErrorMessage('Google', err), icon: '🔑' });
     });
   }
 
   function signInFacebook() {
     if (!firebaseReady) {
       setStatus('Firebase no está configurado.');
-      alert('Firebase no está configurado.');
+      UI.alert({ title: 'No se puede iniciar sesión', message: 'Firebase no está configurado.', icon: '⚙️' });
       return;
     }
     setStatus('Abriendo Facebook…');
@@ -349,7 +349,7 @@ var AuthUI = (function () {
       console.error(err);
       setStatus('');
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') return;
-      alert(authErrorMessage('Facebook', err));
+      UI.alert({ title: 'No se pudo entrar con Facebook', message: authErrorMessage('Facebook', err), icon: '🔑' });
     });
   }
 

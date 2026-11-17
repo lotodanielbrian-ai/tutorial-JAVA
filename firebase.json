@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "predeploy": ["node tools/manual-pdf.js"],
     "public": "public",
     "ignore": [
       "firebase.json",

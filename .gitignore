@@ -12,3 +12,7 @@ tests/.tmp-browser/
 material/fase-1/
 material/fase-2/
 material/historico/
+
+# El PDF del manual se genera antes de cada deploy (firebase.json → predeploy): pesa ~14 MB
+public/manual/*.pdf
+tools/.cache/

@@ -3,7 +3,9 @@
   var log = [];
   var errors = [];
   window.addEventListener('error', function (e) { errors.push(e.message + ' @' + e.lineno); });
-  window.confirm = function () { return true; };
+  // Los diálogos nativos ya no se usan: si alguno aparece, la prueba lo marca
+  window.confirm = function (m) { errors.push('confirm nativo: ' + m); return true; };
+  window.alert = function (m) { errors.push('alert nativo: ' + m); };
   window.print = function () {};
   function ok(c, m) { log.push((c ? 'ok    ' : 'FALLA ') + m); }
   function q(s) { return document.querySelector(s); }
@@ -277,8 +279,27 @@
     await wait(50);
     ok(qa('#sim-box .pr-item').length === 10, 'simulacro de 10 preguntas');
     ok(!qa('#sim-box .pr-check').length, 'el simulacro no da ayuda hasta el final');
+    // Entregar con preguntas en blanco pregunta con un diálogo del sitio, no del navegador
     Practica.finishExam(false);
     await wait(50);
+    var dlg = q('.ui-dialog');
+    ok(!!dlg && dlg.getAttribute('role') === 'alertdialog' && dlg.getAttribute('aria-modal') === 'true', 'entregar en blanco abre un diálogo propio y accesible');
+    ok(!!dlg && dlg.contains(document.activeElement), 'el foco entra al diálogo');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    await wait(50);
+    ok(!q('.ui-dialog') && !q('#sim-box .sim-result'), 'Escape cancela y deja seguir respondiendo');
+    Practica.finishExam(false);
+    await wait(50);
+    q('.ui-dialog [data-act="ok"]').click();
+    await wait(50);
+    ok(!q('.ui-dialog'), 'el diálogo se cierra al entregar');
+    var writesBeforeReset = window.__writes.length;
+    resetGlobalProgress();
+    await wait(50);
+    ok(!!q('.ui-dialog.is-danger') && document.activeElement === q('.ui-dialog [data-act="cancel"]'), 'borrar el progreso pregunta con un diálogo propio, y el foco arranca en Cancelar');
+    q('.ui-dialog [data-act="cancel"]').click();
+    await wait(50);
+    ok(!q('.ui-dialog') && window.__writes.length === writesBeforeReset, 'cancelar no borra nada');
     ok(!!q('#sim-box .sim-result'), 'muestra la nota');
     ok(Practica.getState().sims.length >= 1, 'guarda el simulacro');
     ok(q('#pane-prac') !== null && !q('#pane-prac .pr-item'), 'durante el simulacro no hay ids repetidos');

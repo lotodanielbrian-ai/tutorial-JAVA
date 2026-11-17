@@ -407,6 +407,41 @@ El trabajo de la segunda auditoría estuvo 17 días sin commitear ni publicar, y
 - Una pestaña abierta en otro navegador se entera del reinicio la próxima vez que guarda algo; hasta entonces muestra lo de antes.
 - Los reinicios hechos antes de este cambio no dejaron marca: si otro navegador ya volvió a subir lo viejo, hay que reiniciar otra vez.
 
+## El manual y los diálogos: 17 de noviembre de 2026
+
+### Auditoría del manual anterior
+
+| Hallazgo | Efecto |
+|---|---|
+| Unas 1.550 líneas de HTML fijo dentro de `index.html`, solo de la Fase 1 | Se cargaba en cada visita y se desactualizaba respecto de las lecciones |
+| Solo texto, tablas y código: ninguna figura, actividad ni ejemplo para probar | No seguía la pedagogía del curso, que arranca de la vida diaria |
+| Sin orientación: qué es Java, para qué sirve, qué no conviene hacer, cómo instalarlo | Le faltaba justo lo que necesita alguien de cero |
+| Se imprimía con el fondo oscuro del sitio, sin tapa ni índice paginado | Mucha tinta y nada de libro |
+| Tenía 2 `div` sin cerrar | Los modales que venían después (ranking, historial) quedaban adentro del overlay del manual, que mientras no se usa es transparente, y heredaban esa transparencia |
+| `confirm()` y `alert()` del navegador | Diálogos fuera de la página, con el nombre del dominio y sin el estilo del curso |
+| La fuente de código une símbolos | `>=` se veía `≥` y `!=` se veía `≠`: alguien que aprende no sabe qué tipear. Pasaba también en el sitio |
+
+### Qué se hizo
+
+| Parte | Resultado |
+|---|---|
+| Libro "Java desde cero" (`manual.html`) | Tapa, cómo usarlo, índice, capítulo 0 de orientación (9 secciones), 5 partes con las 35 lecciones y 5 apéndices: respuestas, soluciones, errores traducidos, referencia rápida y glosario |
+| Sale de los datos del curso | Cada capítulo usa la escalera, los objetivos, la pregunta previa, la lección, las actividades y el ejercicio. Corregir una lección corrige el libro |
+| Ilustrado | 41 figuras SVG propias: compilación, variables como cajas, `if` como diagrama, bucles, arrays, objetos y referencias, herencia, try/catch, Git… |
+| Interactivo en pantalla | Los ejemplos completos se ejecutan y se editan (▶ Ejecutar, ✎ Editar), con entrada para Scanner; las respuestas arrancan tapadas; índice desplegable y barra de lectura |
+| PDF A4 (`tools/manual-pdf.js`) | 304 hojas con índice paginado, encabezado con el capítulo, número de página y 574 marcadores para navegar. Se genera solo antes de cada deploy |
+| Diálogos (`ui.js`) | Los 7 `confirm`/`alert` pasan a diálogos del sitio, con teclado y foco; borrar el progreso arranca con el foco en Cancelar |
+| Contenido | 28 afirmaciones falsas o consignas que contradecían la salida, de la tercera auditoría, corregidas en las lecciones; 2 preguntas discutibles de la lección 32 reemplazadas; 3 mini-quiz repetidos quitados; leyenda del ranking corregida (75 · 525) |
+
+### Cómo se verificó
+
+- `tests/browser.js` comprueba el manual: 36 capítulos, 41 figuras, 326 actividades con respuesta, ejemplos que se ejecutan y se editan, errores explicados, sin ligaduras, sin diálogos nativos y sin desborde a 360 px.
+- `tools/manual-pdf.js` falla si hay errores de JavaScript, entradas del índice sin página o contenido más ancho que la hoja. Las 41 figuras se revisaron recortadas del PDF real.
+- La impresión del certificado se probó a PDF después de tocar `@media print`: sigue en una sola hoja.
+
+**Queda pendiente:**
+- Unas 27 lecciones heredadas tienen palabras sin tilde en tablas y analogías ("metodo", "MAYUSCULAS"). No se corrigieron en bloque, porque las mismas palabras aparecen como nombres de variables dentro del código.
+
 ## Cómo verificar
 
 ```bash

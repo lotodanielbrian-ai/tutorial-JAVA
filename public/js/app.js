@@ -85,20 +85,26 @@ function generateCert2() {
 }
 
 function resetGlobalProgress() {
-  if (confirm("¿Estás seguro de que querés borrar todo tu progreso? Esto reiniciará todas las lecciones.")) {
-    done = new Set();
-    quizBestScores = {};
-    cur = 0;
-    if (typeof Progress !== 'undefined' && Progress.resetRemote) {
-      Progress.resetRemote().then(function (ok) {
-        // Si falló, recargar muestra el progreso real, que sigue guardado
-        if (!ok) alert('No se pudo reiniciar: no hay conexión. Tu progreso sigue guardado; probá de nuevo en un rato.');
-        location.reload();
-      });
-    } else {
-      location.reload();
-    }
-  }
+  UI.confirm({
+    title: '¿Borrar todo tu progreso?',
+    message: 'Se reinician las lecciones, la práctica, la Fase 2 y tu lugar en el ranking, en todos tus dispositivos. No se puede deshacer.',
+    okText: 'Sí, borrar todo',
+    cancelText: 'Cancelar',
+    danger: true,
+    icon: '🗑️'
+  }).then(function (yes) {
+    if (!yes) return;
+    if (typeof Progress === 'undefined' || !Progress.resetRemote) { location.reload(); return; }
+    Progress.resetRemote().then(function (ok) {
+      if (ok) { location.reload(); return; }
+      // Si falló, recargar muestra el progreso real, que sigue guardado
+      UI.alert({
+        title: 'No se pudo reiniciar',
+        message: 'No hay conexión. Tu progreso sigue guardado: probá de nuevo en un rato.',
+        icon: '📡'
+      }).then(function () { location.reload(); });
+    });
+  });
 }
 
 function clearSessionProgress() {
@@ -366,21 +372,11 @@ function showCertOverlay() {
   document.getElementById('grad-overlay').classList.add('show');
 }
 
+// El manual es un libro aparte (manual.html), con su PDF en hojas A4: se abre en otra pestaña
+// para no perder el lugar ni el código del curso
 function showManual() {
-  document.getElementById('manual-overlay').classList.toggle('show');
-}
-
-function printManual() {
-  var overlay = document.getElementById('manual-overlay');
-  if (overlay) overlay.classList.add('show');
-  document.body.classList.add('printing-manual');
-  var ps = document.createElement('style');
-  ps.id = 'manual-page-size';
-  ps.textContent = '@page { size: A4 portrait; margin: 16mm; }';
-  document.head.appendChild(ps);
-  window.print();
-  ps.remove();
-  document.body.classList.remove('printing-manual');
+  var w = window.open('manual.html', '_blank', 'noopener');
+  if (!w) location.href = 'manual.html';
 }
 
 function switchTab(t) {
