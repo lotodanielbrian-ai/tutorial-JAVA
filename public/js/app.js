@@ -24,6 +24,7 @@ function generateCert() {
 var CERT2 = {
   title: 'CERTIFICADO DE FASE 2',
   desc: 'Por haber completado la <b>Fase 1 de fundamentos de Java</b> y la <b>Fase 2 de desarrollo backend</b>, con parciales prácticos y coloquio, demostrando que puede construir, probar, documentar y empaquetar una API REST con Java y Spring Boot.',
+  descAccredited: 'Por haber acreditado los <b>fundamentos de Java</b> con la prueba de nivel y completado la <b>Fase 2 de desarrollo backend</b>, con parciales prácticos y coloquio, demostrando que puede construir, probar, documentar y empaquetar una API REST con Java y Spring Boot.',
   skills: ['Java SE · POO', 'Spring Boot · Maven', 'API REST · DTO', 'JPA · SQL · MySQL', 'JUnit · Mockito', 'Docker · Swagger', 'Código limpio · SOLID'],
   sign: '<b>BRIAN DANIEL LOTO</b><br>Autor del curso'
 };
@@ -38,7 +39,7 @@ function showCert2Overlay() {
     <div class="sim-head"><h2>🎓 Fase 2 completada</h2><button type="button" class="hint-btn" onclick="document.getElementById('sim-overlay').classList.remove('show')">✕ Cerrar</button></div>
     <p>Terminaste las dos fases. Este certificado resume tu avance.</p>
     <table class="rank-table"><tbody>
-      <tr><td>Fase 1 · Fundamentos de Java</td><td>${LESSONS.length} lecciones</td><td>${when(f1)}</td></tr>
+      <tr><td>Fase 1 · Fundamentos de Java</td><td>${done.size === LESSONS.length ? LESSONS.length + ' lecciones' : 'Prueba de nivel'}</td><td>${when(done.size === LESSONS.length ? f1 : fase2Meta.accredited)}</td></tr>
       <tr><td>Fase 2 · Backend con Spring Boot</td><td>${LESSONS_F2.length} lecciones</td><td>${when(f2)}</td></tr>
     </tbody></table>
     <label for="cert2-name" class="f2-label">Nombre y apellido:</label>
@@ -55,7 +56,7 @@ function generateCert2() {
   var set = function (sel, html) { var el = printEl.querySelector(sel); if (el) el.innerHTML = html; };
   var name = document.getElementById('cert2-name').value.trim() || 'Estudiante Java';
   set('.cert-title', CERT2.title);
-  set('.cert-desc', CERT2.desc);
+  set('.cert-desc', done.size === LESSONS.length ? CERT2.desc : CERT2.descAccredited);
   set('.cert-skills', CERT2.skills.map(function (s) { return '<span class="cert-skill">' + s + '</span>'; }).join(''));
   set('.cert-name', esc(name));
   var sign = printEl.querySelector('.cert-sign');
@@ -105,8 +106,10 @@ function clearSessionProgress() {
   if (typeof Practica !== 'undefined') Practica.setState(null);
   fase = 1;
   curF1 = 0;
+  curF2 = 0;
+  failCount = 0;
   doneF2 = new Set();
-  fase2Meta = { completionDate: null, certShown: false };
+  fase2Meta = { completionDate: null, certShown: false, accredited: null };
 }
 
 // ── State (empty until login loads this user's data) ───────────────────
@@ -121,27 +124,50 @@ var editorErrorLine = 0;
 // certificado y el ranking de la Fase 1 no cambian.
 var fase = 1;
 var curF1 = 0;
+var curF2 = 0;
+var lockedView = false;
 var doneF2 = new Set();
-var fase2Meta = { completionDate: null, certShown: false };
+var fase2Meta = { completionDate: null, certShown: false, accredited: null };
 
 function lessonList() { return fase === 2 ? LESSONS_F2 : LESSONS; }
 function doneSet() { return fase === 2 ? doneF2 : done; }
-function fase2Unlocked() { return done.size === LESSONS.length; }
+function fase2Unlocked() { return done.size === LESSONS.length || !!fase2Meta.accredited; }
 
 function persistFase2() {
   if (typeof Progress !== 'undefined' && Progress.saveFase2) {
-    Progress.saveFase2({ done: [...doneF2], completionDate: fase2Meta.completionDate, certShown: fase2Meta.certShown });
+    Progress.saveFase2({ done: [...doneF2], completionDate: fase2Meta.completionDate, certShown: fase2Meta.certShown, accredited: fase2Meta.accredited });
   }
+}
+
+// La prueba de nivel abre la Fase 2: no marca lecciones ni cambia el primer certificado
+function accreditFase2() {
+  if (!fase2Meta.accredited) fase2Meta.accredited = new Date().toISOString();
+  persistFase2();
+  buildSidebar();
 }
 
 function showFase(n) {
   if (n === 2 && !fase2Unlocked()) { showFase2Locked(); return; }
-  if (n === fase) return;
+  if (n === fase) {
+    if (lockedView) render();
+    return;
+  }
+  keepDraft();
   if (fase === 1) curF1 = cur;
+  else curF2 = cur;
   fase = n;
-  cur = n === 1 ? curF1 : 0;
-  hintLevel = 0;
+  cur = n === 1 ? curF1 : curF2;
+  resetExerciseHelp();
   render();
+  savePlace();
+}
+
+function savePlace() {
+  if (fase === 1) curF1 = cur;
+  else curF2 = cur;
+  if (typeof Progress !== 'undefined' && Progress.savePlace) {
+    Progress.savePlace({ fase: fase, f1: LESSONS[curF1].id, f2: LESSONS_F2[curF2].id, at: Date.now() });
+  }
 }
 
 function showFase2Locked() {
@@ -153,7 +179,8 @@ function showFase2Locked() {
       <div class="lh-desc">Completá las ${LESSONS.length} lecciones para abrir esta etapa. Llevás ${done.size} de ${LESSONS.length}.</div>
     </div>
     <div class="f2-roadmap"><h4>Lo que te espera</h4><ol>${rows}</ol></div>
-    <div class="nav-row"><button type="button" class="nav-btn-lesson" onclick="render()">← Volver a la Fase 1</button></div>`;
+    <div class="nav-row"><button type="button" class="nav-btn-lesson" onclick="render()">← Volver a la Fase 1</button><button type="button" class="nav-btn-lesson" onclick="Practica.startNivel()">🎯 Rendir la prueba de nivel</button></div>`;
+  lockedView = true;
   window.scrollTo({top:0, behavior:'smooth'});
 }
 
@@ -171,12 +198,26 @@ function saveDone() {
 }
 
 // ── Search ─────────────────────────────────────────────────────────────
+var lessonIndex = {};
+
+function foldText(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+// Busca también adentro de cada lección: "HashMap" o "@Autowired" rara vez están en el título
+function lessonText(id) {
+  if (!lessonIndex[id]) {
+    const l = LESSONS.concat(LESSONS_F2).find(x => x.id === id);
+    lessonIndex[id] = foldText((l.title + ' ' + l.desc + ' ' + l.simple() + ' ' + l.tutorial()).replace(/<[^>]+>/g, ' '));
+  }
+  return lessonIndex[id];
+}
+
 function filterLessons(query) {
-  const q = query.toLowerCase().trim();
+  const q = foldText(query).trim();
   document.querySelectorAll('.lb').forEach(btn => {
     if (!q) { btn.classList.remove('hidden'); return; }
-    const text = btn.textContent.toLowerCase();
-    btn.classList.toggle('hidden', !text.includes(q));
+    btn.classList.toggle('hidden', !lessonText(Number(btn.dataset.id)).includes(q));
   });
 }
 
@@ -202,7 +243,7 @@ function buildSidebar() {
     lessons.forEach(l => {
       const isDone = finished.has(l.id);
       const isActive = l.id === list[cur].id;
-      html += `<button class="lb${isActive?' active':''}${isDone?' done':''}" onclick="goTo(${list.indexOf(l)})">
+      html += `<button class="lb${isActive?' active':''}${isDone?' done':''}" data-id="${l.id}" onclick="goTo(${list.indexOf(l)})">
         <span class="l-num">${String(l.id % 100).padStart(2,'0')}</span>
         <div class="l-dot"></div>
         <span style="flex:1">${l.title}</span>
@@ -213,6 +254,11 @@ function buildSidebar() {
     html += '</div>';
   }
   document.getElementById('sb-list').innerHTML = html;
+  const search = document.getElementById('search-input');
+  if (search && search.value) filterLessons(search.value);
+  const sub = document.querySelector('.sb-sub');
+  if (sub) sub.textContent = `Java INPRO · Fase ${fase} · ${list.length} lecciones`;
+  paintSeguir();
   const pct = Math.round(finished.size / list.length * 100);
   document.getElementById('prog-fill').style.width = pct + '%';
   document.getElementById('prog-lbl').textContent = `${finished.size} de ${list.length} completados · ${pct}%`;
@@ -224,8 +270,38 @@ function buildSidebar() {
   }
 }
 
+// ── Qué sigue ──────────────────────────────────────────────────────────
+function nextLessonIndex() {
+  const list = lessonList();
+  const finished = doneSet();
+  for (let i = 0; i < list.length; i++) {
+    const at = (cur + i) % list.length;
+    if (!finished.has(list[at].id)) return at;
+  }
+  return -1;
+}
+
+function nextStep() {
+  const due = typeof Practica !== 'undefined' ? Practica.dueCount() : 0;
+  if (due) return { text: 'repasar ' + due, go: () => Practica.startReview() };
+  const at = nextLessonIndex();
+  if (at !== -1) return { text: 'lección ' + (lessonList()[at].id % 100), go: () => goTo(at) };
+  if (fase === 1 && fase2Unlocked()) return { text: 'Fase 2', go: () => showFase(2) };
+  return { text: 'evaluaciones', go: () => Practica.showPanel() };
+}
+
+function paintSeguir() {
+  const btn = document.getElementById('btn-seguir');
+  if (btn) btn.textContent = '▶ Seguir: ' + nextStep().text;
+}
+
+function seguir() {
+  nextStep().go();
+}
+
 // ── Main render ────────────────────────────────────────────────────────
 function render() {
+  lockedView = false;
   const l = lessonList()[cur];
   const badgeClass = { super:'badge-super', basico:'badge-basico', inter:'badge-inter', avanzado:'badge-avanzado', examen:'badge-examen', entrevista:'badge-entrevista', limpio:'badge-super', spring:'badge-basico', api:'badge-inter', calidad:'badge-avanzado', entrega:'badge-examen', extra:'badge-entrevista', coloquio:'badge-examen' }[l.level];
   const exBtnLabel = l.quiz ? '📝 Cuestionario' : '💻 Ejercicio';
@@ -235,7 +311,7 @@ function render() {
       <div class="lv-badge ${badgeClass}">${l.levelLabel}</div>
       <div class="lh-title">${l.title}</div>
       <div class="lh-desc">${l.desc}</div>
-      <div class="lh-stars">Dificultad: ${l.stars}</div>
+      <div class="lh-stars">Dificultad: ${l.stars}${typeof Practica !== 'undefined' ? ' · ⏱ unos ' + Practica.estimate(l) + ' min' : ''}</div>
     </div>
     <div class="tabs">
       <button type="button" class="tab-btn active" id="tab-simple" onclick="switchTab('simple')">🏠 Explicación Simple</button>
@@ -307,9 +383,11 @@ function switchTab(t) {
 
 function goTo(idx) {
   if (idx < 0 || idx >= lessonList().length) return;
+  keepDraft();
   cur = idx;
-  hintLevel = 0;
+  resetExerciseHelp();
   render();
+  savePlace();
   var sidebar = document.querySelector('.sidebar');
   if (sidebar) sidebar.classList.remove('open');
   var overlay = document.querySelector('.sidebar-overlay');
@@ -343,6 +421,17 @@ function handleEditorKeydown(e) {
 function onEditorInput() {
   updateLineNumbers();
   refreshSuggest();
+  keepDraft();
+}
+
+// Lo escrito no se pierde al cambiar de lección o recargar
+function keepDraft() {
+  const ed = document.getElementById('code-editor');
+  if (!ed || typeof Progress === 'undefined' || !Progress.saveDraft) return;
+  const l = lessonList()[cur];
+  if (!l.exercise) return;
+  if (ed.value === l.exercise.starter) Progress.clearDraft(l.id);
+  else Progress.saveDraft(l.id, ed.value);
 }
 
 function onEditorCaretMove(e) {
@@ -413,6 +502,7 @@ function buildExercise(l) {
   const ex = l.exercise;
   const isDone = doneSet().has(l.id);
   const displayExpected = ex.expected.replace(/\\n/g,'\n');
+  const draft = typeof Progress !== 'undefined' && Progress.loadDraft ? Progress.loadDraft(l.id) : null;
   return `
     <div class="ex-task">
       <h4>🎯 Tarea</h4>
@@ -430,7 +520,7 @@ function buildExercise(l) {
     <div class="editor-wrap">
       <div class="line-numbers" id="line-numbers"></div>
       <div class="err-line-bar" id="err-line-bar" hidden></div>
-      <textarea class="code-editor" id="code-editor" spellcheck="false" autocomplete="off" autocapitalize="off">${esc(ex.starter)}</textarea>
+      <textarea class="code-editor" id="code-editor" spellcheck="false" autocomplete="off" autocapitalize="off">${esc(draft !== null ? draft : ex.starter)}</textarea>
     </div>
     <div class="btn-row">
       <button type="button" class="run-btn" id="run-btn" onclick="runCode()">▶ Ejecutar</button>
@@ -440,6 +530,7 @@ function buildExercise(l) {
     <div id="out-area"></div>
     ${isDone ? `<div class="success-card"><h3>✅ ¡Completado!</h3><p>Ya resolviste este ejercicio correctamente.</p></div>` : ''}
     <div id="hints-area"></div>
+    <div id="solution-area"></div>
   `;
 }
 
@@ -447,6 +538,7 @@ function resetCode() {
   const ed = document.getElementById('code-editor');
   if (ed) {
     ed.value = lessonList()[cur].exercise.starter;
+    keepDraft();
     editorErrorLine = 0;
     updateLineNumbers();
     closeSuggest();
@@ -686,7 +778,7 @@ function buildQuiz(l) {
       html += '<label class="quiz-option" data-oi="' + oi + '" onclick="selectQuizOption(' + qi + ',' + oi + ',this,' + l.id + ')">' +
         '<span class="quiz-opt-letter">' + letter + '</span>' +
         '<span>' + q.options[oi] + '</span>' +
-        '<input type="radio" name="q' + l.id + '_' + qi + '" value="' + oi + '" style="display:none">' +
+        '<input type="radio" name="q' + l.id + '_' + qi + '" value="' + oi + '" class="sr-only">' +
         '</label>';
     }
     html += '</div>';
@@ -718,6 +810,9 @@ function runQuiz(lid) {
     return;
   }
   var questionsDiv = document.querySelectorAll('#pane-ex .quiz-question');
+  l.quiz.questions.forEach(function (q, qi) { if (_quizAnswers[lid][qi] === q.correct) correct++; });
+  var pct = Math.round(correct / total * 100);
+  var passed = correct >= l.quiz.passing;
   for (var qi = 0; qi < total; qi++) {
     var q = l.quiz.questions[qi];
     var selected = _quizAnswers[lid][qi];
@@ -726,13 +821,12 @@ function runQuiz(lid) {
     for (var pos = 0; pos < opts.length; pos++) {
       var oi = Number(opts[pos].dataset.oi);
       opts[pos].classList.add('disabled');
-      if (oi === q.correct) { opts[pos].classList.add('correct'); }
+      // Si no aprobó, la correcta queda sin marcar: el próximo intento tiene que salir de la memoria
+      if (oi === q.correct && (passed || selected === q.correct)) { opts[pos].classList.add('correct'); }
       else if (oi === selected && selected !== q.correct) { opts[pos].classList.add('incorrect'); }
     }
-    if (selected === q.correct) correct++;
+    if (selected !== q.correct && q.why) qDiv.insertAdjacentHTML('beforeend', '<div class="quiz-why">💡 ' + q.why + '</div>');
   }
-  var pct = Math.round(correct / total * 100);
-  var passed = correct >= l.quiz.passing;
   var cls = passed ? 'pass' : 'fail';
   var emoji = passed ? '🎉' : '😔';
   resultDiv.innerHTML = '<div class="quiz-score ' + cls + '">' + emoji + ' Obtuviste ' + correct + ' de ' + total + ' (' + pct + '%) — ' + (passed ? '¡Aprobado!' : 'No alcanzó el mínimo') + '</div>' +
@@ -847,6 +941,7 @@ function runCode() {
   if (lessonList()[cur].quiz) return;
 
   const code = document.getElementById('code-editor').value;
+  keepDraft();
   const btn = document.getElementById('run-btn');
   const status = document.getElementById('run-status');
   const outArea = document.getElementById('out-area');
@@ -881,7 +976,7 @@ function runCode() {
             </div>
             <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
           </div>` + styleBox;
-        showHint();
+        failedRun();
       } else if (res.simulated) {
         var got = normalizeOutput(res.output);
         var wanted = normalizeOutput(expected);
@@ -896,7 +991,7 @@ function runCode() {
               </div>
               <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
             </div>` + styleBox;
-          showHint();
+          failedRun();
         } else if (got === wanted && res.conceptErr) {
           clearErrorLine();
           outArea.innerHTML = `
@@ -907,7 +1002,7 @@ function runCode() {
               </div>
               <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
             </div>` + styleBox;
-          showHint();
+          failedRun();
         } else if (got === wanted) {
           clearErrorLine();
           completeExercise();
@@ -924,7 +1019,7 @@ function runCode() {
               </div>
               <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
             </div>` + styleBox;
-          showHint();
+          failedRun();
         }
       } else if (res.err) {
         if (res.line) highlightErrorLine(res.line);
@@ -934,13 +1029,12 @@ function runCode() {
             <div class="out-box box-err"><div class="out-head">Incorrecto</div><div class="out-body">${esc(res.err)}</div></div>
             <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
           </div>` + styleBox;
-        showHint();
+        failedRun();
       } else if (res.ok) {
         clearErrorLine();
         completeExercise();
-        var note = res.unverified ? `<div class="compile-why">Este programa usa ${esc(res.unverified)}, que el emulador no ejecuta: se revisó la estructura, no la salida. Probalo también en tu IDE.</div>` : '';
         outArea.innerHTML = `
-          <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(res.output || expected)}${note}</div></div>` + styleBox;
+          <div class="out-box box-ok"><div class="out-head">Correcto</div><div class="out-body">${esc(res.output || expected)}</div></div>` + styleBox;
       }
     } catch(e) {
       outArea.innerHTML = `
@@ -960,18 +1054,64 @@ function esc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function showHint() {
-  const hints = lessonList()[cur].exercise.hints;
+// ── Pistas ─────────────────────────────────────────────────────────────
+var SOLUTION_AFTER = 3;
+var failCount = 0;
+
+function resetExerciseHelp() {
+  hintLevel = 0;
+  failCount = 0;
+}
+
+// La última pista de cada ejercicio trae la solución: se pide aparte, nunca llega sola.
+// Lo anterior a la solución, como los errores comunes, sigue siendo una pista.
+function splitLastHint(ex) {
+  const last = ex.hints[ex.hints.length - 1];
+  const at = last.search(/(<[^>]+>\s*)*(La solución|Solución)/);
+  return at > 0 ? { guide: last.slice(0, at), solution: last.slice(at) } : { guide: '', solution: last };
+}
+
+function guideHints(ex) {
+  const list = ex.hints.slice(0, -1);
+  const last = splitLastHint(ex);
+  if (last.guide.replace(/<[^>]+>/g, '').trim()) list.push(last.guide);
+  const code = Practica.solutionText(ex);
+  if (/\bclass\b/.test(code)) list.push('La estructura, para que completes lo que falta:<pre class="pr-pre">' + esc(Practica.skeleton(code)) + '</pre>');
+  return list;
+}
+
+function paintHints() {
+  const ex = lessonList()[cur].exercise;
+  const hints = guideHints(ex);
   const ha = document.getElementById('hints-area');
   if (!ha) return;
-  if (hintLevel < hints.length) {
-    hintLevel++;
-    let html = `<div class="hint-n">💡 Pista ${hintLevel} de ${hints.length} — guía progresiva (no da la respuesta)</div>`;
-    for (let i = 0; i < hintLevel; i++) {
-      html += `<div class="hint-box">${hints[i]}</div>`;
-    }
+  if (hintLevel) {
+    let html = `<div class="hint-n">💡 Pista ${hintLevel} de ${hints.length}</div>`;
+    for (let i = 0; i < hintLevel; i++) html += `<div class="hint-box">${hints[i]}</div>`;
     ha.innerHTML = html;
   }
+  const sa = document.getElementById('solution-area');
+  if (sa && failCount >= SOLUTION_AFTER && !sa.innerHTML) {
+    sa.innerHTML = '<div class="btn-row"><button type="button" class="hint-btn" onclick="showSolution()">Ver una solución</button><span class="hint-n">Probá primero con las pistas: lo que resolvés por tu cuenta es lo que queda.</span></div>';
+  }
+}
+
+function showHint() {
+  const hints = guideHints(lessonList()[cur].exercise);
+  if (hintLevel < hints.length) hintLevel++;
+  paintHints();
+}
+
+function failedRun() {
+  failCount++;
+  showHint();
+}
+
+function showSolution() {
+  const l = lessonList()[cur];
+  document.getElementById('solution-area').innerHTML = '<div class="hint-box">' + splitLastHint(l.exercise).solution + '</div><div class="hint-n">Leela, cerrala y escribila de memoria. En unos días este ejercicio vuelve en tu repaso.</div>';
+  Practica.noteHelp(l.id);
+  paintSeguir();
 }
 
 // ── Init ───────────────────────────────────────────────────────────────
@@ -984,13 +1124,28 @@ function applyUserProgress(state) {
   if (typeof Practica !== 'undefined') Practica.setState(state && state.practice);
   var f2 = (state && state.fase2) || {};
   doneF2 = new Set(f2.done || []);
-  fase2Meta = { completionDate: f2.completionDate || null, certShown: !!f2.certShown };
+  fase2Meta = { completionDate: f2.completionDate || null, certShown: !!f2.certShown, accredited: f2.accredited || null };
+  restorePlace(state && state.place);
   if (typeof Progress !== 'undefined' && Progress.activeUid && Progress.activeUid()) {
     Progress.saveLocalCache(Progress.activeUid(), [...done], quizBestScores, {
       completionDate: state && state.completionDate,
       certShown: state && state.certShown
     });
   }
+}
+
+// Volver donde quedaste. Sin lugar guardado, a la primera lección sin completar
+function restorePlace(place) {
+  const indexOf = (list, id) => Math.max(0, list.findIndex(l => l.id === id));
+  if (place) {
+    curF1 = indexOf(LESSONS, place.f1);
+    curF2 = indexOf(LESSONS_F2, place.f2);
+    fase = place.fase === 2 && fase2Unlocked() ? 2 : 1;
+    cur = fase === 2 ? curF2 : curF1;
+    return;
+  }
+  cur = Math.max(0, nextLessonIndex());
+  curF1 = cur;
 }
 
 // Back-compat name used by auth.js

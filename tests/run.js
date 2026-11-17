@@ -4,6 +4,7 @@
 // 3. Código de las actividades: las respuestas coinciden con lo que hace Java de verdad.
 // 4. Intérprete: JavaRun da el mismo resultado que javac/java en todo el corpus.
 // 5. Validador: los programas incorrectos se rechazan.
+// 6. Memoria del alumno: fechas de repaso, combinación de dispositivos y pistas.
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -90,6 +91,8 @@ function checkData() {
       l.quiz.questions.forEach((q, i) => {
         ok(typeof q.question === 'string' && q.question.length > 3, 'lección ' + l.id + ' pregunta ' + i + ' sin texto');
         ok(q.correct >= 0 && q.correct < q.options.length, 'lección ' + l.id + ' pregunta ' + i + ': correct fuera de rango');
+        ok(q.why, 'lección ' + l.id + ' pregunta ' + i + ': un cuestionario tiene que explicar el porqué');
+        checkHtml(q.why, 'cuestionario ' + l.id);
       });
     }
     if (l.exercise && l.id > 100) ok(l.exercise.need && l.exercise.need.length, 'lección ' + l.id + ': faltan los conceptos a exigir');
@@ -101,8 +104,11 @@ function checkData() {
     }
   }
   ok(LESSONS_F1.length === 35, 'la Fase 1 debe seguir con 35 lecciones: el certificado y el ranking dependen de eso');
+  const tfs = Object.keys(PRACTICA).flatMap(id => (PRACTICA[id].items || []).filter(it => it.t === 'tf'));
+  const trues = tfs.filter(it => it.a).length / tfs.length;
+  ok(trues > 0.4 && trues < 0.6, 'verdadero o falso desparejo: responder siempre lo mismo no debe alcanzar. Verdaderos: ' + Math.round(trues * 100) + '%');
   ok(LESSONS_F1.every(l => l.id < 100) && ctx.LESSONS_F2.every(l => l.id > 100), 'los ids de cada fase no deben cruzarse');
-  const validTypes = ['mc', 'tf', 'fill', 'bug', 'output', 'order', 'match', 'short', 'code', 'http'];
+  const validTypes = ['mc', 'tf', 'fill', 'bug', 'output', 'order', 'match', 'short', 'code', 'http', 'step'];
   const seen = {};
   for (const id of Object.keys(PRACTICA)) {
     const p = PRACTICA[id];
@@ -113,7 +119,7 @@ function checkData() {
       const at = 'lección ' + id + ' ítem ' + i + ' (' + it.t + ')';
       ok(validTypes.includes(it.t), at + ': tipo desconocido');
       ok(it.q || it.t === 'code', at + ': sin consigna');
-      [it.q, it.why, it.hint, it.task, it.model].concat(it.o || []).forEach(h => checkHtml(h, at));
+      [it.q, it.why, it.hint, it.task, it.model, it.do, it.ok, it.fail].concat(it.o || []).forEach(h => checkHtml(h, at));
       if (it.t === 'order') ok(new Set(it.lines).size === it.lines.length, at + ': líneas repetidas: no se puede corregir por posición');
       if (it.t === 'http') {
         const server = ctx.ApiLab.seed();
@@ -128,7 +134,11 @@ function checkData() {
       if (it.t === 'mc') {
         ok(it.o.length >= 3 && it.a >= 0 && it.a < it.o.length, at + ': opciones o respuesta inválida');
         ok(new Set(it.o).size === it.o.length, at + ': opciones repetidas');
+        const sizes = it.o.map(o => unhtml(o).length);
+        const others = sizes.filter((_, n) => n !== it.a);
+        ok(sizes[it.a] < 1.4 * Math.max(...others), at + ': la correcta se delata por ser mucho más larga');
       }
+      if (it.t === 'mc' || it.t === 'bug') ok(it.hint, at + ': el segundo intento necesita una pista propia');
       if (it.t === 'tf') ok(typeof it.a === 'boolean', at + ': a debe ser boolean');
       if (it.t === 'fill') {
         const blanks = (it.code.match(/___/g) || []).length;
@@ -146,6 +156,7 @@ function checkData() {
         if (it.any && it.model) ok(ctx.Practica.gradeShort(it, it.model), at + ': la respuesta modelo no aprueba');
       }
       if (it.t === 'code') ok(it.expected && it.starter && it.solution, at + ': reto incompleto');
+      if (it.t === 'step') ok(it.do && it.ok, at + ': un paso dice qué hacer y cómo comprobarlo');
     });
   }
 }
@@ -239,6 +250,12 @@ function collectCorpus() {
   for (const f of fs.readdirSync(dir).filter(x => x.endsWith('.java'))) {
     addProgram('corpus_' + f.replace('.java', ''), fs.readFileSync(path.join(dir, f), 'utf8'));
   }
+  // javac tiene que rechazarlos de verdad: si no, el caso está mal escrito
+  const rejects = require('./javac-rejects.js');
+  for (const name of Object.keys(rejects)) {
+    const p = addProgram('rechazo_' + name, rejects[name]);
+    verifications.push(res => ok(res(p).status === 'compile', 'javac no rechaza ' + name + ': ' + res(p).status));
+  }
 }
 
 function runOracle() {
@@ -312,6 +329,76 @@ function checkWrongPrograms() {
   }
 }
 
+// ── 6. Memoria del alumno ──────────────────────────────────────────────
+function day(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function checkMemory() {
+  console.log('6. Memoria del alumno');
+  load('public/js/progress.js');
+  const P = ctx.Practica;
+  const G = ctx.Progress;
+  const key = '14-0';
+  const review = () => P.getState().reviews[key];
+
+  P.setState(null);
+  ok(P.statusOf(key) === 'new', 'una actividad sin responder debe ser nueva');
+  P.saveScore(key, 1);
+  ok(review().box === 1 && review().due === day(1), 'acertar la primera vez vuelve mañana');
+  ok(P.statusOf(key) === 'solved', 'lo acertado queda resuelto hasta su fecha');
+  P.saveScore(key, 1);
+  ok(review().box === 1, 'repetir antes de la fecha no suma');
+  review().due = day(0);
+  ok(P.statusOf(key) === 'due' && P.dueKeys().includes(key), 'al llegar la fecha vuelve al repaso');
+  P.saveScore(key, 1);
+  ok(review().box === 2 && review().due === day(3), 'acertar en el repaso aleja la próxima vuelta');
+  review().box = P.INTERVALS.length;
+  review().due = day(0);
+  P.saveScore(key, 1);
+  ok(review().box === P.INTERVALS.length && review().due === day(30), 'el intervalo máximo es de 30 días');
+
+  const before = P.mastery(14).pct;
+  P.saveScore(key, 0);
+  ok(review().box === 0 && review().due === day(1), 'fallar lo trae mañana');
+  ok(P.statusOf(key) === 'wait', 'lo fallado espera hasta mañana: ver la respuesta y repetir no vale');
+  ok(P.getState().wrong.includes(key), 'lo fallado queda para repasar');
+  ok(P.mastery(14).pct < before, 'fallar algo ya aprobado baja el dominio');
+
+  const merged = G.mergePractice(P.getState(), { scores: { [key]: 1 }, wrong: [], reviews: { [key]: { box: 3, due: day(5), at: 1 } } });
+  ok(merged.wrong.includes(key) && merged.reviews[key].box === 0, 'un error nuevo sobre algo aprobado sobrevive a la recarga');
+  const newer = G.mergePractice({ scores: { [key]: 1 }, wrong: [key], reviews: { [key]: { box: 0, due: day(1), at: 5 } } }, { scores: { [key]: 1 }, wrong: [], reviews: { [key]: { box: 2, due: day(3), at: 9 } } });
+  ok(!newer.wrong.includes(key) && newer.reviews[key].box === 2, 'entre dos dispositivos gana el resultado más reciente');
+  const old = G.mergePractice({ scores: { a: 0.5, b: 1 }, wrong: ['a', 'b'] }, null);
+  ok(old.wrong.length === 1 && old.wrong[0] === 'a', 'los datos viejos, sin fechas, se siguen combinando');
+
+  P.setState({ scores: { '14-1': 1, '14-2': 0 }, wrong: ['14-2'] });
+  ok(P.getState().reviews['14-1'].box === 1, 'lo aprobado antes de esta versión recibe una fecha');
+  ok(P.statusOf('14-2') === 'due', 'lo fallado antes de esta versión queda para hoy');
+
+  P.setState(null);
+  const shared = P.itemOf('23-2');
+  const firstOf = text => shared.pairs.findIndex(p => p[1] === text);
+  ok(P.grade(shared, shared.pairs.map(p => firstOf(p[1]))), 'una respuesta repetida en Unir no puede marcarse mal');
+
+  for (const t of ['todo', 'f2todo']) {
+    const types = new Set(P.poolFor(t).map(k => P.itemOf(k).t));
+    ok(!types.has('short') && !types.has('step') && !types.has('code'), t + ': el simulacro solo usa actividades con corrección objetiva');
+  }
+
+  for (const l of LESSONS) {
+    if (!l.exercise || l.id === 31 || l.id === 33) continue;
+    const it = P.itemOf('x' + l.id);
+    ok(it.solution && P.gradeCode(it, it.solution).passed, 'lección ' + l.id + ': el parcial práctico rechaza la solución oficial');
+    ok(!P.gradeCode(it, it.starter).passed, 'lección ' + l.id + ': el parcial práctico aprueba el código inicial');
+    const sk = P.skeleton(it.solution);
+    ok(sk !== it.solution, 'lección ' + l.id + ': el esqueleto no debe ser la solución completa');
+    ok(!P.gradeCode(it, sk).passed, 'lección ' + l.id + ': el esqueleto aprueba sin escribir nada');
+  }
+}
+
 checkData();
 console.log('2 y 3. Soluciones y actividades');
 collectSolutions();
@@ -322,6 +409,7 @@ const res = p => oracleResult(p);
 verifications.forEach(v => v(res));
 compareInterpreter();
 checkWrongPrograms();
+checkMemory();
 
 console.log('\n' + (failures ? failures + ' fallas en ' + checks + ' verificaciones' : 'OK: ' + checks + ' verificaciones'));
 process.exit(failures ? 1 : 0);

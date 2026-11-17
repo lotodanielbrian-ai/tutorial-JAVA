@@ -42,6 +42,13 @@ ENTRYPOINT ["java", "-jar", "app.jar"]`)}
 <tr><td><code>ENTRYPOINT</code></td><td>El comando al arrancar</td></tr>
 </tbody></table>
 ${ann('tip', '💡', 'Son dos etapas: una imagen pesada compila, y una liviana (solo JRE) ejecuta. El resultado final ocupa mucho menos.')}
+<p>Esta versión funciona en cualquier máquina, pero baja Maven y todas las dependencias. Si ya compilaste, alcanza con lo mínimo: base, carpeta, copiar el <code>.jar</code> y el comando de arranque.</p>
+${cb('Dockerfile liviano', `FROM eclipse-temurin:17-jre
+WORKDIR /app
+COPY target/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]`)}
+${ann('warn', '⚠️', 'El liviano copia lo que hay en <code>target</code>: primero corré <code>mvnw clean package</code>. Si cambiás el código y no recompilás, la imagen sigue con la versión vieja.')}
 </div>
 <div class="ts"><h3>Docker Compose</h3>
 ${cb('docker-compose.yml', `services:
@@ -54,20 +61,29 @@ ${cb('docker-compose.yml', `services:
       - "3307:3306"
     volumes:
       - datos-kiosco:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
 
   api:
     build: .
+    restart: on-failure
     environment:
       SPRING_PROFILES_ACTIVE: mysql
       DB_HOST: db
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   datos-kiosco:`)}
 ${ann('warn', '⚠️', 'Adentro de la red de Docker, la aplicación llega a la base por el nombre del servicio (<code>db</code>), no por <code>localhost</code>.')}
+${ann('warn', '⚠️', '<code>depends_on</code> solo no alcanza: arranca la aplicación cuando el contenedor nace, no cuando la base está lista. El <code>healthcheck</code> pregunta si MySQL responde, y <code>condition: service_healthy</code> hace esperar a la aplicación.')}
 ${ann('warn', '⚠️', 'En <code>"3307:3306"</code> el primer número es tu computadora, y el segundo, el contenedor. Así podés tener varias bases sin que choquen los puertos.')}
 <table class="sym-tbl"><thead><tr><th>Comando</th><th>Qué hace</th></tr></thead><tbody>
 <tr><td><code>docker compose up --build</code></td><td>Construye y levanta</td></tr>
@@ -78,9 +94,9 @@ ${ann('warn', '⚠️', 'En <code>"3307:3306"</code> el primer número es tu com
 <tr><td><code>docker images</code></td><td>Lista las imágenes</td></tr>
 </tbody></table>
 ${f2Pc('levantar todo', [
-    'Instalá y abrí Docker Desktop.',
+    'Instalá y abrí Docker Desktop. <code>docker version</code> tiene que mostrar <code>Client</code> y <code>Server</code>. Si dice que no puede iniciar, activá la virtualización en el BIOS: SVM Mode en AMD, VT-x en Intel.',
     'En <code>ejemplos/kiosco-api</code>, ejecutá <code>docker compose up --build</code>.',
-    'Esperá a que MySQL quede listo y abrí <code>http://localhost:8080/swagger-ui.html</code>.',
+    'Esperá a que <code>db</code> figure <code>healthy</code> y abrí <code>http://localhost:8080/swagger-ui.html</code>.',
     'Creá un producto, corré <code>docker compose down</code> y volvé a levantar: el dato sigue ahí, gracias al volumen.'
   ])}
 </div>`,
@@ -114,7 +130,10 @@ PRACTICA[118] = {
     { t: 'bug', q: 'Encontrá el error en este Dockerfile: la imagen no sabe qué ejecutar.', code: 'FROM eclipse-temurin:17-jre\nWORKDIR /app\nCOPY target/*.jar app.jar\nEXPOSE 8080\nRUN ["java", "-version"]', line: 5, fix: 'ENTRYPOINT ["java", "-jar", "app.jar"]', noRun: true, why: '<code>RUN</code> se ejecuta al construir. Lo que corre al arrancar va en <code>ENTRYPOINT</code> o <code>CMD</code>.' },
     { t: 'tf', q: 'Si borrás un contenedor sin volumen, sus datos se pierden.', a: true, why: 'Lo que está adentro del contenedor muere con él.' },
     { t: 'fill', q: 'Completá el servicio de la base.', code: 'services:\n  db:\n    ___: mysql:8.4\n    ___:\n      - "3307:3306"', a: [['image'], ['ports']], noRun: true, why: '<code>image</code> elige qué correr y <code>ports</code> conecta tu máquina con el contenedor.' },
-    { t: 'short', q: '¿Qué significa "en mi máquina funciona" y cómo lo resuelve Docker?', any: [['distinto', 'diferente', 'version', 'configuracion', 'entorno', 'otra maquina', 'instal'], ['mismo', 'igual', 'empaquet', 'contenedor', 'imagen', 'incluye', 'todo']], model: 'Que el programa depende de lo instalado en cada PC. Docker empaqueta la aplicación con su entorno, y corre igual en todos lados.', why: 'El problema nunca fue el código, sino el entorno.' }
+    { t: 'short', q: '¿Qué significa "en mi máquina funciona" y cómo lo resuelve Docker?', any: [['distinto', 'diferente', 'version', 'configuracion', 'entorno', 'otra maquina', 'instal'], ['mismo', 'igual', 'empaquet', 'contenedor', 'imagen', 'incluye', 'todo']], model: 'Que el programa depende de lo instalado en cada PC. Docker empaqueta la aplicación con su entorno, y corre igual en todos lados.', why: 'El problema nunca fue el código, sino el entorno.' },
+    { t: 'bug', q: 'La aplicación arranca antes que la base y se cae. ¿Qué línea corregís?', code: 'api:\n  build: .\n  depends_on:\n    - db', line: 4, fix: '    db: { condition: service_healthy }', noRun: true, why: 'Con <code>- db</code> espera a que el contenedor exista. Con <code>service_healthy</code> espera a que el <code>healthcheck</code> confirme que MySQL responde.' },
+    { t: 'mc', q: 'Tu <code>Dockerfile</code> tiene <code>COPY target/*.jar app.jar</code>. Cambiaste código y la imagen sigue igual. ¿Qué faltó?', o: ['Correr <code>mvnw clean package</code>', 'Borrar el volumen de la base', 'Cambiar el puerto en <code>EXPOSE</code>', 'Agregar otro <code>WORKDIR</code>'], a: 0, why: 'Ese Dockerfile copia el <code>.jar</code> ya generado. Sin recompilar, copia el viejo.' },
+    { t: 'tf', q: 'Para que la API espere a MySQL hacen falta <code>healthcheck</code> en la base y <code>condition: service_healthy</code> en la API.', a: true, why: 'El primero mide si la base responde, y el segundo hace esperar a la aplicación.' }
   ]
 };
 
@@ -137,10 +156,22 @@ public class ProductoController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca un producto por id")
-    public ProductoResponse obtener(@PathVariable Long id) {
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Producto encontrado"),
+        @ApiResponse(responseCode = "404", description = "No existe ese producto")
+    })
+    public ProductoResponse obtener(
+            @Parameter(description = "Id del producto", example = "1") @PathVariable Long id) {
         return service.obtener(id);
     }
 }`)}
+<table class="sym-tbl"><thead><tr><th>Anotación</th><th>Dónde va</th><th>Qué documenta</th></tr></thead><tbody>
+<tr><td><code>@Tag</code></td><td>En la clase</td><td>El grupo de endpoints, con nombre y descripción</td></tr>
+<tr><td><code>@Operation</code></td><td>En el método</td><td>Qué hace ese endpoint</td></tr>
+<tr><td><code>@ApiResponse</code></td><td>En el método</td><td>Qué códigos puede devolver y cuándo</td></tr>
+<tr><td><code>@Parameter</code></td><td>En el parámetro</td><td>Qué es el dato y un valor de ejemplo</td></tr>
+</tbody></table>
+${ann('tip', '💡', 'Si hay una sola respuesta, va <code>@ApiResponse</code> sola. Si hay varias, se agrupan con <code>@ApiResponses</code>.')}
 <table class="sym-tbl"><thead><tr><th>Dirección</th><th>Qué muestra</th></tr></thead><tbody>
 <tr><td><code>/swagger-ui.html</code></td><td>La interfaz para probar</td></tr>
 <tr><td><code>/v3/api-docs</code></td><td>La especificación en JSON</td></tr>
@@ -185,7 +216,9 @@ PRACTICA[119] = {
     { t: 'order', q: 'Ordená cómo entregar el proyecto.', lines: ['Correr mvn clean package', 'Comprobar que los tests pasan', 'Probar los endpoints', 'Revisar el README', 'Comprimir y entregar sin la carpeta target'], why: 'Comprobar antes de entregar evita la peor sorpresa: un proyecto que no levanta.' },
     { t: 'tf', q: 'La carpeta <code>target</code> debe subirse a Git.', a: false, why: 'Se genera al compilar: pesa y no aporta.' },
     { t: 'bug', q: 'Encontrá el error de seguridad en este archivo versionado.', code: 'spring:\n  datasource:\n    url: jdbc:mysql://localhost:3306/kiosco\n    password: MiClaveReal2026', line: 4, fix: '    password: ${DB_PASSWORD}', noRun: true, why: 'Las contraseñas no van al repositorio: se leen de variables de entorno.' },
-    { t: 'short', q: '¿Qué le contarías a alguien sobre tu proyecto en un README?', any: [['que hace', 'proyecto', 'descrip', 'objetivo'], ['levant', 'ejecut', 'instal', 'correr', 'como']], model: 'Qué hace el proyecto, con qué tecnologías está hecho y cómo levantarlo y probarlo paso a paso.', why: 'Si otra persona no puede levantarlo sola, el README no cumple.' }
+    { t: 'short', q: '¿Qué le contarías a alguien sobre tu proyecto en un README?', any: [['que hace', 'proyecto', 'descrip', 'objetivo'], ['levant', 'ejecut', 'instal', 'correr', 'como']], model: 'Qué hace el proyecto, con qué tecnologías está hecho y cómo levantarlo y probarlo paso a paso.', why: 'Si otra persona no puede levantarlo sola, el README no cumple.' },
+    { t: 'match', q: 'Uní cada anotación de springdoc con lo que documenta.', pairs: [['@Tag', 'El grupo de endpoints'], ['@Operation', 'Qué hace un endpoint'], ['@ApiResponse', 'Un código de respuesta posible'], ['@Parameter', 'Un dato de entrada y su ejemplo']], why: 'Con estas cuatro, Swagger muestra todo lo que otro equipo necesita para usar tu API.' },
+    { t: 'fill', q: 'Documentá el 404 y el ejemplo del id.', code: 'class DocProductoController {\n    @io.swagger.v3.oas.annotations.responses.___(responseCode = "404", description = "No existe")\n    @GetMapping("/{id}")\n    public String obtener(@io.swagger.v3.oas.annotations.___(example = "1") @PathVariable Long id) {\n        return "";\n    }\n}', a: [['ApiResponse'], ['Parameter']], spring: true, noRun: true, why: '<code>@ApiResponse</code> describe una respuesta posible, y <code>@Parameter</code> describe el dato que entra.' }
   ]
 };
 
@@ -600,24 +633,27 @@ PRACTICA[123] = {
   },
   items: [
     { t: 'order', q: 'Ordená cómo armar el parcial.', lines: ['Generar el proyecto', 'Configurar H2', 'Crear la entidad', 'Crear el repository', 'Escribir el service con la regla', 'Escribir el controller', 'Probar los cinco endpoints'], why: 'De adentro hacia afuera: cada capa se apoya en la anterior.' },
-    { t: 'match', q: 'Uní cada operación con su endpoint.', pairs: [['Listar', 'GET /api/pedidos'], ['Buscar uno', 'GET /api/pedidos/1'], ['Dar de alta', 'POST /api/pedidos'], ['Modificar', 'PUT /api/pedidos/1'], ['Eliminar', 'DELETE /api/pedidos/1']], why: 'Son los cinco endpoints que pide el parcial.' }
+    { t: 'match', q: 'Uní cada operación con su endpoint.', pairs: [['Listar', 'GET /api/pedidos'], ['Buscar uno', 'GET /api/pedidos/1'], ['Dar de alta', 'POST /api/pedidos'], ['Modificar', 'PUT /api/pedidos/1'], ['Eliminar', 'DELETE /api/pedidos/1']], why: 'Son los cinco endpoints que pide el parcial.' },
+    { t: 'step', q: 'Paso 1: generá el proyecto', do: 'En <code>start.spring.io</code> elegí Maven, Java 17 y las dependencias Web, Data JPA, H2, Lombok y Validation. Descomprimilo y arrancalo. En Windows usá <code>mvnw.cmd</code>.', cmd: './mvnw spring-boot:run', ok: 'La consola termina en <code>Started ...Application</code>, y <code>http://localhost:8080</code> responde 404: el servidor anda, aunque todavía no tenga rutas.', fail: 'Si dice que el puerto 8080 está en uso, cerrá la otra aplicación o agregá <code>server.port: 8081</code>.', why: 'Comprobar que el esqueleto arranca antes de escribir código evita buscar el error en el lugar equivocado.' },
+    { t: 'step', q: 'Paso 2: entidad y repository', do: 'Creá la entidad con <code>@Entity</code> y <code>@Id</code>, y una interfaz que extienda <code>JpaRepository</code>. Activá la consola de H2.', cmd: 'http://localhost:8080/h2-console', ok: 'En la consola de H2 aparece tu tabla, con una columna por atributo.', fail: 'Si la tabla no aparece, revisá que la entidad esté en un subpaquete de la clase principal y que la JDBC URL coincida con <code>application.yml</code>.', why: 'Hibernate crea la tabla a partir de la entidad: verla confirma que el mapeo funciona.' },
+    { t: 'step', q: 'Paso 3: service con la regla', do: 'Definí la interfaz del service y su implementación con <code>@Service</code>. Inyectá el repository por constructor y escribí la regla de negocio acá, no en el controller.', ok: 'Compila, y podés explicar en una frase por qué la regla está en el service.', fail: 'Si Spring dice que no encuentra un bean, falta <code>@Service</code> en la implementación.', why: 'Toda la lógica en un solo lugar: el controller solo recibe y responde.' },
+    { t: 'step', q: 'Paso 4: los cinco endpoints', do: 'Escribí el controller con dos GET, un POST, un PUT y un DELETE. Probá cada uno en Postman o Swagger.', cmd: 'curl -i http://localhost:8080/api/pedidos', ok: 'GET responde 200, POST 201, PUT 200 y DELETE 204. Un id inexistente no debe dar 500.', fail: 'Si recibís 415, falta el encabezado <code>Content-Type: application/json</code>. Si recibís 405, el verbo no coincide con la ruta.', why: 'Probar los cinco, y uno que falle, es exactamente lo que va a mirar quien corrija.' },
+    { t: 'step', q: 'Paso 5: comprobá la regla', do: 'Creá un caso por debajo del límite de tu regla y otro por encima.', ok: 'El primero se guarda igual y el segundo con la regla aplicada. Volvé a leerlo con GET: el valor guardado es el correcto.', fail: 'Si GET muestra el valor sin regla, la estás aplicando solo en la respuesta y no antes de guardar.', why: 'Una regla de negocio se prueba en sus dos lados, y sobre lo que quedó guardado.' }
   ]
 };
 
 LESSONS_F2.push({
   id: 124, level: 'coloquio', levelLabel: 'Segundo parcial', stars: '🏆🏆',
   title: 'Segundo parcial simulado',
-  desc: 'Sobre el ABM: excepciones controladas, pruebas, documentación y Docker.',
+  desc: 'Sobre el ABM: excepciones controladas, documentación con Swagger y Docker, paso a paso y comprobando cada uno.',
   simple: () => `
-${f2Card('📝', 'Qué se suma', `<p>El segundo parcial es <strong>muy parecido al primero</strong>, sobre un proyecto ya armado o un sistema nuevo, como facturación. Se agrega lo visto desde la clase 6:</p>
-<ul><li>Tests unitarios con JUnit y Mockito.</li>
-<li>Control de excepciones en la capa de servicio.</li>
-<li>Una base de datos real con MySQL.</li>
-<li>Logs.</li>
-<li>Documentación con Swagger.</li>
-<li>Docker.</li></ul>
-<p>Por ejemplo: si al generar una factura el dato no está en la base, no debe explotar: se contiene la excepción y se responde un mensaje claro.</p>`)}
-${ann('warn', '⚠️', 'Tiene fecha firme: entregarlo tarde deja afuera del coloquio y queda solo la condición de regular.')}`,
+${f2Card('📝', 'Qué se suma', `<p>El segundo parcial es <strong>muy parecido al primero</strong>: una aplicación con un CRUD sobre algún caso, y encima se suma lo nuevo. Esto se anticipó en clase:</p>
+<ul><li>Manejo de excepciones: si un dato no está, no debe explotar. Se contiene y se responde un mensaje claro.</li>
+<li>Anotaciones de springdoc en el controller: <code>@Tag</code>, <code>@Operation</code>, <code>@ApiResponse</code> y <code>@Parameter</code>.</li>
+<li>Un <code>Dockerfile</code> y un <code>docker-compose.yml</code> que levanten la aplicación y la base.</li></ul>
+<p>También entra lo visto desde la clase 6. Revisá en la consigna cuánto se pide de cada uno: tests con JUnit y Mockito, MySQL y logs.</p>`)}
+${ann('warn', '⚠️', 'Tiene fecha firme: entregarlo tarde deja afuera del coloquio y queda solo la condición de regular.')}
+${ann('tip', '💡', 'En la pestaña Práctica está la lista de entrega: cada paso dice qué hacer y cómo comprobar que quedó bien. La consigna real manda sobre cualquier cosa que diga esta lección.')}`,
   tutorial: () => `
 <div class="ts"><h3>Lista para aprobar</h3>
 ${cb('Control final', `[ ] La lógica lanza excepciones propias en el service
@@ -629,6 +665,12 @@ ${cb('Control final', `[ ] La lógica lanza excepciones propias en el service
 [ ] Corre con MySQL
 [ ] docker compose up levanta todo`)}
 ${ann('java', '☕', 'En <code>ejemplos/kiosco-api</code> está todo esto junto: es tu mejor machete. Usalo para entender, y después escribí el tuyo.')}
+</div>
+<div class="ts"><h3>Empezá por lo que más puede fallar</h3>
+<p>Docker es lo único que depende de tu máquina. Comprobalo el primer día, aunque todavía no tengas el proyecto: si algo falla, querés descubrirlo con tiempo.</p>
+${cb('Primera prueba', `docker version
+docker run --rm hello-world`)}
+<p>Si el <code>Dockerfile</code> tarda demasiado, usá la versión liviana de la lección 118: copia el <code>.jar</code> ya compilado.</p>
 </div>`,
   exercise: {
     desc: 'Sistema de facturación con control de errores. Facturador.generar(int clienteId, double monto) lanza ClienteNoEncontrado si el cliente no existe, y MontoInvalido si el monto no es positivo. Con los casos dados, imprimí el resultado o el mensaje, sin que el programa se detenga. Un manejar(RuntimeException) traduce cada error a su código.',
@@ -725,7 +767,16 @@ PRACTICA[124] = {
   items: [
     { t: 'bug', q: 'Una búsqueda sin control explota. ¿Qué línea corregís?', code: 'public FacturaResponse generar(Long clienteId) {\n    Cliente cliente = repository.findById(clienteId).get();\n    return crearFactura(cliente);\n}', line: 2, fix: '    Cliente cliente = repository.findById(clienteId).orElseThrow(() -> new RecursoNoEncontradoException("Cliente", clienteId));', noRun: true, why: '<code>get()</code> sobre vacío lanza una excepción genérica y daría 500. Con <code>orElseThrow</code> se responde 404.' },
     { t: 'order', q: 'Ordená cómo mejorar un ABM para el segundo parcial.', lines: ['Crear las excepciones de negocio', 'Agregar el manejador global', 'Escribir los tests', 'Cambiar a MySQL', 'Documentar con Swagger', 'Dockerizar'], why: 'Primero la calidad del código, y al final el empaquetado.' },
-    { t: 'tf', q: 'El segundo parcial se puede entregar tarde sin consecuencias.', a: false, why: 'Fuera de fecha se pierde la carrera al coloquio.' }
+    { t: 'tf', q: 'El segundo parcial se puede entregar tarde sin consecuencias.', a: false, why: 'Fuera de fecha se pierde la carrera al coloquio.' },
+    { t: 'step', q: 'Paso 1: comprobá que Docker funciona', do: 'Hacelo antes que nada, aunque todavía no tengas el proyecto.', cmd: 'docker version\ndocker run --rm hello-world', ok: '<code>docker version</code> muestra <code>Client</code> y <code>Server</code>, y <code>hello-world</code> imprime un saludo.', fail: 'Si dice <code>Docker Desktop is unable to start</code> o WSL avisa que la virtualización no está habilitada, reiniciá, entrá al BIOS y activá SVM Mode (AMD) o Intel VT-x. Si no aparece <code>Server</code>, abrí Docker Desktop y esperá a que termine de iniciar.', why: 'Es lo único que depende de tu máquina, y puede llevar tiempo arreglarlo.' },
+    { t: 'step', q: 'Paso 2: excepciones', do: 'Creá una excepción propia, lanzala desde el service con <code>orElseThrow</code> y atrapala en un <code>@RestControllerAdvice</code>.', cmd: 'curl -i http://localhost:8080/api/pedidos/9999', ok: 'Responde 404 con un JSON y un mensaje claro, sin el detalle interno del error.', fail: 'Si sigue dando 500, tu manejador no atrapa esa excepción: revisá <code>@ExceptionHandler</code> y que la clase esté en un subpaquete de la principal.', why: 'Quien usa tu API tiene que entender qué pasó, y no ver cómo está hecha por dentro.' },
+    { t: 'step', q: 'Paso 3: datos inválidos', do: 'Agregá validaciones al DTO y <code>@Valid</code> en el controller. Mandá un dato inválido.', ok: 'Responde 400 y dice qué campo está mal.', fail: 'Si el dato inválido se guarda, falta <code>@Valid</code> o la dependencia <code>spring-boot-starter-validation</code>.', why: 'Es la misma idea que el paso anterior: el error se contiene y se explica.' },
+    { t: 'step', q: 'Paso 4: documentación', do: 'Agregá <code>springdoc-openapi-starter-webmvc-ui</code> y anotá el controller con <code>@Tag</code>, <code>@Operation</code>, <code>@ApiResponse</code> y <code>@Parameter</code>.', cmd: 'http://localhost:8080/swagger-ui.html', ok: 'Cada endpoint muestra su descripción, sus códigos de respuesta y el ejemplo de sus parámetros.', fail: 'Si la página da 404, falta la dependencia. Si no ves los cambios, recargá sin caché.', why: 'Se pide de forma explícita y es de lo más rápido de resolver.' },
+    { t: 'step', q: 'Paso 5: empaquetá', do: 'Corré las pruebas y generá el <code>.jar</code>.', cmd: './mvnw clean package', ok: 'Termina en <code>BUILD SUCCESS</code> y hay un <code>.jar</code> en <code>target</code>.', fail: 'Si falla por un test, leé cuál y por qué: no lo saltees con <code>-DskipTests</code> en la entrega.', why: 'Docker empaqueta lo que hay acá: si esto falla, lo que sigue también.' },
+    { t: 'step', q: 'Paso 6: Dockerfile', do: 'Escribí el <code>Dockerfile</code>. Con lo mínimo alcanza: base, carpeta, copiar el <code>.jar</code> y comando de arranque.', cmd: 'docker build -t mi-api .\ndocker images', ok: 'La construcción termina sin error y <code>mi-api</code> aparece en la lista.', fail: 'Si dice que no encuentra el <code>.jar</code>, volvé al paso 5. Si tarda mucho, usá la imagen <code>-jre</code> y copiá el <code>.jar</code> ya compilado.', why: 'Probar la imagen sola separa los errores del Dockerfile de los de Compose.' },
+    { t: 'step', q: 'Paso 7: Compose con la base', do: 'Escribí <code>docker-compose.yml</code> con la base y la aplicación. La aplicación llega a la base por el nombre del servicio, y espera a que esté sana.', cmd: 'docker compose up --build', ok: 'La base figura <code>healthy</code>, la aplicación termina en <code>Started</code> y Swagger abre en el puerto 8080.', fail: 'Si dice <code>Communications link failure</code>, revisá que la URL use el nombre del servicio y no <code>localhost</code>. Si el puerto 3306 está ocupado, publicá otro, como <code>"3307:3306"</code>.', why: 'Es la parte que más pesa de lo nuevo: todo tiene que levantar con un solo comando.' },
+    { t: 'step', q: 'Paso 8: comprobá los datos', do: 'Creá un registro, bajá todo y volvé a subirlo.', cmd: 'docker compose down\ndocker compose up', ok: 'El registro sigue ahí: lo guarda el volumen.', fail: 'Si desapareció, falta el volumen, o usaste <code>down -v</code>, que también lo borra.', why: 'Demuestra que entendés dónde viven los datos, y es una pregunta típica de coloquio.' },
+    { t: 'step', q: 'Paso 9: la prueba final', do: 'Copiá el proyecto a una carpeta nueva, sin <code>target</code>, y levantalo siguiendo solo tu README, como lo haría quien te corrige.', cmd: 'docker compose down -v\ndocker compose up --build', ok: 'Levanta de cero, sin ningún paso que no esté escrito.', fail: 'Si necesitaste algo que no está escrito, falta en el README. Si usás el Dockerfile liviano, aclará que antes hay que empaquetar.', why: 'La peor sorpresa es un proyecto que solo funciona en tu máquina: justo lo que Docker viene a evitar.' }
   ]
 };
 
@@ -783,6 +834,20 @@ PRACTICA[125] = {
     { t: 'short', q: 'Defendé: ¿por qué tu service es una interfaz y una implementación?', any: [['desacopl', 'contrato', 'cambiar', 'reemplaz', 'separ', 'probar']], model: 'Para separar el contrato de la implementación: el controller depende de la interfaz y puedo cambiar el cómo sin tocarlo.', why: 'Es inversión de dependencias aplicada a tu proyecto.' },
     { t: 'short', q: 'Defendé: ¿por qué no devolvés la entidad en el controller?', any: [['dto', 'expon', 'datos', 'interno', 'segur', 'acopl']], model: 'Porque usaría un DTO para no exponer datos internos y no atar la API a la estructura de la tabla.', why: 'Motivo técnico y motivo de seguridad.' },
     { t: 'short', q: 'Defendé: ¿qué probarías primero si tuvieras poco tiempo?', any: [['negocio', 'service', 'regla', 'importante', 'logica', 'critic']], model: 'La lógica de negocio del service, y sus casos de borde: es donde un error cuesta más.', why: 'Priorizar también es una habilidad profesional.' },
-    { t: 'short', q: 'Explicá la diferencia entre error de compilación, excepción y error de lógica.', any: [['compil'], ['ejecu', 'excepcion', 'corriendo'], ['logic', 'resultado', 'mal', 'incorrect']], model: 'El de compilación no deja generar el programa; la excepción ocurre al ejecutar; el de lógica corre sin fallar, pero da un resultado incorrecto.', why: 'Cada uno se detecta con una herramienta distinta.' }
+    { t: 'short', q: 'Explicá la diferencia entre error de compilación, excepción y error de lógica.', any: [['compil'], ['ejecu', 'excepcion', 'corriendo'], ['logic', 'resultado', 'mal', 'incorrect']], model: 'El de compilación no deja generar el programa; la excepción ocurre al ejecutar; el de lógica corre sin fallar, pero da un resultado incorrecto.', why: 'Cada uno se detecta con una herramienta distinta.' },
+    { t: 'short', q: '¿Qué es la deuda técnica y cómo se paga?', any: [['costo', 'atajo', 'rapid', 'despues', 'futuro'], ['refactor', 'pagar', 'mejor', 'arregl', 'limpi']], model: 'Es el costo futuro de elegir hoy una solución rápida. Se paga refactorizando de a poco, antes de que frene todo lo demás.', why: 'Conviene dar un ejemplo: un if copiado en cinco lugares.' },
+    { t: 'short', q: '¿Qué significan las letras de SOLID? Elegí dos y dalas con un ejemplo.', any: [['responsabilidad', 'abierto', 'liskov', 'interfaz', 'interfaces', 'inversion']], model: 'S: una clase, una responsabilidad. D: depender de interfaces y no de clases concretas, como el controller que usa ProductoService.', why: 'Mejor dos bien explicadas que cinco de memoria.' },
+    { t: 'short', q: '¿Qué aporta Spring Boot sobre Spring?', any: [['auto', 'configur', 'embebido', 'tomcat', 'servidor', 'starter']], model: 'Configuración automática, dependencias agrupadas en starters y un servidor embebido: el proyecto arranca sin instalar Tomcat.', why: 'Spring es el framework, y Boot lo vuelve fácil de arrancar.' },
+    { t: 'short', q: '¿Qué es un bean y quién lo crea?', any: [['spring', 'contenedor'], ['objeto', 'instancia', 'clase', 'crea', 'administr']], model: 'Es un objeto administrado por el contenedor de Spring: él lo crea y lo entrega a quien lo necesita.', why: 'Por eso casi nunca escribís new en un service.' },
+    { t: 'short', q: '¿Qué hace cada capa de tu proyecto?', any: [['controller', 'http', 'recibe'], ['service', 'negocio', 'regla', 'logica'], ['repository', 'base', 'datos', 'guarda']], model: 'El controller recibe el pedido HTTP, el service aplica las reglas de negocio y el repository habla con la base de datos.', why: 'Cada capa tiene un solo motivo para cambiar.' },
+    { t: 'short', q: '¿Qué significan los códigos 201, 400, 404 y 500?', any: [['creado', 'crea'], ['invalid', 'pedido', 'mal', 'dato', 'cliente'], ['existe', 'encontr', 'no esta'], ['servidor', 'interno']], model: '201: creado. 400: el pedido es inválido. 404: el recurso no existe. 500: falló el servidor.', why: 'Los 4xx son culpa del pedido, y los 5xx, del servidor.' },
+    { t: 'short', q: '¿Qué es JPA y qué relación tiene con Hibernate?', any: [['especificacion', 'estandar', 'interfaz', 'norma'], ['hibernate', 'implement']], model: 'JPA es la especificación para mapear objetos a tablas, e Hibernate es la implementación que genera el SQL.', why: 'Por eso cambiar de base no toca el código.' },
+    { t: 'short', q: '¿Borrado físico o lógico? ¿Cuándo usarías cada uno?', any: [['fisico', 'elimin', 'borra'], ['logico', 'activo', 'marca', 'inactiv']], model: 'El físico elimina la fila. El lógico la marca como inactiva y conserva el historial: lo uso cuando los datos importan, como en ventas.', why: 'El lógico conserva datos, pero toda consulta debe filtrarlos.' },
+    { t: 'short', q: '¿Qué es el patrón AAA en un test?', any: [['prepar', 'arrange'], ['ejecut', 'act'], ['verific', 'assert', 'compr']], model: 'Preparar los datos, ejecutar lo que se prueba y verificar el resultado: arrange, act y assert.', why: 'Si un test no tiene las tres partes, suele probar de más o no probar nada.' },
+    { t: 'short', q: '¿Qué es un mock y para qué lo usás?', any: [['doble', 'simul', 'falso', 'reemplaz'], ['depend', 'base', 'repository', 'aisl', 'probar']], model: 'Es un doble que reemplaza una dependencia. Lo uso para probar el service sin la base de datos real.', why: 'Aísla la clase y hace que el test sea rápido.' },
+    { t: 'short', q: '¿Qué manejás con @RestControllerAdvice?', any: [['excepcion', 'error'], ['global', 'centraliz', 'un solo lugar', 'todos', 'respuesta', 'codigo']], model: 'Las excepciones de toda la aplicación en un solo lugar: traduce cada una a un código HTTP y un mensaje claro.', why: 'Evita repetir un try-catch en cada método del controller.' },
+    { t: 'short', q: '¿Qué diferencia hay entre imagen y contenedor?', any: [['plantilla', 'molde', 'receta', 'solo lectura'], ['ejecucion', 'corriendo', 'instancia', 'marcha']], model: 'La imagen es una plantilla de solo lectura, y el contenedor es esa imagen en ejecución.', why: 'Es como una clase y un objeto.' },
+    { t: 'short', q: '¿Qué pasa con los datos si bajás los contenedores?', any: [['volumen'], ['conserv', 'persist', 'sigue', 'queda', 'pierd', 'mantien', 'guarda']], model: 'Con un volumen se conservan, porque viven afuera del contenedor. Sin volumen se pierden. Con down -v también se borra el volumen.', why: 'Es una de las preguntas más típicas sobre Docker.' },
+    { t: 'short', q: '¿Para qué sirve el healthcheck de tu Compose?', any: [['base', 'mysql', 'servicio'], ['lista', 'respond', 'sana', 'espera', 'healthy', 'arranc']], model: 'Comprueba que la base responde, para que la aplicación espere a que esté lista antes de arrancar.', why: 'Sin esto, la aplicación puede arrancar antes que la base y caerse.' }
   ]
 };

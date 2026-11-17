@@ -159,6 +159,58 @@ Se revisó con ojo crítico lo que las pruebas todavía no cubrían. Todo quedó
 
 Los tres quedaron como contenido de las lecciones.
 
+## Segunda auditoría: 31 de octubre de 2026
+
+**Conclusión:** la base estaba sana. El contenido enseña bien y la corrección de ejercicios es sólida: 42 de 44 ejercicios rechazaban imprimir la salida a mano. El punto débil era que el sitio no recordaba al alumno: no sabía dónde quedó, qué olvidó ni qué le convenía hacer hoy.
+
+| Medición | Antes | Después |
+|---|---|---|
+| Ejercicios que entregaban la solución sin pedirla | 44 de 44 | 0 |
+| Preguntas de cuestionario con explicación | 0 de 93 | 93 de 93 |
+| Actividades de error y opción múltiple con pista propia | 0 de 139 | 141 de 141 |
+| Programas que javac rechaza y JavaRun también | 36 de 52 | 52 de 52, con un banco permanente de 31 casos |
+| Elegir siempre la opción más larga | 65% de aciertos | 48% |
+| Responder siempre "Falso" | 63% de aciertos | 49% |
+| Pantallas con desborde horizontal a 360 px | 4 de 9 | 0 de 9 |
+| Código perdido al cerrar Evaluaciones o cambiar de lección | Sí | No |
+| Reingreso en la lección donde quedó | No | Sí |
+| Repaso por fechas | No | Sí, sobre 519 actividades |
+
+### Errores corregidos
+
+| Hallazgo | Efecto | Solución |
+|---|---|---|
+| Cada fallo abría otra pista y la última era la solución, con el rótulo "no da la respuesta" | Se aprobaba copiando, sin costo | Pistas con estructura y huecos. La solución se pide aparte y agrega el ejercicio al repaso |
+| `closeSimulacro` redibujaba toda la lección y no había borradores | Se perdía el código escrito | Solo redibuja si hubo examen, y hay borradores por lección y usuario |
+| `currentLesson` se guardaba y nunca se leía | Cada ingreso arrancaba en la lección 1 | Se guarda `place` y se vuelve ahí |
+| Un error de simulacro en algo aprobado desaparecía al recargar | Se perdía lo que más había que repasar | Se combina por fecha, y el dominio baja |
+| La Práctica no mostraba lo resuelto, y salir y volver reiniciaba los intentos | Ver la respuesta y repetir daba 100% | Estado por actividad. Lo fallado espera hasta mañana |
+| 37 de 56 respuestas abiertas se aprobaban con una sola idea clave | Una palabra daba "¡Bien!" | Mínimo de texto, comparación con la respuesta y autoevaluación en tres niveles |
+| Un programa con etiquetas y salida incorrecta aprobaba cinco ejercicios | Aprobación sin verificar | `unsupported` se rechaza, igual que en los retos |
+| "Clase abstracta" aparecía dos veces en una actividad de Unir | Una respuesta correcta se marcaba mal | Se compara el texto, y las opciones no se repiten |
+| `main` sin `min-width:0` | Una tabla ensanchaba toda la pantalla en el teléfono | Corregido, con medición permanente |
+| El botón Fase 1 no respondía desde la vista bloqueada | Había que usar otro botón | Corregido |
+| La página decía 35 lecciones | Dato viejo | Corregido, y el costado muestra la fase activa |
+
+### Errores que detectó la verificación
+
+| Qué se probó | Qué apareció |
+|---|---|
+| Encender Docker en esta PC | La virtualización está apagada en el BIOS: WSL2 no arranca. Es un requisito del parcial, y quedó en la lección 124 como primer paso |
+| Comparar el proyecto con la clase 9 | El profesor nombró `@ApiResponse` y `@Parameter`, y el ejemplo y la lección 119 solo usaban `@Tag` y `@Operation` |
+| Banco de Java válido contra la revisión nueva | Dos errores viejos: una variable declarada en otro `case` y `name()` dentro de un `enum` daban falso rechazo |
+| Medir a 360 px con emulación móvil | `innerWidth` crece con la página y daba un falso OK: hay que comparar contra el ancho del teléfono |
+
+### Propuestas pendientes
+
+| Propuesta | Por qué |
+|---|---|
+| Reescribir distractores de los cuestionarios | En 35 de 93 preguntas la correcta sigue siendo claramente la más larga. Las 22 corregidas eran de la Práctica |
+| Puntos clave por respuesta abierta | Hoy se compara contra una respuesta modelo. Una lista de ideas calibraría mejor la autoevaluación |
+| Búsqueda entre fases | El buscador mira el contenido, pero solo de la fase activa |
+| Pistas por opción elegida | Hoy la pista es una por actividad, no una por cada error posible |
+| CSP | Primero hay que sacar los `onclick` en línea |
+
 ## Cómo verificar
 
 ```bash
@@ -171,4 +223,10 @@ Para la Fase 2:
 
 ```bash
 node tests/spring-check.js
+```
+
+Para el sitio en un navegador real:
+
+```bash
+node tests/browser.js
 ```

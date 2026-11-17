@@ -74,7 +74,12 @@ var AuthUI = (function () {
       if (hintEl) hintEl.textContent = 'Progreso en la nube';
       if (avatar) {
         if (_user.photoURL) {
-          avatar.innerHTML = '<img src="' + _user.photoURL.replace(/"/g, '') + '" alt="" referrerpolicy="no-referrer">';
+          var photo = document.createElement('img');
+          photo.src = _user.photoURL;
+          photo.alt = '';
+          photo.referrerPolicy = 'no-referrer';
+          avatar.textContent = '';
+          avatar.appendChild(photo);
         } else {
           avatar.textContent = '👤';
         }

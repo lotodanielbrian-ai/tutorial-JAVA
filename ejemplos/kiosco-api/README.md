@@ -9,8 +9,8 @@ Proyecto de referencia de la Fase 2 de Java INPRO: una API REST para gestionar l
 - JPA con H2 en memoria y perfil para MySQL
 - Validación de datos, manejo global de errores y logs
 - 20 tests: unitarios con Mockito, de controller con MockMvc y de integración
-- Documentación con Swagger
-- `Dockerfile` y `docker-compose.yml`
+- Documentación con Swagger: `@Tag`, `@Operation`, `@ApiResponse` y `@Parameter`
+- `Dockerfile`, `Dockerfile.simple` y `docker-compose.yml`
 
 **Regla de negocio:** un producto de más de $5000 lleva 15% de recargo. Se borra de forma lógica.
 
@@ -48,9 +48,47 @@ En Windows, usá `mvnw.cmd spring-boot:run`.
 
 ## Con Docker y MySQL
 
+Primero comprobá que Docker responde: `docker version` tiene que mostrar `Client` y `Server`. En Windows, si dice que no puede iniciar, activá la virtualización en el BIOS: SVM Mode en AMD, VT-x en Intel.
+
 ```bash
 docker compose up --build
 ```
+
+Cuando `db` figure como `healthy` y `api` arranque, abrí `http://localhost:8080/swagger-ui.html`.
+
+| Comando | Para qué |
+|---|---|
+| `docker compose down` | Baja los contenedores y conserva los datos |
+| `docker compose down -v` | También borra el volumen, para probar desde cero |
+| `docker compose logs -f api` | Sigue los logs de la aplicación |
+
+### Versión liviana
+
+El `Dockerfile` compila adentro de Docker: funciona en cualquier máquina, pero baja la imagen de Maven y todas las dependencias. `Dockerfile.simple` solo copia el `.jar` que ya generaste, y construye mucho más rápido:
+
+```bash
+./mvnw clean package
+docker build -f Dockerfile.simple -t kiosco-api .
+```
+
+Para usarlo con Compose, cambiá `build: .` por:
+
+```yaml
+build:
+  context: .
+  dockerfile: Dockerfile.simple
+```
+
+### Solo la base en Docker
+
+Para correr la aplicación desde tu IDE y dejar la base en un contenedor, levantá `db` y usá el puerto publicado:
+
+```bash
+docker compose up -d db
+DB_PORT=3307 ./mvnw spring-boot:run -Dspring-boot.run.profiles=mysql
+```
+
+En PowerShell, la variable se define antes: `$env:DB_PORT = "3307"`.
 
 ## Para estudiar
 

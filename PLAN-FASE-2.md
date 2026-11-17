@@ -8,9 +8,9 @@
 
 | Tema | Decisión |
 |---|---|
-| Desbloqueo | Se abre con las 35 lecciones de la Fase 1 completas. Antes, muestra el recorrido y el avance |
+| Desbloqueo | Se abre con las 35 lecciones de la Fase 1 completas o con la prueba de nivel. Antes, muestra el recorrido y el avance |
 | Lecciones | 25 lecciones en 7 tramos, en `LESSONS_F2` |
-| Actividades | 161 de 10 tipos, más un ejercicio o cuestionario por lección |
+| Actividades | 194 de 11 tipos, más un ejercicio o cuestionario por lección |
 | Certificado | Segundo certificado con el avance de las dos fases. Reusa el diseño del primero sin modificarlo |
 | Ranking | No cambia: la Fase 2 no suma puntos ni escribe en `rankings` |
 | Fase 1 | Sigue con 35 lecciones: su certificado, sus puntajes y su ranking quedan iguales |
@@ -79,7 +79,7 @@ El repositorio es **público**, así que no todo se puede subir.
 |---|---|
 | Integrar a `main` | La rama publicada todavía no está en `main` |
 | Probar con una cuenta real | Login y guardado de la Fase 2 con Firebase real |
-| Probar Docker | El `Dockerfile` y el `docker-compose.yml` no se ejecutaron: Docker no estaba corriendo en esta PC |
+| Probar Docker | El `Dockerfile` y el `docker-compose.yml` no se ejecutaron: esta PC tiene la virtualización apagada en el BIOS. GitHub Actions los prueba en cada push |
 | Clases 10 a 12 | Todavía no están en la carpeta. La 11 y la 12 son material anexo |
 | Segundo parcial | El enunciado se publica después de la clase 9. Conviene ajustar la lección 124 cuando esté |
 | Ranking de la Fase 2 | Quedó afuera a propósito, hasta decidir qué hacer con el ranking |

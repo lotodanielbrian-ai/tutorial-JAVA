@@ -16,7 +16,8 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 | `public/js/javarun.js` | `JavaRun.run(fuente, { stdin })`: intérprete de Java |
 | `public/js/validate.js` | `localValidate`, `judgeProgram`, `conceptCheck`, `gitValidate` y diagnósticos |
 | `public/js/practica-*.js` | `PRACTICA`: actividades por lección, una por tramo |
-| `public/js/practica.js` | `Practica`: dibuja y corrige actividades, simulacros y repaso |
+| `public/js/practica-6-ayudas.js` | Pista del segundo intento, explicación de cada pregunta y pregunta previa. Va aparte para no mover las actividades |
+| `public/js/practica.js` | `Practica`: dibuja y corrige actividades, repaso espaciado, simulacros, parcial práctico, ping-pong y panel |
 | `public/js/fase2-*.js` | `LESSONS_F2` y las actividades de la Fase 2, un archivo por tramo |
 | `public/js/apilab.js` | `ApiLab`: servidor simulado que copia las reglas de `kiosco-api` |
 | `ejemplos/kiosco-api/` | Proyecto Spring Boot real de referencia |
@@ -27,10 +28,13 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 | `firestore.rules` | Reglas de seguridad |
 | `tests/run.js` | Suite completa. `tests/JavaOracle.java` compila y ejecuta con el JDK |
 | `tests/spring-check.js` | Compila fragmentos con Spring, ejecuta SQL en H2 y compara `ApiLab` con la API real |
-| `tests/corpus/` | Programas para comparar el intérprete con Java |
+| `tests/browser.js` | Prueba en Edge o Chrome con Firebase simulado, y mide cada pantalla a 360 px. El guion está en `tests/browser-scenario.js` |
+| `tests/corpus/` | Programas para comparar el intérprete con Java. `Valido.java` junta casos correctos que una revisión torpe rechazaría |
+| `tests/javac-rejects.js` | Programas que javac rechaza aunque el error esté en código que no se ejecuta |
 | `tests/wrong-programs.js` | Programas incorrectos que nunca deben aprobar |
+| `.github/workflows/pruebas.yml` | Corre todo en cada push y levanta `docker compose` de verdad |
 
-El orden de los `<script>` importa: `lessons` → `javarun` → `validate` → `practica-*` → `fase2-*` → `apilab` → `practica` → `progress` → `ranking` → `auth` → `app`.
+El orden de los `<script>` importa: `lessons` → `javarun` → `validate` → `practica-1` a `5` → `fase2-*` → `practica-6-ayudas` → `apilab` → `practica` → `progress` → `ranking` → `auth` → `app`.
 
 ## Las dos fases
 
@@ -45,7 +49,7 @@ El orden de los `<script>` importa: `lessons` → `javarun` → `validate` → `
 | Intentos en `attempts` | Sí | No |
 | Conceptos a exigir | `conceptCheck` por id | `exercise.need` |
 
-`fase2Unlocked()` exige las 35 lecciones. `generateCert2()` cambia el texto de `#cert-print` solo mientras imprime y después lo restaura: el primer certificado y su CSS no se tocan.
+`fase2Unlocked()` exige las 35 lecciones o la prueba de nivel (`fase2.accredited`). La prueba no marca lecciones: el primer certificado sigue pidiendo las 35. `generateCert2()` cambia el texto de `#cert-print` solo mientras imprime y después lo restaura: el primer certificado y su CSS no se tocan.
 
 ## Cómo se evalúa un ejercicio
 
@@ -56,7 +60,7 @@ runCode → localValidate(id, código)
                  ├─ compile     → mensaje en español, con la línea
                  ├─ exception   → error de ejecución real
                  ├─ limit       → bucle infinito detectado
-                 ├─ unsupported → solo conceptCheck, y lo avisa
+                 ├─ unsupported → se rechaza y se explica
                  └─ ok          → compara la salida y luego conceptCheck
 ```
 
@@ -77,7 +81,7 @@ Aprobar exige **dos** cosas: que la consola coincida y que se haya usado el conc
 ```
 
 - `level`: `super`, `basico`, `inter`, `avanzado`, `examen` o `entrevista`.
-- La última pista de un ejercicio es la solución, dentro de un `cb(...)`. Las pruebas la extraen y la compilan.
+- La última pista de un ejercicio es la solución, dentro de un `cb(...)`. Las pruebas la extraen y la compilan. **Nunca llega sola:** `app.js` separa lo que hay antes de "La solución" como pista, agrega la estructura con `Practica.skeleton` y ofrece la solución aparte después de 3 fallos. Pedirla agrega el ejercicio al repaso.
 - `stdin` es la entrada que el emulador le entrega a `Scanner`.
 
 ## Estructura de la práctica
@@ -88,6 +92,7 @@ PRACTICA[7] = {
   objetivos: ['Lo que va a poder hacer'],
   escalera: { vida, modelo, pseudo, java, real },
   tramo: 'super',       // opcional: ofrece el simulacro de ese tramo
+  antes: [pregunta, respuesta],  // opcional: en practica-6-ayudas.js
   items: [ ... ]
 };
 ```
@@ -103,9 +108,10 @@ Todo ítem lleva `t`, `q` y `why`, y puede llevar `hint`. Excepción: `code` usa
 | `bug` | `code`, `line`, `fix`, `noRun?` | Línea elegida |
 | `order` | `lines` en orden correcto, `java?`, `out?` | Secuencia |
 | `match` | `pairs: [[izq, der]]` | Cada par |
-| `short` | `any: [[sinónimos]]`, `model` | Un sinónimo de cada grupo, sin tildes ni mayúsculas |
+| `short` | `any: [[sinónimos]]`, `model` | Lo decide quien responde, comparando con `model`. `any` solo avisa si falta una idea clave |
 | `code` | `title`, `task`, `starter`, `expected`, `solution`, `need`, `hint`, `stdin?` | `judgeProgram` y las expresiones de `need` |
 | `http` | `task`, `goal`, `demo` | `ApiLab.reached`: verbo, ruta, estado y texto de la respuesta |
+| `step` | `do`, `cmd?`, `ok`, `fail?` | Quien lo hace marca que lo comprobó. No vuelve al repaso |
 
 - Si `code` no contiene una clase, las pruebas lo envuelven en un `main`.
 - `noRun: true` es para lo que no se puede ejecutar, como comandos git o fragmentos.
@@ -113,18 +119,24 @@ Todo ítem lleva `t`, `q` y `why`, y puede llevar `hint`. Excepción: `code` usa
 - `demo` en un ítem `http` son los pasos que cumplen el objetivo: la prueba los ejecuta.
 - Un `bug` debe resolverse **cambiando una sola línea**, y `line` cuenta desde 1 sobre el código que se muestra.
 
-**El identificador de un ítem es `lección-posición`.** Agregá actividades al final: si reordenás, los puntajes guardados apuntan a otra actividad.
+**El identificador de un ítem es `lección-posición`.** Agregá actividades al final: si reordenás, los puntajes guardados apuntan a otra actividad. `x7` es el ejercicio de la lección 7: lo usan el parcial práctico y el repaso.
+
+Los simulacros solo usan actividades con corrección objetiva: ni `short`, que va al ping-pong, ni `code`, `http` y `step`.
 
 ## Datos en Firestore
 
 | Ruta | Contenido |
 |---|---|
 | `users/{uid}` | Perfil, incluido el email. Solo lo lee quien es dueño |
-| `progress/{uid}` | `completedLessons`, `certificateEarned`, `completionDate`, `practice` |
+| `progress/{uid}` | `completedLessons`, `certificateEarned`, `completionDate`, `practice`, `fase2`, `place` |
 | `attempts/{uid}/lessons/{id}` | Intentos y mejor nota |
 | `rankings/{uid}` | Ranking público |
 
-`practice` guarda `{ scores: { '7-3': 1 }, wrong: ['7-5'], sims: [...] }`. Puntaje por ítem: 1 al primer intento, 0.5 al segundo, 0 si se reveló.
+`practice` guarda `{ scores: { '7-3': 1 }, wrong: ['7-5'], sims: [...], reviews: { '7-3': { box, due, at } }, help: { 8: fecha } }`. Puntaje por ítem: 1 al primer intento, 0.5 al segundo, 0 si se reveló.
+
+**Repaso espaciado.** `reviews` decide cuándo vuelve cada actividad. Acertar sube de caja (1, 3, 7, 14 y 30 días) y fallar la trae mañana, con `box: 0`. Mientras espera queda bloqueada, para que ver la respuesta y repetir no cuente. Repetir antes de la fecha no suma. Una actividad con `box: 0` vale como máximo 0.5 en el dominio. Entre dispositivos gana el `at` más reciente (`mergePractice`).
+
+`place` guarda `{ fase, f1, f2, at }`, con ids de lección: el reingreso vuelve ahí. Los borradores del editor quedan solo en `localStorage`, en `java_draft_<id>:<uid>`.
 
 ## Reglas que no hay que romper
 
@@ -148,15 +160,19 @@ Todo ítem lleva `t`, `q` y `why`, y puede llevar `hint`. Excepción: `code` usa
 
 Es un intérprete sin análisis de tipos completo. Sí detecta, porque el curso lo enseña: tipos incompatibles, cast faltante, variable sin inicializar, `private`, `static`, `import` faltante, `final`, método abstracto sin implementar, `@Override` inválido, `return` faltante, excepciones checked sin manejar, orden de `catch` y métodos ausentes en el tipo declarado.
 
-Soporta `record`, `enum`, `Map`, `Optional`, lambdas, referencias a métodos y streams básicos.
+`reviewCode` y `reviewClasses` revisan todo el programa antes de ejecutarlo, también las ramas que no se recorren: símbolos, métodos, tipos simples, código inalcanzable, `break` fuera de lugar, `case` y métodos duplicados, herencia de `final`, sobrescrituras incompatibles y genéricos con primitivos. **Regla: ante la duda, no marcar.** Un programa correcto rechazado es peor que un error que se detecta al ejecutar. Por eso los tipos desconocidos pasan, y `tests/corpus/Valido.java` vigila los falsos rechazos.
 
-No detecta símbolos inexistentes en ramas que no se ejecutan. No soporta Spring, `HashSet`, varargs, clases anónimas, clases internas que usan al objeto externo, etiquetas ni bloques de texto: devuelve `unsupported`, y el validador lo informa.
+Soporta `record`, `enum`, `Map`, `Set`, `Optional`, lambdas, referencias a métodos y streams básicos. `HashSet` y `HashMap` recorren en el mismo orden que Java.
+
+No soporta Spring, varargs, clases anónimas, clases internas que usan al objeto externo, etiquetas ni bloques de texto: devuelve `unsupported`, y el validador lo rechaza con una explicación.
 
 ## Comandos
 
 ```bash
 node tests/run.js                                  # pruebas: requiere Node y un JDK
 node tests/spring-check.js                         # Spring, SQL y API real: requiere además Maven
+node tests/browser.js                              # navegador real: requiere Edge o Chrome
+VIEWS=practica,pasos node tests/browser.js         # solo esas pantallas, a 360 px
 py -m http.server 8765 --directory public          # sitio en local
 firebase deploy --only hosting,firestore           # publicar sitio y reglas
 ./mvnw spring-boot:run                             # en ejemplos/kiosco-api

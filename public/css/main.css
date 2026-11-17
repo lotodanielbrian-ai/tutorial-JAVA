@@ -526,3 +526,46 @@ body.authed #login-gate{display:none!important}
 .lab-body{margin-top:8px}
 @media(max-width:640px){.f2-roadmap ol{columns:1}}
 @media print{#sim-overlay{display:none!important}body.printing-cert2 .layout{display:none!important}}
+
+/* Memoria del alumno: estado por actividad, repaso, mapa y pasos */
+.sb-seguir{display:block;width:calc(100% - 32px);margin:10px 16px 0;padding:9px 12px;background:var(--java-bg);border:1px solid var(--java-b);color:var(--java);border-radius:var(--r);font:inherit;font-size:13px;font-weight:700;text-align:left;cursor:pointer}
+.sb-seguir:hover{filter:brightness(1.1)}
+.pr-status{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:99px;border:1px solid var(--border)}
+.pr-status.solved{color:var(--green,#34d399)}
+.pr-status.wait{color:var(--text3)}
+.pr-status.due{color:var(--java);border-color:var(--java-b)}
+.pr-fs{border:0;margin:0;padding:0;min-width:0;opacity:.75}
+.pr-filter{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);margin:8px 0;cursor:pointer}
+.pr-list.only-pending .is-solved,.pr-list.only-pending .is-wait{display:none}
+.pr-rate{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px}
+.pr-step-ok{font-size:13.5px;line-height:1.6;margin-top:10px;padding:10px 12px;border-left:3px solid var(--java);background:var(--bg3);border-radius:0 var(--r) var(--r) 0}
+.pr-step-fail{font-size:13px;line-height:1.6;margin-top:8px;color:var(--text2)}
+.pr-step-fail summary{cursor:pointer;font-weight:600}
+.pr-map{list-style:none;margin:8px 0 0;padding:0}
+.pr-map li{display:grid;grid-template-columns:minmax(110px,170px) 1fr 44px;gap:10px;align-items:center;padding:7px 0;font-size:13px}
+.pr-map li .pr-bar{height:8px}
+.pr-map li>.pr-link{grid-column:1 / -1;justify-self:start;font-size:12.5px}
+.sim-btns{display:flex;flex-wrap:wrap;gap:8px}
+.sim-today{border-color:var(--java-b)}
+
+/* Un hijo de grid no se achica por debajo de su contenido: sin esto, una tabla o un código ensanchan toda la columna */
+.main{min-width:0}
+.pr-pre,.pr-item{max-width:100%}
+.pr-pre{overflow-x:auto}
+@media(max-width:860px){
+.sym-tbl{display:block;max-width:100%;overflow-x:auto}
+}
+
+.quiz-why{margin-top:8px;padding:9px 12px;font-size:13.5px;line-height:1.6;color:var(--text2);background:var(--bg3);border-radius:var(--r)}
+/* El botón del menú queda fijo arriba: sin este margen tapa la etiqueta de nivel */
+@media(max-width:860px){.main{padding-top:64px}}
+
+/* Accesibilidad */
+:focus-visible{outline:2px solid var(--java);outline-offset:2px}
+.quiz-option{position:relative}
+.quiz-option input.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
+.quiz-option:focus-within{outline:2px solid var(--java);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){
+*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+.confetti-container{display:none}
+}

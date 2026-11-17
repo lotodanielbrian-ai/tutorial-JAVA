@@ -94,6 +94,17 @@ var Progress = (function () {
     removeKey('java_cert_shown', uid);
     removeKey('java_practice', uid);
     removeKey('java_fase2', uid);
+    removeKey('java_place', uid);
+    clearDrafts(uid);
+  }
+
+  function clearDrafts(uid) {
+    try {
+      for (var i = localStorage.length - 1; i >= 0; i--) {
+        var k = localStorage.key(i);
+        if (k.indexOf('java_draft_') === 0 && k.slice(-(uid.length + 1)) === ':' + uid) localStorage.removeItem(k);
+      }
+    } catch (e) { /* ignore */ }
   }
 
   function saveLocalCache(uid, completedLessons, scores, extras) {
@@ -108,7 +119,7 @@ var Progress = (function () {
 
   function loadLocalCache(uid) {
     if (!uid) {
-      return { completedLessons: [], scores: {}, completionDate: null, certShown: null, practice: null };
+      return { completedLessons: [], scores: {}, completionDate: null, certShown: null, practice: null, place: null };
     }
     var completedLessons = getJson('java_done_v2', uid, []);
     if (!Array.isArray(completedLessons)) completedLessons = [];
@@ -120,7 +131,8 @@ var Progress = (function () {
       completionDate: getStr('java_completion_date', uid),
       certShown: getStr('java_cert_shown', uid),
       practice: getJson('java_practice', uid, null),
-      fase2: getJson('java_fase2', uid, null)
+      fase2: getJson('java_fase2', uid, null),
+      place: getJson('java_place', uid, null)
     };
   }
 
@@ -144,6 +156,7 @@ var Progress = (function () {
       certShown: local.certShown || null,
       practice: mergePractice(local.practice, remote && remote.practice),
       fase2: mergeFase2(local.fase2, remote && remote.fase2),
+      place: newestPlace(local.place, remote && remote.place),
       certificateEarned: !!(remote && remote.certificateEarned) ||
         mergedDone.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 35)
     };
@@ -156,9 +169,22 @@ var Progress = (function () {
     Object.keys(b.scores || {}).forEach(function (k) {
       scores[k] = Math.max(scores[k] === undefined ? 0 : scores[k], b.scores[k]);
     });
-    var wrong = Array.from(new Set((a.wrong || []).concat(b.wrong || []))).filter(function (k) { return scores[k] < 1; });
+    // Gana el resultado más reciente: un error nuevo sobre algo ya aprobado no se pierde
+    var reviews = Object.assign({}, a.reviews || {});
+    Object.keys(b.reviews || {}).forEach(function (k) {
+      if (!reviews[k] || (b.reviews[k].at || 0) > (reviews[k].at || 0)) reviews[k] = b.reviews[k];
+    });
+    var wrong = Array.from(new Set((a.wrong || []).concat(b.wrong || []))).filter(function (k) {
+      return reviews[k] ? reviews[k].box === 0 : scores[k] < 1;
+    });
     var sims = (a.sims || []).length >= (b.sims || []).length ? (a.sims || []) : b.sims;
-    return { scores: scores, wrong: wrong, sims: sims };
+    return { scores: scores, wrong: wrong, sims: sims, reviews: reviews, help: Object.assign({}, b.help || {}, a.help || {}) };
+  }
+
+  function newestPlace(local, remote) {
+    if (!local) return remote || null;
+    if (!remote) return local;
+    return (remote.at || 0) > (local.at || 0) ? remote : local;
   }
 
   function mergeFase2(local, remote) {
@@ -167,7 +193,8 @@ var Progress = (function () {
     return {
       done: Array.from(new Set((a.done || []).concat(b.done || []))),
       completionDate: a.completionDate || b.completionDate || null,
-      certShown: !!(a.certShown || b.certShown)
+      certShown: !!(a.certShown || b.certShown),
+      accredited: a.accredited || b.accredited || null
     };
   }
 
@@ -183,20 +210,50 @@ var Progress = (function () {
   }
 
   var practiceTimer = null;
+  var pendingPractice = null;
+
+  function flushPractice() {
+    if (practiceTimer) clearTimeout(practiceTimer);
+    practiceTimer = null;
+    var pending = pendingPractice;
+    pendingPractice = null;
+    if (!pending) return;
+    var user = currentUser();
+    if (!firebaseReady || !user || user.uid !== pending.uid) return;
+    firebaseDb.collection('progress').doc(pending.uid).set({ practice: pending.practice }, { merge: true }).catch(function (err) {
+      console.warn('[Progress] savePractice failed', err);
+    });
+  }
 
   function savePractice(practice) {
     var uid = activeUid();
     if (!uid) return;
     setJson('java_practice', uid, practice);
+    pendingPractice = { uid: uid, practice: practice };
     if (practiceTimer) clearTimeout(practiceTimer);
-    practiceTimer = setTimeout(function () {
+    practiceTimer = setTimeout(flushPractice, 1500);
+  }
+
+  var placeTimer = null;
+
+  function savePlace(place) {
+    var uid = activeUid();
+    if (!uid) return;
+    setJson('java_place', uid, place);
+    if (placeTimer) clearTimeout(placeTimer);
+    placeTimer = setTimeout(function () {
       var user = currentUser();
       if (!firebaseReady || !user || user.uid !== uid) return;
-      firebaseDb.collection('progress').doc(uid).set({ practice: practice }, { merge: true }).catch(function (err) {
-        console.warn('[Progress] savePractice failed', err);
+      firebaseDb.collection('progress').doc(uid).set({ place: place }, { merge: true }).catch(function (err) {
+        console.warn('[Progress] savePlace failed', err);
       });
-    }, 1500);
+    }, 2000);
   }
+
+  // Los borradores quedan en este navegador: el código a medio escribir no necesita viajar
+  function saveDraft(id, code) { setStr('java_draft_' + id, activeUid(), code); }
+  function loadDraft(id) { return getStr('java_draft_' + id, activeUid()); }
+  function clearDraft(id) { removeKey('java_draft_' + id, activeUid()); }
 
   function syncProgress(completedLessons, currentLesson, certificateEarned) {
     var user = currentUser();
@@ -295,7 +352,8 @@ var Progress = (function () {
         certificateEarned: !!progData.certificateEarned,
         completionDate: finished,
         practice: progData.practice || null,
-        fase2: progData.fase2 || null
+        fase2: progData.fase2 || null,
+        place: progData.place || null
       };
     }).catch(function (err) {
       console.warn('[Progress] loadRemote failed', err);
@@ -347,6 +405,8 @@ var Progress = (function () {
   // One-time: strip dangerous shared keys
   purgeLegacyGlobalKeys();
 
+  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', flushPractice);
+
   return {
     syncProgress: syncProgress,
     saveAttempt: saveAttempt,
@@ -357,6 +417,11 @@ var Progress = (function () {
     saveQuizScores: saveQuizScores,
     savePractice: savePractice,
     saveFase2: saveFase2,
+    savePlace: savePlace,
+    saveDraft: saveDraft,
+    loadDraft: loadDraft,
+    clearDraft: clearDraft,
+    mergePractice: mergePractice,
     markCertShown: markCertShown,
     wasCertShown: wasCertShown,
     getCompletionDate: getCompletionDate,

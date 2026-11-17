@@ -29,6 +29,12 @@ var JavaRun = (function () {
   function ClassOf(name) { this.name = name; }
   function Native(kind, st) { this.kind = kind; this.st = st || {}; this.id = nextId(); }
   function JMap(kind) { this.kind = kind; this.e = []; this.peak = 0; this.id = nextId(); }
+  // Un Set es un mapa por dentro, como en Java: de ahí sale su orden. a guarda los elementos en ese orden.
+  function JSet(kind) {
+    JList.call(this, [], kind);
+    this.m = new JMap(kind === 'HashSet' ? 'HashMap' : kind === 'TreeSet' ? 'TreeMap' : 'LinkedHashMap');
+  }
+  JSet.prototype = Object.create(JList.prototype);
   function JEntry(k, v) { this.k = k; this.v = v; }
   function JOpt(v) { this.v = v; }
   function JFn(call) { this.call = call; this.id = nextId(); }
@@ -264,7 +270,7 @@ var JavaRun = (function () {
       var line = t().line;
       var name = ident();
       if (is('<')) typeArgs();
-      var c = { name: name, line: line, sup: null, ifaces: [], isAbstract: !!m.abstract || isInterface, isInterface: isInterface, fields: [], methods: [], ctors: [], inits: [], statics: [], isEnum: isEnum, isRecord: isRecord, enumConsts: [], recParams: null, compact: null };
+      var c = { name: name, line: line, sup: null, ifaces: [], isFinal: !!m.final, isAbstract: !!m.abstract || isInterface, isInterface: isInterface, fields: [], methods: [], ctors: [], inits: [], statics: [], isEnum: isEnum, isRecord: isRecord, enumConsts: [], recParams: null, compact: null };
       if (isRecord) c.recParams = params();
       if (eat('extends')) {
         if (isInterface) {
@@ -365,7 +371,7 @@ var JavaRun = (function () {
           if (!c.isInterface && !m.abstract && !m.native) fail('missing method body, or declare abstract', 'Este método no tiene cuerpo { }. Agregale llaves o declaralo abstract.', line);
         }
         if (body && m.abstract) fail('abstract methods cannot have a body', 'Un método abstract no lleva cuerpo: termina en punto y coma.', line);
-        c.methods.push({ name: nm, params: plist, ret: ty, body: body, isStatic: !!m.static, isAbstract: !body, access: access(m), throwsList: th, cls: c.name, line: line, override: !!m.override });
+        c.methods.push({ name: nm, params: plist, ret: ty, body: body, isStatic: !!m.static, isFinal: !!m.final, isAbstract: !body, access: access(m), throwsList: th, cls: c.name, line: line, override: !!m.override });
         return;
       }
       for (;;) {
@@ -412,6 +418,8 @@ var JavaRun = (function () {
     function localDecl() {
       var line = t().line;
       var m = modifiers();
+      // List<String> guarda el tipo de sus elementos para revisar lo que se le agrega
+      var gen = la(1).v === '<' && la(2).k === 'id' && la(3).v === '>' ? la(2).v : null;
       var ty = type();
       var decls = [];
       do {
@@ -420,7 +428,7 @@ var JavaRun = (function () {
         while (is('[')) { p++; expect(']'); dty += '[]'; }
         var init = null;
         if (eat('=')) init = is('{') ? arrayInit(dty) : expr();
-        decls.push({ name: nm, type: dty, init: init, isFinal: !!m.final, line: line });
+        decls.push({ name: nm, type: dty, init: init, isFinal: !!m.final, gen: gen, line: line });
       } while (eat(','));
       return { k: 'local', decls: decls, line: line };
     }
@@ -1202,6 +1210,7 @@ var JavaRun = (function () {
         return ancestors(v.cls).some(function (k) { return k.name === name; });
       }
       if (v instanceof JStr) return name === 'String' || name === 'CharSequence' || name === 'Comparable';
+      if (v instanceof JSet) return name === v.kind || name === 'Set' || name === 'Collection' || name === 'Iterable';
       if (v instanceof JList) return name === v.kind || name === 'List' || name === 'Collection' || name === 'Iterable';
       if (v instanceof JSb) return name === 'StringBuilder' || name === 'StringBuffer' || name === 'CharSequence';
       if (BOXED[name]) return typeName(v) === BOXED[name];
@@ -1306,6 +1315,7 @@ var JavaRun = (function () {
       File: 'java.io', FileWriter: 'java.io', FileReader: 'java.io', BufferedWriter: 'java.io', BufferedReader: 'java.io', PrintWriter: 'java.io',
       IOException: 'java.io', FileNotFoundException: 'java.io',
       Map: 'java.util', HashMap: 'java.util', LinkedHashMap: 'java.util', TreeMap: 'java.util', Optional: 'java.util', Comparator: 'java.util',
+      Set: 'java.util', HashSet: 'java.util', LinkedHashSet: 'java.util', TreeSet: 'java.util',
       Function: 'java.util.function', BiFunction: 'java.util.function', Predicate: 'java.util.function', Consumer: 'java.util.function', Supplier: 'java.util.function', UnaryOperator: 'java.util.function', BinaryOperator: 'java.util.function',
       Stream: 'java.util.stream', IntStream: 'java.util.stream', Collectors: 'java.util.stream'
     });
@@ -1376,6 +1386,385 @@ var JavaRun = (function () {
           scanThrows(m.body, m.throwsList.slice());
         });
         c.ctors.forEach(function (ct) { scanThrows(ct.body, ct.throwsList.slice()); });
+      });
+    }
+
+    // ── Revisión de todo el código, también el que no se ejecuta ───────
+    // javac mira el programa entero; la ejecución solo ve el camino que tomó.
+    // Solo marca lo que es seguro: ante la duda, lo decide la ejecución.
+    var NUM_RANK = dict({ 'byte': 1, 'short': 2, 'char': 2, 'int': 3, 'long': 4, 'float': 5, 'double': 6 });
+    var STRING_METHODS = dict({});
+    ('length isEmpty isBlank charAt codePointAt codePointBefore codePointCount offsetByCodePoints getChars getBytes equals contentEquals equalsIgnoreCase ' +
+      'compareTo compareToIgnoreCase regionMatches startsWith endsWith hashCode indexOf lastIndexOf substring subSequence concat replace replaceAll replaceFirst ' +
+      'matches contains split toLowerCase toUpperCase trim strip stripLeading stripTrailing stripIndent translateEscapes lines indent transform chars codePoints ' +
+      'toString intern repeat formatted format valueOf copyValueOf join toCharArray getClass describeConstable resolveConstantDesc').split(' ').forEach(function (m) { STRING_METHODS[m] = 1; });
+    var OBJECT_METHODS = dict({ toString: 1, equals: 1, hashCode: 1, getClass: 1, notify: 1, notifyAll: 1, wait: 1, clone: 1, finalize: 1, values: 1, valueOf: 1, ordinal: 1, name: 1, compareTo: 1 });
+    var RETURN_PRIMS = dict({ 'void': 1, 'int': 1, 'double': 1, 'float': 1, 'long': 1, 'short': 1, 'byte': 1, 'boolean': 1, 'char': 1 });
+    var ACCESS_RANK = dict({ 'public': 3, 'protected': 2, '': 1 });
+    var LIST_TYPES = dict({ List: 1, ArrayList: 1, LinkedList: 1, Collection: 1, Set: 1, HashSet: 1, LinkedHashSet: 1, TreeSet: 1 });
+
+    function hasNativeParent(c) {
+      return ancestors(c).some(function (k) { return k.builtin && k.name !== 'Object'; }) ||
+        (c.sup && !classes[c.sup]) || c.ifaces.some(function (i) { return !classes[i] || classes[i].builtin; });
+    }
+
+    function fits(to, from) {
+      if (!to || !from) return true;
+      if (NUM_RANK[to]) {
+        if (from === 'String' || from === 'boolean') return false;
+        if (!NUM_RANK[from]) return true;
+        // Una constante int entra en byte, short y char: acá no se distingue, y no se marca
+        if (from === 'int' && NUM_RANK[to] < 3) return true;
+        return NUM_RANK[from] <= NUM_RANK[to];
+      }
+      if (to === 'boolean') return !(from === 'String' || NUM_RANK[from]);
+      if (to === 'String') return !(from === 'boolean' || NUM_RANK[from]);
+      return true;
+    }
+
+    function promoted(a, b) {
+      if (!NUM_RANK[a] || !NUM_RANK[b]) return null;
+      var top = Math.max(NUM_RANK[a], NUM_RANK[b]);
+      return top <= 3 ? 'int' : top === 4 ? 'long' : top === 5 ? 'float' : 'double';
+    }
+
+    function fieldType(c, name) {
+      var found = null;
+      ancestors(c).forEach(function (k) {
+        k.fields.forEach(function (f) { if (!found && f.name === name) found = f.type; });
+      });
+      return found;
+    }
+
+    function userMethods(c, name, arity) {
+      var list = [];
+      ancestors(c).forEach(function (k) {
+        k.methods.forEach(function (m) { if (m.name === name && m.params.length === arity) list.push(m); });
+      });
+      return list;
+    }
+
+    function reviewCode(list) {
+      var fieldNames = dict({});
+      var methodArity = dict({});
+      list.forEach(function (c) {
+        c.fields.forEach(function (f) { fieldNames[f.name] = 1; });
+        c.enumConsts.forEach(function (e) { fieldNames[e.name] = 1; });
+        (c.recParams || []).forEach(function (p) { fieldNames[p.name] = 1; methodArity[p.name] = [0]; });
+        c.methods.forEach(function (m) { (methodArity[m.name] = methodArity[m.name] || []).push(m.params.length); });
+      });
+
+      function typeOf(e, sc, ctx) {
+        if (!e) return null;
+        switch (e.k) {
+          case 'lit': return e.lt === 'null' ? null : e.lt;
+          case 'name': return sc[e.name] ? sc[e.name].type : fieldType(ctx.cls, e.name);
+          case 'cast': return e.type;
+          case 'un': return e.op === '!' ? 'boolean' : promoted(typeOf(e.e, sc, ctx), 'int');
+          case 'incdec': return typeOf(e.e, sc, ctx);
+          case 'new': return e.name;
+          case 'cond': {
+            var ta = typeOf(e.a, sc, ctx);
+            return ta === typeOf(e.b, sc, ctx) ? ta : null;
+          }
+          case 'bin': {
+            if (/^(==|!=|<|>|<=|>=|&&|\|\|)$/.test(e.op)) return 'boolean';
+            var a = typeOf(e.a, sc, ctx), b = typeOf(e.b, sc, ctx);
+            if (e.op === '+' && (a === 'String' || b === 'String')) return 'String';
+            return /^(\+|-|\*|\/|%)$/.test(e.op) ? promoted(a, b) : null;
+          }
+          case 'call': {
+            if (e.target) return null;
+            var found = userMethods(ctx.cls, e.name, e.args.length);
+            return found.length === 1 && (RETURN_PRIMS[found[0].ret] || found[0].ret === 'String') ? found[0].ret : null;
+          }
+          default: return null;
+        }
+      }
+
+      function mustFit(to, e, sc, ctx, line) {
+        if (e && e.k === 'cond') {
+          mustFit(to, e.a, sc, ctx, line);
+          mustFit(to, e.b, sc, ctx, line);
+          return;
+        }
+        var from = typeOf(e, sc, ctx);
+        if (fits(to, from)) return;
+        if (NUM_RANK[to] && NUM_RANK[from]) {
+          compileErr(line, 'incompatible types: possible lossy conversion from ' + from + ' to ' + to, 'Un ' + from + ' no entra en un ' + to + ' sin perder datos. Si es lo que querés, hacé un cast: (' + to + ') valor.');
+        }
+        compileErr(line, 'incompatible types: ' + from + ' cannot be converted to ' + to, 'Estás guardando un ' + from + ' donde va un ' + to + '. Revisá el tipo de la variable y el valor.');
+      }
+
+      function condition(e, sc, ctx) {
+        if (!e) return;
+        exprCheck(e, sc, ctx);
+        var ty = typeOf(e, sc, ctx);
+        if (ty === 'String' || NUM_RANK[ty]) compileErr(e.line, 'incompatible types: ' + ty + ' cannot be converted to boolean', 'Una condición tiene que dar true o false. Para comparar se usa ==.');
+      }
+
+      function declareLocal(sc, name, info, line) {
+        if (sc[name] && sc[name].local && !sc[name].bind) {
+          compileErr(line, 'variable ' + name + ' is already defined', 'Ya declaraste ' + name + ' antes. Para cambiar su valor, escribí ' + name + ' = valor; sin el tipo adelante.');
+        }
+        sc[name] = info;
+      }
+
+      function checkAdd(e, sc, ctx) {
+        var slot = e.target.k === 'name' && sc[e.target.name];
+        if (!slot || !slot.gen || !LIST_TYPES[slot.type] || e.name !== 'add' || e.args.length !== 1) return;
+        var given = typeOf(e.args[0], sc, ctx);
+        var bad = slot.gen === 'String' ? (given === 'boolean' || NUM_RANK[given]) :
+          slot.gen === 'Integer' ? (given === 'String' || given === 'boolean' || given === 'double' || given === 'long') :
+          slot.gen === 'Double' ? (given === 'String' || given === 'boolean' || given === 'int') : false;
+        if (bad) compileErr(e.line, 'incompatible types: ' + given + ' cannot be converted to ' + slot.gen, 'Esta lista guarda ' + slot.gen + ', y le estás agregando un ' + given + '.');
+      }
+
+      function checkCall(e, sc, ctx) {
+        if (!e.target) {
+          var arities = methodArity[e.name];
+          if (!arities) {
+            if (!OBJECT_METHODS[e.name] && !hasNativeParent(ctx.cls) && !ctx.cls.outer) compileErr(e.line, 'cannot find symbol: method ' + e.name, 'El método ' + e.name + ' no existe con esos argumentos. Revisá el nombre (Java distingue mayúsculas), la cantidad y los tipos.');
+          } else if (arities.indexOf(e.args.length) === -1 && !hasNativeParent(ctx.cls)) {
+            compileErr(e.line, 'cannot find symbol: method ' + e.name, 'El método ' + e.name + ' no existe con esos argumentos. Revisá el nombre (Java distingue mayúsculas), la cantidad y los tipos.');
+          }
+          return;
+        }
+        checkAdd(e, sc, ctx);
+        var ty = e.target.k === 'lit' ? e.target.lt : e.target.k === 'name' && sc[e.target.name] ? sc[e.target.name].type : null;
+        if (ty === 'String' && !STRING_METHODS[e.name]) {
+          compileErr(e.line, 'cannot find symbol: method ' + e.name, 'Un String no tiene ' + e.name + '(). Revisá el nombre (Java distingue mayúsculas).');
+        }
+        var decl = ty && classes[ty];
+        if (!decl || decl.builtin || decl.isEnum || decl.isRecord || OBJECT_METHODS[e.name] || hasNativeParent(decl)) return;
+        var known = ancestors(decl).some(function (k) { return k.methods.some(function (m) { return m.name === e.name && m.params.length === e.args.length; }); });
+        if (!known) compileErr(e.line, 'cannot find symbol: method ' + e.name, 'La variable ' + e.target.name + ' es de tipo ' + ty + ', y ese tipo no tiene ' + e.name + '(). Declarala con el tipo que lo tiene o hacé un cast.');
+      }
+
+      function checkFinalWrite(target, sc) {
+        var slot = target.k === 'name' && sc[target.name];
+        if (slot && slot.isFinal && slot.hasValue) compileErr(target.line, 'cannot assign a value to final variable ' + target.name, target.name + ' es final: una vez asignada no puede cambiar.');
+      }
+
+      function switchCheck(n, sc, ctx) {
+        exprCheck(n.e, sc, ctx);
+        var seen = dict({});
+        var defaults = 0;
+        var inner = Object.assign({}, ctx, { sw: true });
+        var scope = Object.create(sc);
+        n.cases.forEach(function (c) {
+          if (c.isDefault && ++defaults > 1) compileErr(n.line, 'duplicate default label', 'Un switch solo puede tener un default.');
+          c.labels.forEach(function (l) {
+            var id = l.k === 'lit' ? typeof l.v + ':' + l.v : l.k === 'name' ? 'name:' + l.name : null;
+            if (!id) return;
+            if (seen[id]) compileErr(l.line || n.line, 'duplicate case label', 'Este case ya está en el switch: cada valor puede aparecer una sola vez.');
+            seen[id] = 1;
+          });
+          stmts(c.body, c.arrow ? Object.create(sc) : scope, inner);
+        });
+      }
+
+      function exprCheck(e, sc, ctx) {
+        if (!e || typeof e !== 'object') return;
+        if (Array.isArray(e)) { e.forEach(function (x) { exprCheck(x, sc, ctx); }); return; }
+        switch (e.k) {
+          case 'name':
+            if (/^[a-z]/.test(e.name) && !sc[e.name] && !fieldNames[e.name] && !hasNativeParent(ctx.cls)) {
+              compileErr(e.line, 'cannot find symbol: ' + e.name, e.name + ' no está declarada. Revisá que exista, que el nombre sea idéntico (Java distingue mayúsculas) y que esté en este bloque.');
+            }
+            return;
+          case 'call':
+            exprCheck(e.args, sc, ctx);
+            if (e.target) exprCheck(e.target, sc, ctx);
+            checkCall(e, sc, ctx);
+            return;
+          case 'field':
+            exprCheck(e.target, sc, ctx);
+            return;
+          case 'lambda': {
+            var inner = Object.create(sc);
+            e.params.forEach(function (p) { inner[typeof p === 'string' ? p : p.name] = { type: null, local: true }; });
+            var lctx = { cls: ctx.cls, ret: null, loop: false, sw: false };
+            if (e.isExpr) exprCheck(e.body, inner, lctx);
+            else stmt(e.body, inner, lctx);
+            return;
+          }
+          case 'assign':
+            exprCheck(e.target, sc, ctx);
+            exprCheck(e.v, sc, ctx);
+            checkFinalWrite(e.target, sc);
+            if (e.op === '=' && e.target.k === 'name') {
+              var slotType = typeOf(e.target, sc, ctx);
+              mustFit(slotType, e.v, sc, ctx, e.line);
+            }
+            return;
+          case 'incdec':
+            exprCheck(e.e, sc, ctx);
+            checkFinalWrite(e.e, sc);
+            return;
+          case 'cast':
+            exprCheck(e.e, sc, ctx);
+            return;
+          case 'switche':
+            switchCheck(e, sc, ctx);
+            return;
+          case 'instanceof':
+            exprCheck(e.e, sc, ctx);
+            if (e.bind) sc[e.bind] = { type: e.type, local: true, bind: true };
+            return;
+          case 'mref': case 'lit': case 'this': case 'super':
+            return;
+        }
+        Object.keys(e).forEach(function (key) {
+          if (key !== 'line' && key !== 'k' && typeof e[key] === 'object') exprCheck(e[key], sc, ctx);
+        });
+      }
+
+      function endsFlow(s) {
+        if (s.k === 'return' || s.k === 'throw' || s.k === 'break' || s.k === 'continue') return true;
+        if (s.k === 'while') return s.c.k === 'lit' && s.c.v === true && !hasBreak(s.body);
+        if (s.k === 'for') return !s.c && !hasBreak(s.body);
+        return false;
+      }
+
+      function stmts(body, sc, ctx) {
+        body.forEach(function (s, i) {
+          stmt(s, sc, ctx);
+          if (endsFlow(s) && body[i + 1]) compileErr(body[i + 1].line, 'unreachable statement', 'Esta línea nunca se ejecuta: la anterior termina el bloque.');
+        });
+      }
+
+      function stmt(s, sc, ctx) {
+        if (!s) return;
+        var inner;
+        switch (s.k) {
+          case 'block':
+            stmts(s.body, Object.create(sc), ctx);
+            return;
+          case 'local':
+            s.decls.forEach(function (d) {
+              if (d.init && d.init.k !== 'arrlit') {
+                exprCheck(d.init, sc, ctx);
+                if (d.type !== 'var') mustFit(d.type, d.init, sc, ctx, d.line);
+              } else if (d.init) exprCheck(d.init, sc, ctx);
+              var ty = d.type === 'var' ? typeOf(d.init, sc, ctx) : d.type;
+              declareLocal(sc, d.name, { type: ty, local: true, isFinal: d.isFinal, hasValue: !!d.init, gen: d.gen }, d.line);
+            });
+            return;
+          case 'if':
+            condition(s.c, sc, ctx);
+            stmt(s.a, Object.create(sc), ctx);
+            stmt(s.b, Object.create(sc), ctx);
+            return;
+          case 'while':
+            condition(s.c, sc, ctx);
+            stmt(s.body, Object.create(sc), Object.assign({}, ctx, { loop: true }));
+            return;
+          case 'do':
+            stmt(s.body, Object.create(sc), Object.assign({}, ctx, { loop: true }));
+            condition(s.c, sc, ctx);
+            return;
+          case 'for':
+            inner = Object.create(sc);
+            (s.init || []).forEach ? (s.init || []).forEach(function (x) { stmt(x, inner, ctx); }) : stmt(s.init, inner, ctx);
+            condition(s.c, inner, ctx);
+            exprCheck(s.upd, inner, ctx);
+            stmt(s.body, Object.create(inner), Object.assign({}, ctx, { loop: true }));
+            return;
+          case 'foreach':
+            exprCheck(s.it, sc, ctx);
+            inner = Object.create(sc);
+            declareLocal(inner, s.name, { type: s.type === 'var' ? null : s.type, local: true }, s.line);
+            stmt(s.body, inner, Object.assign({}, ctx, { loop: true }));
+            return;
+          case 'switchs':
+            switchCheck(s.sw, sc, ctx);
+            return;
+          case 'return':
+            exprCheck(s.v, sc, ctx);
+            if (s.v && ctx.ret) mustFit(ctx.ret, s.v, sc, ctx, s.line);
+            return;
+          case 'break':
+            if (!ctx.loop && !ctx.sw) compileErr(s.line, 'break outside switch or loop', 'break solo sirve adentro de un bucle o de un switch.');
+            return;
+          case 'continue':
+            if (!ctx.loop) compileErr(s.line, 'continue outside of loop', 'continue solo sirve adentro de un bucle.');
+            return;
+          case 'throw': case 'yield':
+            exprCheck(s.v, sc, ctx);
+            return;
+          case 'expr': case 'arrowval':
+            exprCheck(s.e, sc, ctx);
+            return;
+          case 'try':
+            inner = Object.create(sc);
+            s.res.forEach(function (r) {
+              exprCheck(r.init, inner, ctx);
+              declareLocal(inner, r.name, { type: r.type === 'var' ? null : r.type, local: true }, r.line);
+            });
+            stmt(s.body, inner, ctx);
+            s.catches.forEach(function (c) {
+              var cs = Object.create(sc);
+              cs[c.name] = { type: c.types.length === 1 ? c.types[0] : null, local: true };
+              stmt(c.body, cs, ctx);
+            });
+            stmt(s.fin, sc, ctx);
+            return;
+          case 'empty': case 'ctorcall':
+            if (s.k === 'ctorcall') exprCheck(s.args, sc, ctx);
+            return;
+        }
+      }
+
+      function reviewBody(c, params, body, ret) {
+        var sc = Object.create(null);
+        params.forEach(function (p) { sc[p.name] = { type: p.type, local: true }; });
+        stmt(body, sc, { cls: c, ret: ret === 'void' ? null : ret, loop: false, sw: false });
+      }
+
+      list.forEach(function (c) {
+        c.methods.forEach(function (m) { if (m.body) reviewBody(c, m.params, m.body, m.ret); });
+        c.ctors.forEach(function (ct) { reviewBody(c, ct.params, ct.body, null); });
+      });
+    }
+
+    function reviewClasses(list) {
+      list.forEach(function (c) {
+        var sup = list.filter(function (x) { return x.name === c.sup; })[0];
+        if (sup && sup.isFinal) compileErr(c.line, 'cannot inherit from final ' + c.sup, c.sup + ' es final: nadie puede heredar de ella.');
+        var seen = dict({});
+        c.methods.forEach(function (m) {
+          var sig = m.name + '(' + m.params.map(function (p) { return p.type; }).join(',') + ')';
+          if (seen[sig]) compileErr(m.line, 'method ' + sig + ' is already defined in class ' + c.name, 'Ya existe un método con ese nombre y esos parámetros. Cambiale el nombre o los parámetros.');
+          seen[sig] = 1;
+          if (m.isStatic || m.access === 'private' || c.isInterface) return;
+          ancestors(classes[c.name]).slice(1).forEach(function (k) {
+            if (k.builtin) return;
+            k.methods.forEach(function (x) {
+              var same = x.name === m.name && x.params.length === m.params.length && x.params.every(function (p, i) { return p.type === m.params[i].type; });
+              if (!same || x.isStatic || x.access === 'private') return;
+              if (x.isFinal) compileErr(m.line, m.name + '() cannot override ' + x.name + '() in ' + k.name + ': overridden method is final', 'En ' + k.name + ' ese método es final: no se puede sobrescribir.');
+              var parentRank = k.isInterface ? 3 : ACCESS_RANK[x.access];
+              if (ACCESS_RANK[m.access] < parentRank) {
+                compileErr(m.line, m.name + '() cannot override ' + x.name + '() in ' + k.name + ': attempting to assign weaker access privileges', 'Al sobrescribir no se puede restringir el acceso. ' + (k.isInterface ? 'Los métodos de una interfaz son public.' : 'Usá el mismo modificador que el padre.'));
+              }
+              if (x.ret !== m.ret && (RETURN_PRIMS[x.ret] || RETURN_PRIMS[m.ret])) {
+                compileErr(m.line, m.name + '() cannot override ' + x.name + '() in ' + k.name + ': return type ' + m.ret + ' is not compatible with ' + x.ret, 'Al sobrescribir hay que mantener el tipo de retorno: ' + x.ret + '.');
+              }
+            });
+          });
+        });
+      });
+    }
+
+    function checkGenerics(toks) {
+      toks.forEach(function (tok, i) {
+        var prev = toks[i - 1], next = toks[i + 1], before = toks[i - 2];
+        if (tok.k !== 'id' || !PRIMS[tok.v] || !prev || !next) return;
+        var opens = prev.v === ',' || (prev.v === '<' && before && before.k === 'id' && /^[A-Z]/.test(before.v));
+        if (opens && (next.v === '>' || next.v === ',')) {
+          compileErr(tok.line, 'unexpected type: required reference, found ' + tok.v, 'Los genéricos solo aceptan clases. En lugar de ' + tok.v + ', usá su clase envoltorio, como Integer o Double.');
+        }
       });
     }
 
@@ -1766,6 +2155,12 @@ var JavaRun = (function () {
       }
       if (start < 0) return undefined;
       var sc2 = newScope(sc);
+      // Lo declarado en un case sigue vivo en los siguientes, aunque esa línea no se haya ejecutado
+      n.cases.slice(0, start).forEach(function (skipped) {
+        skipped.body.forEach(function (st) {
+          if (st.k === 'local' && !skipped.arrow) st.decls.forEach(function (d) { sc2[d.name] = { type: d.type, v: undefined, set: false }; });
+        });
+      });
       for (i = start; i < n.cases.length; i++) {
         var c = n.cases[i];
         for (j = 0; j < c.body.length; j++) {
@@ -2380,6 +2775,11 @@ var JavaRun = (function () {
         case 'ArrayList': case 'LinkedList':
           if (args[0] instanceof JList) return new JList(args[0].a.slice(), cname);
           return new JList([], cname);
+        case 'HashSet': case 'LinkedHashSet': case 'TreeSet': {
+          var ns = new JSet(cname);
+          if (args[0] instanceof JList) setCall(ns, 'addAll', [args[0]], n.line);
+          return ns;
+        }
         case 'HashMap': case 'LinkedHashMap': case 'TreeMap': {
           var nm = new JMap(cname);
           if (args[0] instanceof JMap) args[0].e.forEach(function (en) { mapPut(nm, en.k, en.v); });
@@ -2404,7 +2804,7 @@ var JavaRun = (function () {
       }
       if (/^[a-z]/.test(cname) || !cname) noSymbol(cname, n.line);
       if (KNOWN_NATIVE[cname]) throw new Unsupported('new ' + cname);
-      if (/^(HashSet|TreeSet|LinkedHashSet|Random|Date|LocalDate|LocalDateTime|Thread|Stack|Queue|PriorityQueue|ArrayDeque)$/.test(cname)) throw new Unsupported(cname);
+      if (/^(Random|Date|LocalDate|LocalDateTime|Thread|Stack|Queue|PriorityQueue|ArrayDeque)$/.test(cname)) throw new Unsupported(cname);
       compileErr(n.line, 'cannot find symbol: class ' + cname, 'La clase ' + cname + ' no existe. Revisá el nombre, las mayúsculas y que hayas hecho el import.');
     }
 
@@ -2455,6 +2855,7 @@ var JavaRun = (function () {
           c = c.outer ? classes[c.outer] : null;
         }
         if (f.self && (n.name === 'toString' || n.name === 'getClass' || n.name === 'hashCode' || n.name === 'equals')) return objectMethod(f.self, n.name, args, n.line);
+        if (f.self && f.self.cls.isEnum && (n.name === 'name' || n.name === 'ordinal' || n.name === 'compareTo')) return objectMethod(f.self, n.name, args, n.line);
         missingMethod(n.name, args, n.line);
       }
       if (n.target.k === 'super') {
@@ -2852,6 +3253,7 @@ var JavaRun = (function () {
 
     function nativeCall(t, name, a, line) {
       if (t instanceof JStr) return stringCall(t, name, a, line);
+      if (t instanceof JSet) return setCall(t, name, a, line);
       if (t instanceof JList) return listCall(t, name, a, line);
       if (t instanceof JSb) return sbCall(t, name, a, line);
       if (t instanceof JMap) return mapCall(t, name, a, line);
@@ -3074,6 +3476,37 @@ var JavaRun = (function () {
         return (h ^ (h >>> 16)) & (n - 1);
       }
       return m.e.slice().sort(function (x, y) { return bucket(x) - bucket(y); });
+    }
+
+    function setCall(s, name, a, line) {
+      var size = s.m.e.length;
+      function sync() { s.a = mapEntries(s.m).map(function (en) { return en.k; }); }
+      function keep(test) {
+        s.m.e = s.m.e.filter(function (en) { return test(en.k); });
+        sync();
+        return s.m.e.length !== size;
+      }
+      function has(list, v) { return list.some(function (x) { return sameValue(v, x); }); }
+      switch (name) {
+        case 'add':
+          if (mapFind(s.m, a[0]) !== -1) return false;
+          mapPut(s.m, a[0], true);
+          sync();
+          return true;
+        case 'addAll':
+          a[0].a.forEach(function (v) { if (mapFind(s.m, v) === -1) mapPut(s.m, v, true); });
+          sync();
+          return s.m.e.length !== size;
+        case 'remove': return keep(function (v) { return !sameValue(v, a[0]); });
+        case 'removeAll': return keep(function (v) { return !has(a[0].a, v); });
+        case 'retainAll': return keep(function (v) { return has(a[0].a, v); });
+        case 'clear': s.m.e = []; sync(); return undefined;
+        case 'first': if (s.kind === 'TreeSet') return s.a[0]; break;
+        case 'last': if (s.kind === 'TreeSet') return s.a[s.a.length - 1]; break;
+        case 'get': case 'set': case 'indexOf': case 'sort':
+          compileErr(line, 'cannot find symbol: method ' + name, 'Un Set no tiene posiciones: se recorre con for-each. Si necesitás índices, usá un ArrayList.');
+      }
+      return listCall(s, name, a, line);
     }
 
     function mapCall(m, name, a, line) {
@@ -3310,6 +3743,9 @@ var JavaRun = (function () {
       checkClasses();
       checkImports(userToks, user.imports, user);
       staticChecks(user);
+      checkGenerics(userToks);
+      reviewClasses(user);
+      reviewCode(user);
       var mainClass = null, mainMethod = null;
       user.forEach(function (c) {
         c.methods.forEach(function (m) {

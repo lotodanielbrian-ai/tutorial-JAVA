@@ -1,5 +1,59 @@
 JAVA INPRO - RESUMEN DE CAMBIOS
-30 de octubre de 2026
+31 de octubre de 2026
+
+AUDITORIA COMPLETA
+
+SEGUNDO PARCIAL
+- La leccion 124 ahora es una lista de entrega: 9 pasos, cada uno dice que hacer,
+  como comprobarlo y que revisar si falla.
+- La leccion 123 suma 5 pasos para armar el proyecto desde cero.
+- kiosco-api documenta con las cuatro anotaciones vistas en clase: @Tag, @Operation,
+  @ApiResponse y @Parameter.
+- Dockerfile.simple: la version liviana, que copia el .jar ya compilado.
+- Compose con healthcheck por TCP y reinicio ante fallas.
+
+MEMORIA DEL ALUMNO
+- Seguir: lleva a lo que conviene hacer ahora.
+- Repaso espaciado: cada actividad vuelve a los 1, 3, 7, 14 y 30 dias.
+  Lo que fallas vuelve al dia siguiente.
+- Al entrar volves a la leccion donde quedaste, y el codigo escrito no se pierde.
+- La Practica muestra lo resuelto y deja a la vista lo pendiente.
+- Mapa de dominio por tramo, y tiempo estimado por leccion.
+- La busqueda mira adentro de las lecciones, no solo los titulos.
+
+EVALUACIONES NUEVAS
+- Ping-pong oral para el coloquio, con 14 preguntas nuevas de teoria.
+- Parcial practico: 3 ejercicios de codigo con reloj.
+- Prueba de nivel: con 80% abre la Fase 2. No cambia el primer certificado ni el ranking.
+
+COMO ENSEÑA CUANDO FALLAS
+- Fallar ya no entrega la solucion. Hay pistas, una estructura con huecos
+  y la solucion se pide aparte. Pedirla agrega el ejercicio al repaso.
+- Las 93 preguntas de cuestionario explican el porque.
+- Si no aprobas un cuestionario, no se marca la correcta: el proximo intento
+  tiene que salir de la memoria.
+- 141 actividades tienen una pista propia para el segundo intento.
+- Las respuestas abiertas ya no se aprueban con una palabra: comparas con la
+  respuesta y te evaluas.
+- 18 lecciones suman una pregunta previa.
+- Se reescribieron 22 opciones delatoras y se emparejo verdadero o falso.
+
+INTERPRETE
+- Ahora revisa todo el codigo, tambien las ramas que no se ejecutan, como javac.
+- Soporta HashSet, LinkedHashSet y TreeSet, con el orden real de Java.
+
+CORREGIDO
+- 4 pantallas se desbordaban en el telefono.
+- Un error de simulacro en algo aprobado desaparecia al recargar.
+- Una respuesta correcta de Unir podia marcarse mal.
+- El boton Fase 1 no respondia desde la vista bloqueada.
+- Dos falsos errores del interprete con switch y enum.
+
+PENDIENTE
+- Activar la virtualizacion en el BIOS para usar Docker en esta PC.
+- Reescribir 35 distractores de los cuestionarios.
+
+--- CAMBIOS DEL 30 DE OCTUBRE ---
 
 FASE 2 (segundo semestre)
 - 25 lecciones nuevas: código limpio, Spring Boot, API REST, JPA, MySQL, testing,
@@ -81,12 +135,14 @@ ARCHIVOS QUITADOS (estan en la Papelera de reciclaje)
 
 PENDIENTE
 - Probar con una cuenta real el login y el guardado de la Fase 2.
-- Probar Docker: Dockerfile y docker-compose.yml no se ejecutaron.
+- Probar Docker: necesita activar la virtualizacion en el BIOS de esta PC.
 - Integrar la rama evaluaciones-y-auditoria a main.
 - El resto del ranking queda para más adelante.
 - audit_report.md corresponde a otro proyecto (Controller Map): no se tocó.
 
 COMO VERIFICAR
   node tests/run.js
+  node tests/spring-check.js
+  node tests/browser.js
 
 Detalle completo en AUDITORIA.md. Guia tecnica en CONTEXT.md.

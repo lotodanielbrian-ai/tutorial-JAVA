@@ -15,7 +15,7 @@ Basado en el Módulo Didáctico 2024 de **Introducción a la Programación** del
 | Fase | Contenido | Se desbloquea | Certificado |
 |---|---|---|---|
 | **1. Fundamentos** | 35 lecciones: Java, POO, excepciones, Git y entrevista junior | Desde el inicio | Primero |
-| **2. Backend** | 25 lecciones: código limpio, Spring Boot, API REST, JPA, MySQL, testing y Docker | Al completar la Fase 1 | Segundo, con el avance de las dos fases |
+| **2. Backend** | 25 lecciones: código limpio, Spring Boot, API REST, JPA, MySQL, testing y Docker | Al completar la Fase 1, o con la prueba de nivel | Segundo, con el avance de las dos fases |
 
 La Fase 2 sigue el orden del segundo semestre de Programación 1. Ver [PLAN-FASE-2.md](PLAN-FASE-2.md).
 
@@ -24,9 +24,10 @@ La Fase 2 sigue el orden del segundo semestre de Programación 1. Ver [PLAN-FASE
 - **Explicación simple:** cada lección arranca con una escalera de cinco pasos, de la vida diaria a un sistema real
 - **Tutorial técnico:** código, tablas y errores comunes
 - **Ejercicio con editor:** autocompletado, pistas y un intérprete que ejecuta tu código de verdad
-- **Práctica:** 486 actividades de diez tipos, con devolución inmediata
-- **Evaluaciones:** simulacros con tiempo, nota del 1 al 10 y repaso de errores
-- **Parciales simulados y coloquio:** en la Fase 1 y en la Fase 2, como en la cursada
+- **Práctica:** 519 actividades de once tipos, con devolución inmediata
+- **Repaso espaciado:** cada actividad vuelve a los 1, 3, 7, 14 y 30 días; lo que fallás vuelve al día siguiente
+- **Evaluaciones:** simulacros, parcial práctico con código y reloj, ping-pong oral, prueba de nivel y mapa de dominio
+- **Parciales simulados y coloquio:** en la Fase 1 y en la Fase 2, con listas de pasos verificables para hacer el proyecto real
 - **Entrevista junior**, manual y certificado al completar las 35 lecciones
 - **Progreso, ranking e historial** con Firebase Auth y Firestore
 
@@ -44,6 +45,7 @@ La Fase 2 sigue el orden del segundo semestre de Programación 1. Ver [PLAN-FASE
 | Respondé con tus palabras | Explicar lo aprendido |
 | Reto de código | Resolver un problema desde cero |
 | Laboratorio de API | Practicar verbos, rutas y códigos contra un servidor simulado |
+| En tu computadora | Hacer el proyecto real, con cómo comprobar cada paso |
 
 ## Cómo se evalúa
 
@@ -77,7 +79,17 @@ Para lo que no corre en el navegador:
 node tests/spring-check.js
 ```
 
-Requiere además Maven. Compila los fragmentos con Spring real, ejecuta las consultas en H2 y compara el laboratorio con la API en vivo.
+Requiere además Maven. Compila los fragmentos con Spring real, ejecuta las consultas en H2, compara el laboratorio con la API en vivo y comprueba lo que publica Swagger.
+
+Para probar el sitio en un navegador real, con Firebase simulado y midiendo cada pantalla a 360 px:
+
+```bash
+node tests/browser.js
+```
+
+Requiere Node 22 o superior y Edge o Chrome. Deja capturas en `tests/.tmp-browser`.
+
+GitHub Actions corre las tres en cada push y, además, levanta `docker compose` de verdad sobre `kiosco-api`.
 
 ## Publicar
 

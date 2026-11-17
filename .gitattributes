@@ -1,0 +1,4 @@
+# Se ejecutan en Linux: con CRLF fallan, aunque en Windows se vean bien
+mvnw text eol=lf
+Dockerfile* text eol=lf
+*.yml text eol=lf

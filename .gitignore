@@ -6,6 +6,7 @@ node_modules/
 .DS_Store
 tests/.tmp/
 tests/.tmp-spring/
+tests/.tmp-browser/
 
 # Material de consulta: el repositorio es publico y esto no se publica
 material/fase-1/

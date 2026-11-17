@@ -1,7 +1,7 @@
 # Se activa con el perfil mysql. Cambiar de motor no toca el código Java.
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:3306/kiosco?createDatabaseIfNotExist=true
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/kiosco?createDatabaseIfNotExist=true
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: ${DB_USER:root}
     password: ${DB_PASSWORD:root}

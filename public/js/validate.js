@@ -907,10 +907,7 @@ function gitValidate(id, source) {
 function localValidate(id, c) {
   if (id === 31 || id === 33) return gitValidate(id, c);
   var res = judgeProgram(c, lessonExpected(id), lessonStdin(id));
-  if (res.unsupported) {
-    var missing = conceptCheck(id, c);
-    return missing ? { err: missing } : { ok: true, unverified: res.unsupported };
-  }
+  if (res.unsupported) return { err: 'Este programa usa ' + res.unsupported + ', que el emulador no ejecuta. Resolvelo con lo visto en la lección.' };
   if (res.simulated && !res.runtime) res.conceptErr = conceptCheck(id, c);
   return res;
 }

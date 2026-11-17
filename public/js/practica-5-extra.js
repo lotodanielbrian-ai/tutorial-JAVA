@@ -8,7 +8,7 @@ PRACTICA[1].items.push(
 );
 
 PRACTICA[2].items.push(
-  { t: 'mc', q: 'Dentro de dos semanas tenés que leer este código. ¿Qué nombre te ayuda más?', o: ['<code>int edadUsuario</code>', '<code>int x</code>', '<code>int dato</code>', '<code>int a1</code>'], a: 0, why: 'Un buen nombre explica qué guarda, y te ahorra leer todo el código.' }
+  { t: 'mc', q: 'Dentro de dos semanas tenés que leer este código. ¿Qué nombre te ayuda más?', o: ['int edadUsuario', 'int variable1', 'int datoNuevo', 'int numeroAux'], a: 0, why: 'Un buen nombre explica qué guarda, y te ahorra leer todo el código.' }
 );
 
 PRACTICA[5].items.push(
@@ -22,7 +22,7 @@ PRACTICA[13].items.push(
 );
 
 PRACTICA[16].items.push(
-  { t: 'mc', q: 'Un método se llama <code>procesar()</code>, valida datos, calcula y además imprime. ¿Qué harías?', o: ['Separarlo en métodos con una sola responsabilidad', 'Dejarlo así si funciona', 'Agregarle más comentarios', 'Copiarlo en otro lado'], a: 0, why: 'Un método hace una sola cosa y su nombre lo dice. Lo vas a profundizar en la Fase 2.' }
+  { t: 'mc', q: 'Un método se llama <code>procesar()</code>, valida datos, calcula y además imprime. ¿Qué harías?', o: ['Separarlo en métodos con una sola responsabilidad', 'Dejarlo así mientras siga funcionando bien', 'Agregarle comentarios que expliquen cada parte', 'Copiarlo a otra clase para tener un respaldo'], a: 0, why: 'Un método hace una sola cosa y su nombre lo dice. Lo vas a profundizar en la Fase 2.' }
 );
 
 PRACTICA[24].items.push(
@@ -38,6 +38,6 @@ PRACTICA[27].items.push(
 );
 
 PRACTICA[31].items.push(
-  { t: 'mc', q: 'Tu repositorio de ejercicios tiene un buen historial. ¿Para qué te sirve en una búsqueda laboral?', o: ['Muestra código propio y cómo trabajás', 'Reemplaza el título', 'Solo ocupa espacio', 'No sirve para nada'], a: 0, why: 'Un repositorio con commits claros es una buena carta en una entrevista.' },
+  { t: 'mc', q: 'Tu repositorio de ejercicios tiene un buen historial. ¿Para qué te sirve en una búsqueda laboral?', o: ['Muestra código propio y cómo trabajás', 'Reemplaza el título en cualquier búsqueda', 'Solo ocupa espacio en tu cuenta', 'No sirve: las empresas nunca lo miran'], a: 0, why: 'Un repositorio con commits claros es una buena carta en una entrevista.' },
   { t: 'tf', q: '<code>git clone</code> copia un repositorio remoto a tu computadora.', a: true, why: 'Es el primer paso para trabajar en un proyecto existente, y lo que hace GitHub Classroom con cada tarea.' }
 );

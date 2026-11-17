@@ -13,7 +13,7 @@ PRACTICA[7] = {
     real: 'El cajero decide: si el saldo alcanza, entrega la plata; si no, muestra “Saldo insuficiente”.'
   },
   items: [
-    { t: 'mc', q: 'El semáforo está en amarillo. ¿Qué estructura representa “si está en verde cruzo, si está en amarillo freno, si no espero”?', o: ['<code>if / else if / else</code>', 'Un solo <code>if</code>', 'Un <code>for</code>', 'Dos <code>println</code>'], a: 0, why: 'Son tres caminos excluyentes: Java toma el primero que se cumple e ignora el resto.' },
+    { t: 'mc', q: 'El semáforo está en amarillo. ¿Qué estructura representa “si está en verde cruzo, si está en amarillo freno, si no espero”?', o: ['if / else if / else', 'Un solo if sin else', 'Un for de tres vueltas', 'Dos println seguidos'], a: 0, why: 'Son tres caminos excluyentes: Java toma el primero que se cumple e ignora el resto.' },
     { t: 'tf', q: 'En una cadena <code>if / else if</code> pueden ejecutarse dos bloques a la vez.', a: false, why: 'Apenas una condición se cumple, se ejecuta ese bloque y Java salta todo lo demás.' },
     { t: 'output', q: '¿Qué imprime?', code: 'int edad = 16;\nif (edad >= 18) {\n    System.out.println("Mayor");\n} else if (edad >= 16) {\n    System.out.println("Puede votar");\n} else {\n    System.out.println("Menor");\n}\nSystem.out.println("Fin");', a: 'Puede votar\nFin', why: 'Se saltea el primero, entra en el segundo y lo que está después del <code>if</code> se ejecuta siempre.' },
     { t: 'output', q: 'Sin <code>else</code> se evalúan todos. ¿Qué imprime?', code: 'int n = 15;\nif (n > 5) {\n    System.out.println("mayor a 5");\n}\nif (n > 10) {\n    System.out.println("mayor a 10");\n}\nif (n > 20) {\n    System.out.println("mayor a 20");\n}', a: 'mayor a 5\nmayor a 10', why: 'Son tres <code>if</code> independientes: cada uno se evalúa por separado.' },
@@ -61,7 +61,7 @@ PRACTICA[9] = {
     real: 'Un login exige usuario correcto Y clave correcta. Un descuento aplica si sos jubilado O estudiante.'
   },
   items: [
-    { t: 'mc', q: 'Para sacar plata necesitás tarjeta Y clave correcta. Tenés la tarjeta, pero te equivocás la clave.', o: ['No podés sacar plata: <code>true &amp;&amp; false</code> da <code>false</code>', 'Podés sacar: una de dos alcanza', 'Depende del banco', 'Java da error'], a: 0, why: 'Con <code>&amp;&amp;</code> todas las condiciones deben ser verdaderas.' },
+    { t: 'mc', q: 'Para sacar plata necesitás tarjeta Y clave correcta. Tenés la tarjeta, pero te equivocás la clave.', o: ['No podés: true &amp;&amp; false da false', 'Podés: true &amp;&amp; false da true', 'Depende del banco, no de Java', 'Java da un error al compilar'], a: 0, why: 'Con <code>&amp;&amp;</code> todas las condiciones deben ser verdaderas.' },
     { t: 'match', q: 'Uní cada expresión con su resultado.', pairs: [['true && false', 'false'], ['true || false', 'true'], ['!false', 'true (por negación)'], ['false || false', 'false (ninguna se cumple)']], why: 'Si dudás, reemplazá cada parte por su valor y resolvé de a una.' },
     { t: 'output', q: '¿Qué imprime?', code: 'int edad = 20;\nboolean socio = false;\nSystem.out.println(edad >= 18 && socio);\nSystem.out.println(edad >= 18 || socio);\nSystem.out.println(!socio);', a: 'false\ntrue\ntrue', why: 'Reemplazá: <code>true &amp;&amp; false</code>, <code>true || false</code> y <code>!false</code>.' },
     { t: 'tf', q: 'En <code>a &amp;&amp; b</code>, si <code>a</code> es <code>false</code>, Java ni siquiera evalúa <code>b</code>.', a: true, why: 'Se llama cortocircuito: el resultado ya no puede cambiar. Por eso <code>x != 0 &amp;&amp; 10 / x &gt; 1</code> no divide por cero.' },
@@ -108,7 +108,7 @@ PRACTICA[11] = {
     real: 'Un servidor repite “mientras esté encendido, atender pedidos”. Un menú repite hasta que el usuario elige salir.'
   },
   items: [
-    { t: 'mc', q: '“Mientras la pava no hierva, seguí esperando”. ¿Por qué es un <code>while</code> y no algo fijo?', o: ['Porque no sabés cuántas veces vas a repetir', 'Porque siempre son 5 veces', 'Porque no hay condición', 'Porque es un método'], a: 0, why: '<code>while</code> sirve cuando la cantidad de vueltas depende de una condición.' },
+    { t: 'mc', q: '“Mientras la pava no hierva, seguí esperando”. ¿Por qué es un <code>while</code> y no algo fijo?', o: ['Porque no sabés cuántas veces vas a repetir', 'Porque siempre son cinco vueltas exactas', 'Porque no tiene ninguna condición', 'Porque un while siempre es más rápido'], a: 0, why: '<code>while</code> sirve cuando la cantidad de vueltas depende de una condición.' },
     { t: 'output', q: 'Seguí el bucle a mano. ¿Qué imprime?', code: 'int i = 3;\nwhile (i > 0) {\n    System.out.print(i + " ");\n    i--;\n}\nSystem.out.println("¡Ya!");', a: '3 2 1 ¡Ya!', why: 'Cada vuelta imprime y resta 1. Cuando <code>i</code> llega a 0, la condición es falsa.' },
     { t: 'tf', q: 'Un <code>while</code> con la condición falsa desde el principio no ejecuta su cuerpo ni una vez.', a: true, why: 'La condición se evalúa antes de cada vuelta, incluida la primera.' },
     { t: 'output', q: '<code>do-while</code> primero actúa y después pregunta. ¿Qué imprime?', code: 'int n = 10;\ndo {\n    System.out.println("Vuelta " + n);\n    n++;\n} while (n < 5);', a: 'Vuelta 10', why: 'El cuerpo se ejecuta al menos una vez. Recién después se evalúa la condición, que es falsa.' },
@@ -184,7 +184,7 @@ PRACTICA[14] = {
     real: 'En un banco, <code>Cuenta</code> y <code>Cliente</code> son objetos con datos y reglas propias, y eso permite que el sistema crezca ordenado.'
   },
   items: [
-    { t: 'mc', q: 'Un restaurante reparte el trabajo entre cocinero, mozo y cajero. ¿A qué paradigma se parece?', o: ['Orientado a objetos', 'Estructurado', 'Lógico', 'Ninguno'], a: 0, why: 'Cada rol tiene sus datos y sus responsabilidades, como los objetos.' },
+    { t: 'mc', q: 'Un restaurante reparte el trabajo entre cocinero, mozo y cajero. ¿A qué paradigma se parece?', o: ['Orientado a objetos', 'Estructurado por funciones', 'Lógico, con reglas', 'Declarativo, como SQL'], a: 0, why: 'Cada rol tiene sus datos y sus responsabilidades, como los objetos.' },
     { t: 'match', q: 'Uní cada pilar con su idea.', pairs: [['Encapsulamiento', 'Ocultar los datos y exponer métodos'], ['Herencia', 'Reutilizar lo que define una clase padre'], ['Polimorfismo', 'Una misma llamada, distintos comportamientos'], ['Abstracción', 'Mostrar lo esencial y esconder el detalle']], why: 'Son los cuatro pilares que se trabajan en el tramo Intermedio.' },
     { t: 'tf', q: 'Un programa estructurado no puede usar funciones.', a: false, why: 'Al contrario: la programación estructurada organiza el código en funciones o procedimientos.' },
     { t: 'mc', q: '¿Cuál es un lenguaje principalmente declarativo?', o: ['SQL', 'C', 'Assembler', 'Pascal'], a: 0, why: 'En SQL decís qué datos querés, no cómo buscarlos paso a paso.' },

@@ -1,8 +1,9 @@
-// Verifica lo que el intÃ©rprete no alcanza. Uso: node tests/spring-check.js
+// Verifica lo que el intérprete no alcanza. Uso: node tests/spring-check.js
 // Requiere Maven en el PATH o MVN=ruta/a/mvn, y opcionalmente M2=ruta/al/repositorio.
 // 1. Compila con Spring real los fragmentos marcados spring: true.
 // 2. Ejecuta en H2 las consultas marcadas sql: true.
 // 3. Levanta ejemplos/kiosco-api y compara cada respuesta con el laboratorio del navegador.
+// 4. Comprueba que Swagger publica lo que documentan las anotaciones del controller.
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
@@ -45,7 +46,7 @@ console.log('Empaquetando kiosco-api...');
 const opts = { cwd: API, encoding: 'utf8', shell: process.platform === 'win32', maxBuffer: 1 << 26 };
 const mvnArgs = a => repo.concat(['-q', '-B'], a).map(x => (/ /.test(x) ? '"' + x + '"' : x));
 const pkg = cp.spawnSync(MVN, mvnArgs(['clean', 'package']), opts);
-ok(pkg.status === 0, 'mvn package fallÃ³: ' + (pkg.stdout || '').split('\n').filter(l => /ERROR|Tests run:.*Fail/.test(l)).slice(0, 5).join(' | '));
+ok(pkg.status === 0, 'mvn package falló: ' + (pkg.stdout || '').split('\n').filter(l => /ERROR|Tests run:.*Fail/.test(l)).slice(0, 5).join(' | '));
 const cpFile = path.join(TMP, 'cp.txt');
 cp.spawnSync(MVN, mvnArgs(['dependency:build-classpath', '-Dmdep.outputFile=' + cpFile, '-Dmdep.includeScope=test']), opts);
 const classpath = fs.readFileSync(cpFile, 'utf8').trim();
@@ -62,7 +63,7 @@ function compile(name, code) {
 for (const id of Object.keys(PRACTICA)) {
   (PRACTICA[id].items || []).forEach((it, i) => {
     if (!it.spring) return;
-    const at = 'lecciÃ³n ' + id + ' Ã­tem ' + i;
+    const at = 'lección ' + id + ' ítem ' + i;
     let code = it.code;
     if (it.t === 'fill') it.a.forEach(alts => { code = code.replace('___', alts[0]); });
     if (it.t === 'bug') {
@@ -84,7 +85,7 @@ for (const id of Object.keys(PRACTICA)) {
     if (!it.sql) return;
     const fixed = it.code.split('\n');
     fixed[it.line - 1] = it.fix;
-    statements.push({ at: 'lecciÃ³n ' + id + ' Ã­tem ' + i, bad: it.code, good: fixed.join('\n') });
+    statements.push({ at: 'lección ' + id + ' ítem ' + i, bad: it.code, good: fixed.join('\n') });
   });
 }
 const runner = `import java.nio.file.*; import java.sql.*; import java.util.*;
@@ -134,7 +135,7 @@ const script = [
   for (let i = 0; i < 60 && !up; i++) {
     try { await fetch(`http://localhost:${PORT}/api/productos`); up = true; } catch (e) { await new Promise(r => setTimeout(r, 1000)); }
   }
-  ok(up, 'la API real no levantÃ³');
+  ok(up, 'la API real no levantó');
   const server = ctx.ApiLab.seed();
   for (const [method, url, body] of script) {
     const real = await fetch(`http://localhost:${PORT}${url}`, { method, headers: body ? J : {}, body });
@@ -144,6 +145,14 @@ const script = [
     ok(norm(text) === norm(sim.body), `${method} ${url}: distinto cuerpo\n    real: ${text.slice(0, 160)}\n    lab:  ${sim.body.slice(0, 160)}`);
   }
   console.log('  pedidos comparados: ' + script.length);
+  console.log('4. Documentación');
+  const docs = await (await fetch(`http://localhost:${PORT}/v3/api-docs`)).json();
+  const obtener = docs.paths['/api/productos/{id}'].get;
+  ok((docs.tags || []).some(t => t.name === 'Productos'), 'falta @Tag en la documentación');
+  ok(/Busca un producto/.test(obtener.summary), 'falta @Operation en la documentación');
+  ok(/No hay un producto activo/.test((obtener.responses['404'] || {}).description), 'falta @ApiResponse 404 en la documentación');
+  ok(obtener.parameters[0].description === 'Id del producto', 'falta @Parameter en la documentación');
+  ok(String(obtener.parameters[0].example) === '1', 'falta el ejemplo de @Parameter en la documentación');
   // En Windows java.exe lanza un hijo: hay que cerrar el árbol, y antes de matar al padre
   if (process.platform === 'win32') cp.spawnSync('taskkill', ['/F', '/T', '/PID', String(app.pid)]);
   else app.kill();

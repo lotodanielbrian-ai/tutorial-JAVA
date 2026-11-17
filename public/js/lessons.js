@@ -133,7 +133,7 @@ ${cb('Tipos de comentarios', `// Comentario de una sola línea — Java lo ignor
       'Necesitás dos llamadas a <code>System.out.println()</code>, una por línea.',
       'El texto va entre comillas dobles: <code>System.out.println("texto");</code>. Cada instrucción termina con <code>;</code>.',
       'Debería verse así: <code>System.out.println("¡Hola, Java!");</code> seguido de <code>System.out.println("Bienvenido al tutorial");</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Texto incorrecto:</strong> Verificá signos de exclamación y comas exactas.</li><li><strong>Código comentado:</strong> Si usaste <code>//</code>, borralas porque Java ignora esa línea.</li><li><strong>Falta salto de línea:</strong> Usá <code>println()</code> en lugar de <code>print()</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Texto incorrecto:</strong> Verificá signos de exclamación y comas exactas.</li><li><strong>Código comentado:</strong> Si usaste <code>//</code>, borralas porque Java ignora esa línea.</li><li><strong>Falta salto de línea:</strong> Usá <code>println()</code> en lugar de <code>print()</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         System.out.println("¡Hola, Java!");
         System.out.println("Bienvenido al tutorial");
@@ -236,7 +236,7 @@ final int MAX_INTENTOS = 3;
       'Necesitás cuatro variables: <code>String nombre = "Ana";</code>, <code>int edad = 25;</code>, <code>double altura = 1.75;</code>, <code>boolean esEstudiante = true;</code>.',
       'Para imprimir, concatená: <code>System.out.println("Nombre: " + nombre);</code>. Hacé lo mismo para las otras tres.',
       'El formato exacto es "Nombre: ", "Edad: ", "Altura: ", "Estudiante: " seguido del valor.',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta el tipo de dato:</strong> Acordate de poner <code>String</code>, <code>int</code>, etc., antes del nombre.</li><li><strong>Mayúsculas:</strong> <code>String</code> va con S mayúscula.</li><li><strong>Concatenación:</strong> Usá el signo <code>+</code> para unir texto y variables.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta el tipo de dato:</strong> Acordate de poner <code>String</code>, <code>int</code>, etc., antes del nombre.</li><li><strong>Mayúsculas:</strong> <code>String</code> va con S mayúscula.</li><li><strong>Concatenación:</strong> Usá el signo <code>+</code> para unir texto y variables.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         String nombre = "Ana";
         int edad = 25;
@@ -334,7 +334,7 @@ int r2 = (2 + 3) * 4;    // 20 — paréntesis primero`)}
       'Podés calcular directamente en el println: <code>System.out.println("Suma: " + (a + b));</code>. Usá paréntesis.',
       'La división entera: <code>a / b</code> da 3. El resto: <code>a % b</code> da 3.',
       'El formato exacto es "Suma: ", "Resta: ", "Producto: ", "División entera: ", "Resto: ".',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta de paréntesis:</strong> Si hacés <code>"Suma: " + a + b</code> va a concatenar (154) en vez de sumar (19). Usá <code>"Suma: " + (a + b)</code>.</li><li><strong>Símbolos incorrectos:</strong> El resto se calcula con <code>%</code>, no con <code>/</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta de paréntesis:</strong> Si hacés <code>"Suma: " + a + b</code> va a concatenar (154) en vez de sumar (19). Usá <code>"Suma: " + (a + b)</code>.</li><li><strong>Símbolos incorrectos:</strong> El resto se calcula con <code>%</code>, no con <code>/</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int a = 15;
         int b = 4;
@@ -417,7 +417,7 @@ System.out.println("Resultado: " + (2 + 3)); // "Resultado: 5"  ← correcto`)}
       'Para mayúsculas: <code>.toUpperCase()</code>. Para longitud: <code>.length()</code> (con paréntesis).',
       'Primera letra: <code>s.charAt(0)</code>. Contiene: <code>s.contains("tutorial")</code>.',
       'La quinta línea: <code>System.out.println("Contiene \'tutorial\': " + s.contains("tutorial"));</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Olvidar paréntesis:</strong> Los métodos llevan paréntesis al final, ej: <code>.length()</code>.</li><li><strong>Índices erróneos:</strong> La primera letra es <code>charAt(0)</code>, no 1.</li><li><strong>Comillas:</strong> Las comillas dobles dentro de otras comillas dobles se escapan o se usan comillas simples: <code>"Contiene 'tutorial': "</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Olvidar paréntesis:</strong> Los métodos llevan paréntesis al final, ej: <code>.length()</code>.</li><li><strong>Índices erróneos:</strong> La primera letra es <code>charAt(0)</code>, no 1.</li><li><strong>Comillas:</strong> Las comillas dobles dentro de otras comillas dobles se escapan o se usan comillas simples: <code>"Contiene 'tutorial': "</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         String s = "java tutorial";
         System.out.println("Original: " + s);
@@ -510,7 +510,7 @@ String s = String.valueOf(42);            // "42" como String`)}
       'Para "Decimal: 7.0", hacé <code>double dec = entero;</code> (widening automático).',
       'Cast: <code>(int) d</code> da 3. Redondeado: <code>Math.round(d)</code> da 4.',
       'Formato: "Cortado a int: " + (int)d, "Raíz de 16: " + Math.sqrt(16).',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Casting incorrecto:</strong> El cast se escribe <code>(int) d</code>, no <code>int(d)</code>.</li><li><strong>Confundir redondeo con cast:</strong> El cast solo corta decimales, <code>Math.round()</code> redondea al entero más cercano.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Casting incorrecto:</strong> El cast se escribe <code>(int) d</code>, no <code>int(d)</code>.</li><li><strong>Confundir redondeo con cast:</strong> El cast solo corta decimales, <code>Math.round()</code> redondea al entero más cercano.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int entero = 7;
         double d = 3.7;
@@ -562,7 +562,7 @@ String s = String.valueOf(42);            // "42" como String`)}
       'Mayúsculas: <code>String nombreMayus = nombreLimpio.toUpperCase();</code>',
       'Promedio: <code>int promedio = (nota1 + nota2 + nota3) / 3;</code> — con int la división trunca decimales.',
       'Al usar int, (85+72+90)/3 = 247/3 = 82 (trunca). Justo lo que necesitás, no hace falta Math.round.',
-      '<strong>Errores comunes:</strong><ul><li><strong>Olvidar ()</strong>: .trim() y .toUpperCase() llevan paréntesis.</li><li><strong>División entera</strong>: con int ya trunca, no necesitás Math.round.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copia este código:<br>' + cb('Solución', 'public class Main {\n    public static void main(String[] args) {\n        String nombre = "  Java Student  ";\n        int nota1 = 85, nota2 = 72, nota3 = 90;\n        nombre = nombre.trim().toUpperCase();\n        int promedio = (nota1 + nota2 + nota3) / 3;\n        System.out.println("NOMBRE: " + nombre);\n        System.out.println("PROMEDIO: " + promedio);\n    }\n}')
+      '<strong>Errores comunes:</strong><ul><li><strong>Olvidar ()</strong>: .trim() y .toUpperCase() llevan paréntesis.</li><li><strong>División entera</strong>: con int ya trunca, no necesitás Math.round.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>' + cb('Solución', 'public class Main {\n    public static void main(String[] args) {\n        String nombre = "  Java Student  ";\n        int nota1 = 85, nota2 = 72, nota3 = 90;\n        nombre = nombre.trim().toUpperCase();\n        int promedio = (nota1 + nota2 + nota3) / 3;\n        System.out.println("NOMBRE: " + nombre);\n        System.out.println("PROMEDIO: " + promedio);\n    }\n}')
     ]
   }
 },
@@ -648,7 +648,7 @@ String resultado = (edad >= 18) ? "Mayor" : "Menor";
       'Necesitás <code>if / else if / else</code>. Las condiciones van de mayor a menor.',
       'Estructura: <code>if (nota >= 90)</code>, <code>else if (nota >= 75)</code>, <code>else if (nota >= 60)</code>, <code>else</code>.',
       'Podés usar: <code>String cat;</code> y asignarla dentro del if, luego <code>System.out.println("Categoría: " + cat);</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Orden de condiciones:</strong> Si ponés <code>&gt;= 60</code> antes que <code>&gt;= 90</code>, el 75 va a caer en el 60 y frenar ahí. ¡Siempre de mayor a menor!</li><li><strong>Falta de llaves:</strong> Asegurate de que cada <code>if</code> y <code>else if</code> tenga sus llaves <code>{ }</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Orden de condiciones:</strong> Si ponés <code>&gt;= 60</code> antes que <code>&gt;= 90</code>, el 75 va a caer en el 60 y frenar ahí. ¡Siempre de mayor a menor!</li><li><strong>Falta de llaves:</strong> Asegurate de que cada <code>if</code> y <code>else if</code> tenga sus llaves <code>{ }</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int nota = 75;
         System.out.println("Nota: " + nota);
@@ -762,7 +762,7 @@ ${ann('tip','💡','Podés agrupar cases sin break para que compartan el mismo b
       'Usá <code>switch (dia)</code> con cases del 1 al 7. Cada case imprime el nombre.',
       'Case 3: <code>System.out.println("Dia " + dia + ": Miercoles");</code> seguido de <code>break;</code>',
       'El default es para valores fuera de 1-7: <code>System.out.println("Día inválido");</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Olvidar el break:</strong> Si te olvidás de poner <code>break;</code> al final de cada case, Java va a ejecutar todos los demás cases seguidos.</li><li><strong>Sintaxis del case:</strong> El case lleva dos puntos al final, no punto y coma: <code>case 1:</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Olvidar el break:</strong> Si te olvidás de poner <code>break;</code> al final de cada case, Java va a ejecutar todos los demás cases seguidos.</li><li><strong>Sintaxis del case:</strong> El case lleva dos puntos al final, no punto y coma: <code>case 1:</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int dia = 3;
         switch (dia) {
@@ -846,7 +846,7 @@ ${ann('tip','💡','Con <code>&&</code> si la primera es false, la segunda ni se
       'Combiná: <code>edad >= 18 && tieneLicencia</code>.',
       'Podés hacer: <code>boolean puedeManejar = edad >= 18 && tieneLicencia;</code>',
       'Imprimí: <code>System.out.println("Puede manejar: " + puedeManejar);</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Confundir && con ||:</strong> Queremos que se cumplan AMBAS, por lo que necesitás AND (<code>&&</code>), no OR (<code>||</code>).</li><li><strong>Olvidar concatenar:</strong> Usá el <code>+</code> para unir el texto con la variable booleana en el println.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Confundir && con ||:</strong> Queremos que se cumplan AMBAS, por lo que necesitás AND (<code>&&</code>), no OR (<code>||</code>).</li><li><strong>Olvidar concatenar:</strong> Usá el <code>+</code> para unir el texto con la variable booleana en el println.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int edad = 20;
         boolean tieneLicencia = true;
@@ -946,7 +946,7 @@ public class Main {
       'Primero el texto: <code>String nombre = sc.nextLine();</code>. Después el número: <code>int edad = sc.nextInt();</code>.',
       'Concatená: <code>"Hola " + nombre + ", tenés " + edad + " años."</code>',
       'El formato exacto: "Hola María, tenés 22 años." con punto al final.',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Faltan espacios:</strong> Si imprimís <code>"Hola"+nombre</code> te va a salir "HolaMaría". Acordate de poner espacios adentro de las comillas <code>"Hola " + nombre</code>.</li><li><strong>Falta el punto:</strong> El ejercicio te pide que termine en punto. Fijate bien en el output esperado.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `import java.util.Scanner;
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Faltan espacios:</strong> Si imprimís <code>"Hola"+nombre</code> te va a salir "HolaMaría". Acordate de poner espacios adentro de las comillas <code>"Hola " + nombre</code>.</li><li><strong>Falta el punto:</strong> El ejercicio te pide que termine en punto. Fijate bien en el output esperado.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
@@ -1029,7 +1029,7 @@ do {
       'La condición: <code>i <= 5</code>. Dentro: imprimir y luego <code>i++</code>.',
       'Si el programa corre para siempre, es porque olvidaste el <code>i++</code>.',
       'Después del while, <code>System.out.println("¡Listo!");</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Bucle infinito (se cuelga):</strong> Si olvidás poner <code>i++;</code> dentro de las llaves del while, <code>i</code> siempre valdrá 1 y nunca terminará.</li><li><strong>Orden incorrecto:</strong> El "¡Listo!" va AFUERA de las llaves del while, al final de todo.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Bucle infinito (se cuelga):</strong> Si olvidás poner <code>i++;</code> dentro de las llaves del while, <code>i</code> siempre valdrá 1 y nunca terminará.</li><li><strong>Orden incorrecto:</strong> El "¡Listo!" va AFUERA de las llaves del while, al final de todo.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int i = 1;
         while (i <= 5) {
@@ -1115,7 +1115,7 @@ for (int i = 0; i < 10; i++) {
       'El bucle: <code>for (int i = 1; i <= 5; i++)</code>.',
       'Dentro: <code>System.out.println("3 x " + i + " = " + (3 * i));</code>',
       'Los paréntesis en <code>(3 * i)</code> son importantes para que no concatene como texto.',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Bucle infinito:</strong> Revisá que la condición sea <code>i &lt;= 5</code> y que sumes con <code>i++</code>.</li><li><strong>Empieza en 0:</strong> El for debe empezar en <code>i = 1</code> para hacer "3 x 1".</li><li><strong>Concatenación rota:</strong> Si ves "3 x 1 = 31", te faltan los paréntesis en <code>(3 * i)</code> para que primero multiplique y luego convierta a texto.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Bucle infinito:</strong> Revisá que la condición sea <code>i &lt;= 5</code> y que sumes con <code>i++</code>.</li><li><strong>Empieza en 0:</strong> El for debe empezar en <code>i = 1</code> para hacer "3 x 1".</li><li><strong>Concatenación rota:</strong> Si ves "3 x 1 = 31", te faltan los paréntesis en <code>(3 * i)</code> para que primero multiplique y luego convierta a texto.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         for (int i = 1; i <= 5; i++) {
             System.out.println("3 x " + i + " = " + (3 * i));
@@ -1199,7 +1199,7 @@ System.out.println("Suma: " + suma);`)}
       'Usá <code>System.out.print("Elementos: ")</code> y luego un for que imprima cada número + espacio.',
       'Para la suma: <code>int suma = 0;</code> y dentro del for <code>suma += numeros[i];</code>',
       'Terminá la línea de elementos con <code>System.out.println();</code> para el salto.',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>println vs print:</strong> Para que los números salgan en la misma línea, usá <code>print(n + " ")</code>, y luego un <code>println()</code> vacío al final del bucle.</li><li><strong>Fuera de rango:</strong> El for debe ir hasta <code>numeros.length</code> estricto (<code>&lt;</code>), no <code>&lt;=</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>println vs print:</strong> Para que los números salgan en la misma línea, usá <code>print(n + " ")</code>, y luego un <code>println()</code> vacío al final del bucle.</li><li><strong>Fuera de rango:</strong> El for debe ir hasta <code>numeros.length</code> estricto (<code>&lt;</code>), no <code>&lt;=</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int[] numeros = {5, 2, 8, 1, 9, 3};
         
@@ -1359,7 +1359,7 @@ ${ann('tip','💡','No te preocupes si ahora no entendés todos los pilares. Los
       'El bucle: <code>for (int i = 0; i < ventas.length; i++) { ... }</code>.',
       'Dentro del bucle: <code>total += ventas[i];</code> y luego <code>if (ventas[i] > 200) { exitosas++; }</code>',
       'Al final, imprimí los resultados usando <code>System.out.println("Total vendido: " + total);</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Impresión incorrecta:</strong> Verificá que los textos sean exactos.</li><li><strong>Bucle fuera de rango:</strong> Usá <code>&lt; ventas.length</code>, sin el <code>=</code>.</li><li><strong>Falta concatenar:</strong> Usá <code>+</code> para unir texto y variable al imprimir.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Impresión incorrecta:</strong> Verificá que los textos sean exactos.</li><li><strong>Bucle fuera de rango:</strong> Usá <code>&lt; ventas.length</code>, sin el <code>=</code>.</li><li><strong>Falta concatenar:</strong> Usá <code>+</code> para unir texto y variable al imprimir.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         int[] ventas = {150, 300, 50, 400, 200};
         
@@ -1442,7 +1442,7 @@ public static void main(String[] args) {
       'Declaralo como <code>static void imprimirSeparador()</code> con un println dentro.',
       'Llamá con <code>imprimirSeparador();</code> tres veces en el main.',
       'El método va FUERA del main pero DENTRO de la clase Main.',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Método dentro del main:</strong> Un método no puede existir adentro de otro. <code>imprimirSeparador</code> debe estar por encima o por debajo del bloque <code>main</code>, pero antes del final de la clase.</li><li><strong>Olvidar static:</strong> Como <code>main</code> es static, los métodos que llama directamente también deben ser static.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Método dentro del main:</strong> Un método no puede existir adentro de otro. <code>imprimirSeparador</code> debe estar por encima o por debajo del bloque <code>main</code>, pero antes del final de la clase.</li><li><strong>Olvidar static:</strong> Como <code>main</code> es static, los métodos que llama directamente también deben ser static.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     
     static void imprimirSeparador() {
         System.out.println("--- --- ---");
@@ -1525,7 +1525,7 @@ static boolean esMayorDeEdad(int edad) {
       'Declará: <code>static int calcularArea(int base, int altura)</code>. Dentro: <code>return base * altura;</code>',
       'En el main: <code>int area = calcularArea(6, 4);</code>',
       'Imprimí: <code>System.out.println("Área del rectángulo: " + area);</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Tipo de retorno void:</strong> Si usás <code>void</code> no podés usar <code>return</code>. Tenés que usar <code>int</code> en la firma del método.</li><li><strong>Llamada incorrecta:</strong> Al llamarlo debés pasarle los valores entre paréntesis separados por coma: <code>calcularArea(6, 4)</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Tipo de retorno void:</strong> Si usás <code>void</code> no podés usar <code>return</code>. Tenés que usar <code>int</code> en la firma del método.</li><li><strong>Llamada incorrecta:</strong> Al llamarlo debés pasarle los valores entre paréntesis separados por coma: <code>calcularArea(6, 4)</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     
     static int calcularArea(int base, int altura) {
         return base * altura;
@@ -1607,7 +1607,7 @@ public class Main {
       'Atributos: <code>String nombre;</code> e <code>int edad;</code>.',
       'Método: <code>void presentarse() { System.out.println("Soy " + nombre + " y tengo " + edad + " años"); }</code>',
       'En main: <code>Persona p = new Persona();</code>, asigná valores, llamá <code>p.presentarse();</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta la clase:</strong> Tenés que crear <code>class Persona { }</code> arriba de <code>public class Main</code>.</li><li><strong>No usar new:</strong> Para crear el objeto debés instanciarlo con <code>new Persona()</code>, de lo contrario dará error.</li><li><strong>Faltan paréntesis en el método:</strong> Al llamar al método usá <code>p.presentarse()</code> con paréntesis.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `class Persona {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta la clase:</strong> Tenés que crear <code>class Persona { }</code> arriba de <code>public class Main</code>.</li><li><strong>No usar new:</strong> Para crear el objeto debés instanciarlo con <code>new Persona()</code>, de lo contrario dará error.</li><li><strong>Faltan paréntesis en el método:</strong> Al llamar al método usá <code>p.presentarse()</code> con paréntesis.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `class Persona {
     String nombre;
     int edad;
     
@@ -1701,7 +1701,7 @@ public class Main {
       'Constructor: <code>Producto(String nombre, double precio) { this.nombre = nombre; this.precio = precio; }</code>',
       'Método: <code>void mostrarInfo() { System.out.println("Producto: " + nombre + " - Precio: $" + precio); }</code>',
       'En main: <code>Producto p = new Producto("Laptop", 1500.0); p.mostrarInfo();</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Constructor con void:</strong> El constructor NUNCA lleva void. Se llama igual que la clase: <code>Producto(...)</code>.</li><li><strong>Olvidar el this:</strong> Si los parámetros se llaman igual que los atributos, debés usar <code>this.nombre = nombre;</code> para diferenciarlos.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `class Producto {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Constructor con void:</strong> El constructor NUNCA lleva void. Se llama igual que la clase: <code>Producto(...)</code>.</li><li><strong>Olvidar el this:</strong> Si los parámetros se llaman igual que los atributos, debés usar <code>this.nombre = nombre;</code> para diferenciarlos.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `class Producto {
     String nombre;
     double precio;
     
@@ -1811,7 +1811,7 @@ public class Main {
       'NO necesitas constructor. Declara los atributos: <code>private String nombre;</code> e <code>private int edad;</code>. Luego crea los 4 metodos get/set.',
       'Getter: <code>public String getNombre() { return nombre; }</code>',
       'En main: <code>Persona p = new Persona(); p.setNombre("Ana"); p.setEdad(25);</code><br>Luego imprimi: <code>System.out.println("Nombre: " + p.getNombre());</code> y <code>System.out.println("Edad: " + p.getEdad());</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta private:</strong> Asegurate de que los atributos <code>nombre</code> y <code>edad</code> tengan la palabra <code>private</code> antes de su tipo.</li><li><strong>Validación ausente:</strong> En el <code>setEdad(int nuevaEdad)</code> tenés que validar con <code>if (nuevaEdad &gt; 0)</code> antes de asignarlo.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `class Persona {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta private:</strong> Asegurate de que los atributos <code>nombre</code> y <code>edad</code> tengan la palabra <code>private</code> antes de su tipo.</li><li><strong>Validación ausente:</strong> En el <code>setEdad(int nuevaEdad)</code> tenés que validar con <code>if (nuevaEdad &gt; 0)</code> antes de asignarlo.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `class Persona {
     private String nombre;
     private int edad;
     
@@ -1924,7 +1924,7 @@ public class Main {
       'Animal: <code>String nombre;</code>, constructor, <code>void hacerSonido() { System.out.println(nombre + " hace un sonido"); }</code>',
       'Perro: <code>extends Animal</code>. Constructor llama <code>super(nombre);</code>',
       'Main: <code>Perro p = new Perro("Rex", "Labrador"); p.hacerSonido(); p.buscarPalo();</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta la palabra extends:</strong> Para heredar, se escribe <code>class Perro extends Animal</code>.</li><li><strong>Llamar a super() incorrectamente:</strong> El constructor de Perro DEBE llamar a <code>super(nombre);</code> en su primera línea para que Animal se inicialice.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `class Animal {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta la palabra extends:</strong> Para heredar, se escribe <code>class Perro extends Animal</code>.</li><li><strong>Llamar a super() incorrectamente:</strong> El constructor de Perro DEBE llamar a <code>super(nombre);</code> en su primera línea para que Animal se inicialice.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `class Animal {
     String nombre;
     
     Animal(String nombre) {
@@ -2284,7 +2284,7 @@ public class Main {
       'Agregá: <code>frutas.add("Manzana");</code> etc.',
       'Recorrelo: <code>for (String fruta : frutas) { System.out.println(fruta); }</code>',
       'Total: <code>System.out.println("Total de frutas: " + frutas.size());</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta el import:</strong> Recordá que la primera línea de tu archivo debe ser <code>import java.util.ArrayList;</code>.</li><li><strong>Uso de length en vez de size():</strong> Para arrays se usa <code>.length</code>, pero para ArrayList se debe usar el método <code>.size()</code>.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `import java.util.ArrayList;
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Falta el import:</strong> Recordá que la primera línea de tu archivo debe ser <code>import java.util.ArrayList;</code>.</li><li><strong>Uso de length en vez de size():</strong> Para arrays se usa <code>.length</code>, pero para ArrayList se debe usar el método <code>.size()</code>.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
@@ -2581,7 +2581,7 @@ ${cb('Finally siempre se ejecuta', `try {
       'Dentro del try: <code>int num = Integer.parseInt("abc");</code> — esto lanza NumberFormatException.',
       'El catch atrapa: <code>catch (NumberFormatException e) { ... }</code>',
       'Dentro del catch: <code>System.out.println("Error: el texto no es un número válido");</code>',
-      `<strong>Posibles errores comunes:</strong><ul><li><strong>Sintaxis del catch:</strong> Acordate de que el bloque va estructurado como <code>catch (TipoDeError variable) { }</code>.</li><li><strong>Falta código fuera del try:</strong> Asegurate de que el mensaje "Programa finalizado" esté afuera de los bloques try y catch, al final del main.</li></ul><strong>La solución:</strong><br>Si seguís trabado, copiá este código:<br>${cb('Solución', `public class Main {
+      `<strong>Posibles errores comunes:</strong><ul><li><strong>Sintaxis del catch:</strong> Acordate de que el bloque va estructurado como <code>catch (TipoDeError variable) { }</code>.</li><li><strong>Falta código fuera del try:</strong> Asegurate de que el mensaje "Programa finalizado" esté afuera de los bloques try y catch, al final del main.</li></ul><strong>La solución:</strong><br>Una forma de resolverlo:<br>${cb('Solución', `public class Main {
     public static void main(String[] args) {
         System.out.println("Intentando convertir...");
         try {

@@ -1,0 +1,70 @@
+name: Pruebas
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tutorial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Contenido e intérprete contra el JDK
+        run: node tests/run.js
+      - name: Spring, SQL y la API real
+        run: node tests/spring-check.js
+      - name: Navegador
+        run: node tests/browser.js
+
+  docker:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ejemplos/kiosco-api
+    steps:
+      - uses: actions/checkout@v4
+      - name: Levantar la base y la API desde cero
+        run: docker compose up -d --build --wait --wait-timeout 300
+      - name: Esperar a la API
+        run: |
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8080/api/productos && exit 0
+            sleep 2
+          done
+          exit 1
+      - name: Crear un producto
+        run: |
+          curl -fsS -X POST http://localhost:8080/api/productos \
+            -H 'Content-Type: application/json' \
+            -d '{"nombre":"Docker","precio":100,"stock":1}'
+      - name: Los datos sobreviven a bajar los contenedores
+        run: |
+          docker compose down
+          docker compose up -d --wait --wait-timeout 300
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8080/api/productos | grep -q Docker && exit 0
+            sleep 2
+          done
+          exit 1
+      - name: Logs si algo falló
+        if: failure()
+        run: docker compose logs
+      - name: Dockerfile liviano
+        run: |
+          docker compose down -v
+          ./mvnw -q -B -DskipTests clean package
+          docker build -f Dockerfile.simple -t kiosco-api-simple .
+          docker run -d --name simple -p 8081:8080 kiosco-api-simple
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8081/api/productos && exit 0
+            sleep 2
+          done
+          docker logs simple
+          exit 1
