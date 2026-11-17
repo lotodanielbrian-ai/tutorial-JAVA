@@ -26,7 +26,11 @@ window.__writes = [];
   var snap = function (d) { return { exists: !!d, data: function () { return d || {}; }, forEach: function () {} }; };
   var ref = function (p) {
     return {
-      get: function () { return Promise.resolve(snap(null)); },
+      // Con #offline la nube no se puede leer: así se prueba una carga fallida
+      get: function () {
+        if (location.hash === '#offline' && /^(progress|attempts|rankings)/.test(p)) return Promise.reject(new Error('client is offline'));
+        return Promise.resolve(snap(null));
+      },
       set: function (d) { window.__writes.push([p, d]); return Promise.resolve(); },
       collection: function (n) { return ref(p + '/' + n); },
       doc: function (n) { return ref(p + '/' + n); },
@@ -34,7 +38,11 @@ window.__writes = [];
       limit: function () { return this; }
     };
   };
-  var db = { collection: function (n) { return ref(n); }, batch: function () { return { delete: function () {}, commit: function () { return Promise.resolve(); } }; } };
+  var db = {
+    collection: function (n) { return ref(n); },
+    batch: function () { return { delete: function () {}, commit: function () { return Promise.resolve(); } }; },
+    runTransaction: function (fn) { return fn({ get: function (r) { return r.get(); }, set: function (r, d) { r.set(d); } }); }
+  };
   var auth = { currentUser: user, onAuthStateChanged: function (cb) { setTimeout(function () { cb(user); }, 10); }, signOut: function () { return Promise.resolve(); } };
   window.firebase = {
     apps: [1], initializeApp: function () {}, app: function () { return {}; },
@@ -164,6 +172,11 @@ async function connect(url) {
     // Un reingreso real: el lugar y el borrador tienen que seguir ahí
     await open('#resume', 1280, 900);
     report(await result(15000));
+
+    // Sin poder leer la nube, la app abre igual, avisa y no pisa nada
+    await open('#offline', 1280, 900);
+    report(await result(15000));
+    await shot('sin-conexion');
   }
 
   const views = [['leccion', '#v-lesson'], ['practica', '#v-prac'], ['panel', '#v-panel'], ['repaso', '#v-review'], ['simulacro', '#v-sim'], ['pasos', '#v-steps'], ['pong', '#v-pong'], ['parcial', '#v-practico'], ['ejercicio', '#v-hints']];

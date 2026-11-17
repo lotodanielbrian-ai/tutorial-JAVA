@@ -51,20 +51,48 @@ var Ranking = (function () {
     });
   }
 
+  // El ranking es público: nunca muestra el email, aunque la cuenta no tenga nombre
+  function publicName(user) {
+    var name = String(user.displayName || '').trim();
+    if (!name || name.indexOf('@') !== -1) return 'Estudiante';
+    return name.slice(0, 60);
+  }
+
+  function publicPhoto(user) {
+    var url = String(user.photoURL || '');
+    return /^https:\/\//.test(url) && url.length <= 500 ? url : '';
+  }
+
+  /**
+   * Suma a lo que ya está en la nube: una pestaña vieja no puede bajar el puntaje.
+   * Las lecciones salen de unir las de progress/{uid} con las de esta pestaña, y los
+   * puntos de cuestionario nunca bajan.
+   */
   function update(completedLessons, quizScores, certificateEarned) {
     var user = currentUser();
     if (!firebaseReady || !user) return Promise.resolve();
-    var score = calcScore(completedLessons, quizScores, certificateEarned);
-    var payload = {
-      displayName: user.displayName || user.email || 'Estudiante',
-      photoURL: user.photoURL || '',
-      lessonsCompleted: score.lessonsCompleted,
-      quizPoints: score.quizPoints,
-      certificateBonus: score.certificateBonus,
-      totalScore: score.totalScore,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    return firebaseDb.collection('rankings').doc(user.uid).set(payload, { merge: true }).catch(function (err) {
+    var progRef = firebaseDb.collection('progress').doc(user.uid);
+    var rankRef = firebaseDb.collection('rankings').doc(user.uid);
+    var total = typeof LESSONS !== 'undefined' ? LESSONS.length : 35;
+    return firebaseDb.runTransaction(function (tx) {
+      return Promise.all([tx.get(progRef), tx.get(rankRef)]).then(function (snaps) {
+        var prog = snaps[0].exists ? snaps[0].data() : {};
+        var prev = snaps[1].exists ? snaps[1].data() : {};
+        var lessons = Progress.phase1Ids(Progress.union(prog.completedLessons, completedLessons));
+        var cert = !!certificateEarned || !!prog.certificateEarned || lessons.length === total;
+        var score = calcScore(lessons, quizScores, cert);
+        var quizPoints = Math.min(75, Math.max(score.quizPoints, Number(prev.quizPoints) || 0));
+        tx.set(rankRef, {
+          displayName: publicName(user),
+          photoURL: publicPhoto(user),
+          lessonsCompleted: score.lessonsCompleted,
+          quizPoints: quizPoints,
+          certificateBonus: score.certificateBonus,
+          totalScore: Math.min(MAX_TOTAL, Math.round(score.lessonsCompleted * 10 + quizPoints + score.certificateBonus)),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+    }).catch(function (err) {
       console.warn('[Ranking] update failed', err);
     });
   }

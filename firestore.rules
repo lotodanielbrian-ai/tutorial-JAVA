@@ -6,8 +6,15 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
+    // El ranking es de lectura pública: solo sus campos, con largo acotado y sin emails
     function validRanking() {
-      return request.resource.data.lessonsCompleted is int
+      return request.resource.data.keys().hasOnly(['displayName', 'photoURL', 'lessonsCompleted', 'quizPoints', 'certificateBonus', 'totalScore', 'updatedAt'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() <= 60
+        && !request.resource.data.displayName.matches('.*@.*')
+        && request.resource.data.photoURL is string
+        && request.resource.data.photoURL.size() <= 500
+        && request.resource.data.lessonsCompleted is int
         && request.resource.data.lessonsCompleted >= 0
         && request.resource.data.lessonsCompleted <= 35
         && request.resource.data.totalScore is int

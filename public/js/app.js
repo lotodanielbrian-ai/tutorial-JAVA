@@ -193,8 +193,18 @@ function saveDone() {
   }
   Progress.saveLocalCache(Progress.activeUid(), [...done], quizBestScores);
   if (Progress.syncProgress) {
-    Progress.syncProgress([...done], cur, done.size === LESSONS.length);
+    Progress.syncProgress([...done], cur, done.size === LESSONS.length).then(adoptLessons);
   }
+}
+
+// Lo que se completó en otra pestaña o dispositivo también se ve en esta
+function adoptLessons(merged) {
+  if (!merged || !merged.completedLessons) return;
+  const before = done.size;
+  merged.completedLessons.forEach(id => done.add(id));
+  if (done.size === before) return;
+  Progress.saveLocalCache(Progress.activeUid(), [...done], quizBestScores);
+  buildSidebar();
 }
 
 // ── Search ─────────────────────────────────────────────────────────────

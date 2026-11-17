@@ -46,10 +46,21 @@
     ok(document.getElementById('code-editor').value.indexOf('// borrador de prueba') !== -1, 'al reingresar conserva el borrador');
   }
 
+  async function offline() {
+    for (var i = 0; i < 30 && !document.body.classList.contains('authed'); i++) await wait(100);
+    ok(document.body.classList.contains('authed'), 'sin poder leer la nube, la app abre igual');
+    ok(!!q('.lh-title'), 'sin poder leer la nube, la lección se ve');
+    var note = document.getElementById('sync-note');
+    ok(!!note && /no se pierde/.test(note.textContent), 'sin poder leer la nube, avisa que lo hecho no se pierde');
+    ok(LESSONS[cur].id === 12, 'sin poder leer la nube, usa lo guardado en este navegador');
+    ok(!window.__writes.some(function (w) { return w[0].indexOf('progress/u1') === 0 && w[1].completedLessons; }), 'sin poder leer la nube, no sube lecciones encima de las guardadas');
+  }
+
   async function main() {
     await wait(300);
     var hash = location.hash;
     if (hash === '#resume') { await resume(); return; }
+    if (hash === '#offline') { await offline(); return; }
     if (VIEWS[hash]) { await VIEWS[hash](); return; }
 
     ok(document.body.classList.contains('authed'), 'la app arranca con sesión');

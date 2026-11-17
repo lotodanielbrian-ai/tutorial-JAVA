@@ -944,7 +944,7 @@ var Practica = (function () {
     });
     var pct = Math.round(correct / keys.length * 100);
     var nota = Math.max(1, Math.round(correct / keys.length * 100) / 10);
-    state.sims.push({ fecha: new Date().toLocaleDateString('es-AR'), tramo: sim.label, nota: nota, pct: pct });
+    state.sims.push({ fecha: new Date().toLocaleDateString('es-AR'), tramo: sim.label, nota: nota, pct: pct, at: Date.now() });
     state.sims = state.sims.slice(-20);
     persist();
     var verdict = nota >= PASS_NOTE ? 'Aprobado.' : 'Todavía no alcanza: repasá las lecciones de abajo y volvé a intentarlo.';

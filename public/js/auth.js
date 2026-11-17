@@ -182,25 +182,99 @@ var AuthUI = (function () {
     }
     if (typeof clearSessionProgress === 'function') clearSessionProgress();
 
-    return upsertUserProfile(u).then(function () {
-      return Progress.loadRemote();
-    }).then(function (remote) {
+    // El perfil no se espera: sin conexión, su confirmación puede no llegar nunca
+    upsertUserProfile(u);
+    return Progress.loadRemote().then(function (remote) {
       var state = Progress.loadUserState(u.uid, remote);
-      if (typeof applyUserProgress === 'function') {
-        applyUserProgress(state);
-      } else if (typeof applyProgressFromRemote === 'function') {
-        applyProgressFromRemote(state.completedLessons, state.scores);
+      applyState(state);
+      if (remote.failed) {
+        // No se pudo leer la nube: se abre con lo de este navegador y no se toma
+        // como "cero lecciones". Se reintenta hasta poder combinar
+        mountApp();
+        syncNote('No pudimos cargar tu progreso guardado. Lo que hagas ahora no se pierde: lo combinamos cuando vuelva la conexión.');
+        retryLoad(u, 0);
+        return;
       }
-      var cert = state.completedLessons.length === (typeof LESSONS !== 'undefined' ? LESSONS.length : 35);
-      return Progress.syncProgress(state.completedLessons, typeof cur !== 'undefined' ? cur : 0, cert).then(function () {
-        return Ranking.update(state.completedLessons, state.scores, cert);
-      });
-    }).then(function () {
-      mountApp();
+      return pushState(state).then(mountApp);
     }).catch(function (err) {
       console.warn('[Auth] afterLogin error', err);
-      mountApp();
+      if (!_appStarted) mountApp();
     });
+  }
+
+  function applyState(state) {
+    if (typeof applyUserProgress === 'function') {
+      applyUserProgress(state);
+    } else if (typeof applyProgressFromRemote === 'function') {
+      applyProgressFromRemote(state.completedLessons, state.scores);
+    }
+  }
+
+  /** Sube el estado combinado: lecciones, ranking, práctica y Fase 2. Todo se suma a la nube. */
+  function pushState(state) {
+    var total = typeof LESSONS !== 'undefined' ? LESSONS.length : 35;
+    var cert = state.completedLessons.length === total;
+    if (state.practice && typeof Practica !== 'undefined' && Progress.savePractice) Progress.savePractice(Practica.getState());
+    if (state.fase2 && (state.fase2.done.length || state.fase2.accredited) && Progress.saveFase2) Progress.saveFase2(state.fase2);
+    return Progress.syncProgress(state.completedLessons, typeof cur !== 'undefined' ? cur : 0, cert).then(function (merged) {
+      return Ranking.update(merged ? merged.completedLessons : state.completedLessons, state.scores, cert);
+    });
+  }
+
+  var RETRY_MS = [5000, 15000, 30000, 60000, 120000, 300000];
+
+  function examOpen() {
+    var box = document.getElementById('sim-overlay');
+    return !!(box && box.classList.contains('show'));
+  }
+
+  var retryTimer = null;
+  var retrying = null;
+
+  // Sigue intentando hasta lograrlo: cada vez más espaciado, y enseguida si vuelve la conexión
+  function retryLoad(u, attempt, wait) {
+    if (wait === undefined) wait = RETRY_MS[Math.min(attempt, RETRY_MS.length - 1)];
+    retrying = { u: u, attempt: attempt };
+    if (retryTimer) clearTimeout(retryTimer);
+    retryTimer = setTimeout(function () {
+      retryTimer = null;
+      if (!_user || _user.uid !== u.uid) { retrying = null; return; }
+      // Con un examen abierto se espera: recargar el estado lo interrumpiría
+      if (examOpen()) { retryLoad(u, attempt); return; }
+      Progress.loadRemote().then(function (remote) {
+        if (!_user || _user.uid !== u.uid) { retrying = null; return; }
+        if (remote.failed) { retryLoad(u, attempt + 1); return; }
+        retrying = null;
+        if (typeof keepDraft === 'function') keepDraft();
+        // La caché local ya tiene lo hecho en esta sesión: se combina con la nube
+        var state = Progress.loadUserState(u.uid, remote);
+        applyState(state);
+        if (typeof render === 'function') render();
+        syncNote('');
+        pushState(state);
+      });
+    }, wait);
+  }
+
+  // Si vuelve la conexión mientras se espera, se reintenta ya (si hay una carga en curso, se la deja)
+  window.addEventListener('online', function () {
+    if (retrying && retryTimer) retryLoad(retrying.u, retrying.attempt, 0);
+  });
+
+  function syncNote(text) {
+    var el = document.getElementById('sync-note');
+    if (!text) {
+      if (el) el.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'sync-note';
+      el.className = 'sync-note';
+      el.setAttribute('role', 'status');
+      document.body.appendChild(el);
+    }
+    el.textContent = text;
   }
 
   function authErrorMessage(providerLabel, err) {
@@ -268,6 +342,7 @@ var AuthUI = (function () {
   }
 
   function signOut() {
+    syncNote('');
     clearSessionState();
     if (!firebaseAuth) {
       _user = null;

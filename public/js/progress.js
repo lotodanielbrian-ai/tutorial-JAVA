@@ -177,8 +177,67 @@ var Progress = (function () {
     var wrong = Array.from(new Set((a.wrong || []).concat(b.wrong || []))).filter(function (k) {
       return reviews[k] ? reviews[k].box === 0 : scores[k] < 1;
     });
-    var sims = (a.sims || []).length >= (b.sims || []).length ? (a.sims || []) : b.sims;
-    return { scores: scores, wrong: wrong, sims: sims, reviews: reviews, help: Object.assign({}, b.help || {}, a.help || {}) };
+    return { scores: scores, wrong: wrong, sims: mergeSims(a.sims, b.sims), reviews: reviews, help: Object.assign({}, b.help || {}, a.help || {}) };
+  }
+
+  // Los simulacros de los dos lados, sin repetir y en orden: quedan los últimos 20
+  function mergeSims(a, b) {
+    var seen = Object.create(null);
+    var all = [];
+    (b || []).concat(a || []).forEach(function (s) {
+      var k = JSON.stringify(s);
+      if (seen[k]) return;
+      seen[k] = true;
+      all.push(s);
+    });
+    all.sort(function (x, y) { return (x.at || 0) - (y.at || 0); });
+    return all.slice(-20);
+  }
+
+  // Entre dos fechas gana la primera: la de aprobar o terminar no se reescribe
+  function earliest(x, y) {
+    if (!x) return y || null;
+    if (!y) return x;
+    return x < y ? x : y;
+  }
+
+  function union(a, b) {
+    return Array.from(new Set((a || []).concat(b || [])));
+  }
+
+  function phase1Ids(list) {
+    if (typeof LESSONS === 'undefined') return list;
+    var valid = new Set(LESSONS.map(function (l) { return l.id; }));
+    return list.filter(function (id) { return valid.has(id); });
+  }
+
+  /**
+   * Escribe en progress/{uid} combinando con lo que ya está en la nube, dentro de
+   * una transacción. Ninguna pestaña ni dispositivo puede borrar el avance de otro,
+   * aunque haya entrado sin poder leerlo: lo de la nube siempre se suma.
+   */
+  function mergeIntoProgress(uid, build) {
+    var ref = firebaseDb.collection('progress').doc(uid);
+    return firebaseDb.runTransaction(function (tx) {
+      return tx.get(ref).then(function (snap) {
+        var fields = build(snap.exists ? snap.data() : {});
+        tx.set(ref, fields, { merge: true });
+        return fields;
+      });
+    });
+  }
+
+  // Lo que no se pudo subir se reintenta al volver la conexión
+  var pendingRetry = Object.create(null);
+
+  function retryLater(name, fn) {
+    pendingRetry[name] = fn;
+  }
+
+  function retryPending() {
+    var fns = pendingRetry;
+    pendingRetry = Object.create(null);
+    Object.keys(fns).forEach(function (k) { fns[k](); });
   }
 
   function newestPlace(local, remote) {
@@ -191,10 +250,10 @@ var Progress = (function () {
     var a = local || {};
     var b = remote || {};
     return {
-      done: Array.from(new Set((a.done || []).concat(b.done || []))),
-      completionDate: a.completionDate || b.completionDate || null,
+      done: union(a.done, b.done),
+      completionDate: earliest(a.completionDate, b.completionDate),
       certShown: !!(a.certShown || b.certShown),
-      accredited: a.accredited || b.accredited || null
+      accredited: earliest(a.accredited, b.accredited)
     };
   }
 
@@ -204,8 +263,13 @@ var Progress = (function () {
     setJson('java_fase2', uid, fase2);
     var user = currentUser();
     if (!firebaseReady || !user || user.uid !== uid) return Promise.resolve();
-    return firebaseDb.collection('progress').doc(uid).set({ fase2: fase2 }, { merge: true }).catch(function (err) {
+    return mergeIntoProgress(uid, function (remote) {
+      return { fase2: mergeFase2(fase2, remote.fase2) };
+    }).then(function (fields) {
+      return fields.fase2;
+    }).catch(function (err) {
       console.warn('[Progress] saveFase2 failed', err);
+      retryLater('fase2', function () { saveFase2(getJson('java_fase2', uid, fase2)); });
     });
   }
 
@@ -217,11 +281,17 @@ var Progress = (function () {
     practiceTimer = null;
     var pending = pendingPractice;
     pendingPractice = null;
-    if (!pending) return;
+    if (!pending) return Promise.resolve();
     var user = currentUser();
-    if (!firebaseReady || !user || user.uid !== pending.uid) return;
-    firebaseDb.collection('progress').doc(pending.uid).set({ practice: pending.practice }, { merge: true }).catch(function (err) {
+    if (!firebaseReady || !user || user.uid !== pending.uid) return Promise.resolve();
+    return mergeIntoProgress(pending.uid, function (remote) {
+      return { practice: mergePractice(pending.practice, remote.practice) };
+    }).catch(function (err) {
       console.warn('[Progress] savePractice failed', err);
+      retryLater('practice', function () {
+        if (!pendingPractice) pendingPractice = { uid: pending.uid, practice: getJson('java_practice', pending.uid, pending.practice) };
+        flushPractice();
+      });
     });
   }
 
@@ -255,27 +325,41 @@ var Progress = (function () {
   function loadDraft(id) { return getStr('java_draft_' + id, activeUid()); }
   function clearDraft(id) { removeKey('java_draft_' + id, activeUid()); }
 
+  /**
+   * Sube las lecciones completas sumándolas a las de la nube: nunca las reemplaza.
+   * Devuelve la lista combinada (o null si no se pudo), para que la pestaña adopte
+   * lo que se completó en otra.
+   */
   function syncProgress(completedLessons, currentLesson, certificateEarned) {
     var user = currentUser();
-    if (!user) return Promise.resolve();
+    if (!user) return Promise.resolve(null);
     var uid = user.uid;
+    var total = typeof LESSONS !== 'undefined' ? LESSONS.length : 35;
     saveLocalCache(uid, completedLessons, getJson('java_quiz_scores', uid, {}));
-    var firstCompletion = !!certificateEarned && !getStr('java_completion_date', uid);
-    if (firstCompletion) {
+    if (certificateEarned && !getStr('java_completion_date', uid)) {
       setStr('java_completion_date', uid, new Date().toISOString());
     }
-    if (!firebaseReady) return Promise.resolve();
-    var payload = {
-      completedLessons: completedLessons,
-      currentLesson: typeof currentLesson === 'number' ? currentLesson : 0,
-      certificateEarned: !!certificateEarned,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    if (firstCompletion) {
-      payload.completionDate = firebase.firestore.FieldValue.serverTimestamp();
-    }
-    return firebaseDb.collection('progress').doc(uid).set(payload, { merge: true }).catch(function (err) {
+    if (!firebaseReady) return Promise.resolve(null);
+    return mergeIntoProgress(uid, function (remote) {
+      var lessons = phase1Ids(union(remote.completedLessons, completedLessons));
+      var cert = !!remote.certificateEarned || lessons.length === total;
+      var payload = {
+        completedLessons: lessons,
+        currentLesson: typeof currentLesson === 'number' ? currentLesson : 0,
+        certificateEarned: cert,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      // La fecha del certificado se fija una sola vez, la primera
+      if (cert && !remote.completionDate) payload.completionDate = firebase.firestore.FieldValue.serverTimestamp();
+      return payload;
+    }).then(function (payload) {
+      return { completedLessons: payload.completedLessons, certificateEarned: payload.certificateEarned };
+    }).catch(function (err) {
       console.warn('[Progress] sync failed', err);
+      retryLater('lessons', function () {
+        syncProgress(getJson('java_done_v2', uid, completedLessons), currentLesson, certificateEarned);
+      });
+      return null;
     });
   }
 
@@ -325,6 +409,19 @@ var Progress = (function () {
     return getStr('java_completion_date', uid);
   }
 
+  var LOAD_TIMEOUT_MS = 12000;
+
+  function withTimeout(promise, ms) {
+    return new Promise(function (resolve, reject) {
+      var t = setTimeout(function () { reject(new Error('timeout')); }, ms);
+      promise.then(function (v) { clearTimeout(t); resolve(v); }, function (e) { clearTimeout(t); reject(e); });
+    });
+  }
+
+  /**
+   * Lee el progreso de la nube. Si falla, devuelve { failed: true }: quien llama
+   * no debe tomarlo como "cero lecciones".
+   */
   function loadRemote() {
     var user = currentUser();
     if (!firebaseReady || !user) {
@@ -332,7 +429,7 @@ var Progress = (function () {
     }
     var progressP = firebaseDb.collection('progress').doc(user.uid).get();
     var attemptsP = firebaseDb.collection('attempts').doc(user.uid).collection('lessons').get();
-    return Promise.all([progressP, attemptsP]).then(function (results) {
+    return withTimeout(Promise.all([progressP, attemptsP]), LOAD_TIMEOUT_MS).then(function (results) {
       var progSnap = results[0];
       var attSnap = results[1];
       var progData = progSnap.exists ? progSnap.data() : {};
@@ -357,13 +454,20 @@ var Progress = (function () {
       };
     }).catch(function (err) {
       console.warn('[Progress] loadRemote failed', err);
-      return { completedLessons: [], scores: {} };
+      return { failed: true, completedLessons: [], scores: {} };
     });
   }
 
   function resetRemote() {
     var user = currentUser();
     if (!user) return Promise.resolve();
+    // Lo pendiente de antes del reinicio no tiene que volver a subir
+    if (practiceTimer) clearTimeout(practiceTimer);
+    if (placeTimer) clearTimeout(placeTimer);
+    practiceTimer = null;
+    placeTimer = null;
+    pendingPractice = null;
+    pendingRetry = Object.create(null);
     clearLocalForUid(user.uid);
     if (!firebaseReady) return Promise.resolve();
     var batch = firebaseDb.batch();
@@ -405,9 +509,16 @@ var Progress = (function () {
   // One-time: strip dangerous shared keys
   purgeLegacyGlobalKeys();
 
-  if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('pagehide', flushPractice);
+  if (typeof window !== 'undefined' && window.addEventListener) {
+    window.addEventListener('pagehide', flushPractice);
+    window.addEventListener('online', retryPending);
+  }
 
   return {
+    flushPractice: flushPractice,
+    retryPending: retryPending,
+    phase1Ids: phase1Ids,
+    union: union,
     syncProgress: syncProgress,
     saveAttempt: saveAttempt,
     loadRemote: loadRemote,

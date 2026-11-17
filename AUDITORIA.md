@@ -385,6 +385,26 @@ Conviene empezar con una victoria rápida (cambiar el texto y ejecutar) y explic
 
 El trabajo de la segunda auditoría estuvo 17 días sin commitear ni publicar, y la CI nunca había corrido. Quedó commiteado y publicado junto con este informe.
 
+### Corregido el mismo día: guardado y ranking
+
+| Hallazgo | Solución |
+|---|---|
+| Una carga fallida pisaba la nube con cero lecciones | `loadRemote` avisa `{ failed: true }`. La app abre con lo de este navegador, muestra un aviso y reintenta (5 s, 15 s, 30 s… y enseguida si vuelve la conexión). Nunca sube sobre lo que no pudo leer |
+| Dos pestañas o dispositivos se pisaban | Lecciones, Fase 2, práctica y ranking se escriben en una transacción que lee la nube y suma: las lecciones se unen, el repaso más reciente gana, las fechas se quedan con la primera y el puntaje no baja. La pestaña adopta lo que se completó en otra |
+| El ranking podía publicar el email | Sin nombre, o con un nombre que es un email, se publica "Estudiante". Solo se publican fotos `https` |
+| Las reglas del ranking no limitaban texto ni campos | `hasOnly` con los 7 campos, nombre de hasta 60 caracteres y sin `@`, foto de hasta 500 |
+| Lo que no se pudo subir se perdía hasta el próximo cambio | Se reintenta con el evento `online`, y al entrar se sube la práctica y la Fase 2 combinadas |
+
+**Cómo se verificó:**
+- `tests/sync.js`, nuevo, simula Firestore con lecturas que fallan y dos pestañas sobre la misma nube: 27 verificaciones. Contra el código anterior, la misma prueba muestra el error: la nube pasaba de 35 lecciones a cero y perdía el certificado.
+- `tests/browser.js` suma `#offline`: sin poder leer la nube, la app abre, avisa y no sube lecciones.
+- Las reglas compilan con `firebase deploy --dry-run`.
+- En producción había 2 documentos de ranking y ninguno con email, así que el cambio de reglas no deja ninguno inválido.
+
+**Sigue pendiente:**
+- Reiniciar el progreso solo borra la caché de ese navegador.
+- La práctica se combina por actividad: si dos pestañas responden la misma actividad a la vez, gana el repaso con la fecha más reciente, que es lo esperado.
+
 ## Cómo verificar
 
 ```bash
