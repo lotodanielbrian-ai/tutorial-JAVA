@@ -194,7 +194,7 @@ var FIGURAS = (function () {
   };
 
   F[4] = function () {
-    var chars = ['H', 'o', 'l', 'a', '␣', 'J', 'a', 'v', 'a'];
+    var chars = ['H', 'o', 'l', 'a', '·', 'J', 'a', 'v', 'a'];
     var b = T(20, 30, 'String s = "Hola Java";', 'f-m f-b', 'start');
     b += cells(60, 50, chars, { w: 52, hi: [5] });
     b += P('M60,124 L60,134 L268,134 L268,124', 'f-ln-acc') + T(164, 154, 's.substring(0, 4) → "Hola"', 'f-m f-s');
@@ -308,7 +308,7 @@ var FIGURAS = (function () {
   F[13] = function () {
     var b = T(20, 26, 'int[] notas = {8, 6, 9, 7};', 'f-m f-b', 'start');
     b += cells(150, 50, ['8', '6', '9', '7'], { w: 64, hi: [2] });
-    b += R(406, 50, 64, 40, 'f-bad', 4) + T(438, 76, '✗', 'f-b f-tbad') + T(438, 108, '4', 'f-s f-m');
+    b += R(406, 50, 64, 40, 'f-bad', 4) + T(438, 76, '×', 'f-b f-tbad') + T(438, 108, '4', 'f-s f-m');
     b += T(232, 140, 'notas[2] → 9', 'f-m f-s') + T(310, 160, 'notas.length → 4 (sin paréntesis)', 'f-m f-s');
     b += T(500, 140, 'notas[4] →', 'f-m f-s f-tbad') + T(530, 158, 'ArrayIndexOutOfBounds', 'f-m f-s f-tbad');
     b += T(320, 192, 'Tamaño fijo · índices de 0 a length - 1 · se recorre con un for', 'f-s');
@@ -333,7 +333,7 @@ var FIGURAS = (function () {
     var b = T(20, 26, 'int[] ventas = {150, 320, 90, 480, 200};   ¿cuántas superan 200?', 'f-m f-s', 'start');
     v.forEach(function (n, i) {
       var ok = Number(n) > 200;
-      b += R(40 + i * 110, 46, 90, 44, ok ? 'f-ok' : 'f-box', 6) + T(85 + i * 110, 74, n, 'f-m f-b') + T(85 + i * 110, 112, ok ? '✓ cuenta' : '✗', ok ? 'f-s f-tok' : 'f-s');
+      b += R(40 + i * 110, 46, 90, 44, ok ? 'f-ok' : 'f-box', 6) + T(85 + i * 110, 74, n, 'f-m f-b') + T(85 + i * 110, 112, ok ? '✓ cuenta' : '×', ok ? 'f-s f-tok' : 'f-s');
     });
     b += A(40, 136, 590, 136, 'f-ln-acc') + T(315, 156, 'for recorre cada casilla · if decide si suma al contador', 'f-s');
     b += B(220, 168, 200, 32, 'contador = 2', 'f-acc', 'f-m f-b');
@@ -389,7 +389,7 @@ var FIGURAS = (function () {
     b += B(220, 104, 200, 32, 'if (edad >= 0) …', 'f-blue', 'f-m f-s');
     b += B(10, 52, 130, 36, 'getEdad()', 'f-ok', 'f-m') + A(140, 70, 186, 80) + T(76, 104, 'leer: puerta de salida', 'f-s');
     b += B(500, 40, 130, 36, 'setEdad(30)', 'f-ok', 'f-m') + A(500, 58, 452, 80) + T(566, 92, 'pasa ✓', 'f-s f-tok');
-    b += B(500, 116, 130, 36, 'setEdad(-5)', 'f-bad', 'f-m') + A(500, 134, 452, 124, 'f-ln-bad') + T(566, 170, 'la validación lo frena ✗', 'f-s f-tbad');
+    b += B(500, 116, 130, 36, 'setEdad(-5)', 'f-bad', 'f-m') + A(500, 134, 452, 124, 'f-ln-bad') + T(566, 170, 'la validación lo frena ×', 'f-s f-tbad');
     return fig(640, 184, b, 'Encapsular: los datos quedan adentro y solo se cambian por métodos que controlan');
   };
 

@@ -142,3 +142,12 @@ h2, h3, h4, .ts h3, .mn-h-big { break-after:avoid; }
 .mn-h-big + *, .ts h3 + * { break-before:avoid; }
 p { orphans:3; widows:3; }
 a { color:inherit; text-decoration:none; }
+
+/* Emojis en blanco y negro con una fuente común: los emojis de color se incrustan como
+   fuentes Type 3, y algunos visores de PDF no las dibujan (dejan cajas vacías) */
+body, body * { font-family: Inter, "Noto Emoji", sans-serif !important; font-variant-emoji: text !important; }
+code, pre, kbd, .cblock-body, .cblock-head, .mn-code, .mn-out, .mn-ln, .mn-num, .mn-blank, .mn-toc-n,
+.mn-part-list span, .mn-c0-title span, .sym-tbl td:first-child, .fig .f-m, .mn-ref-tbl code { font-family: "JetBrains Mono", "Noto Emoji", monospace !important; }
+
+/* Emojis como imagen (Twemoji): en el PDF se ven en cualquier visor */
+.mn-emoji { height:1.1em; width:1.1em; vertical-align:-0.2em; display:inline-block; margin:0 .05em; }

@@ -305,7 +305,7 @@ var Manual = (function () {
 
   function backCover() {
     return '<section class="mn-back"><p>Java INPRO · <strong>Java desde cero</strong></p><p class="mn-small">' + esc(MANUAL.EDICION) +
-      '. Los ejemplos y las soluciones se verifican con el compilador de Java real antes de cada edición.</p></section>';
+      '. Los ejemplos y las soluciones se verifican con el compilador de Java real antes de cada edición. Emojis del PDF: Twemoji, CC-BY 4.0.</p></section>';
   }
 
   // ── Interactividad (solo en pantalla) ───────────────────────────────
@@ -452,7 +452,101 @@ var Manual = (function () {
       wire(root);
       if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
     }
-    document.documentElement.setAttribute('data-ready', '1');
+    (PRINT ? staticFonts().then(function () { return emojiImages(document.body); }) : Promise.resolve()).then(function () {
+      document.documentElement.setAttribute('data-ready', '1');
+    });
+  }
+
+  // Google Fonts sirve Inter y JetBrains Mono como fuentes variables, y los emojis son de color:
+  // Chrome incrusta las dos cosas en el PDF como fuentes Type 3, que algunos visores no dibujan
+  // (quedan cajas vacías). Para el PDF se usan fuentes estáticas, un archivo por grosor.
+  var STATIC_FONTS = ['inter@5.1.0/400', 'inter@5.1.0/500', 'inter@5.1.0/600', 'inter@5.1.0/700', 'inter@5.1.0/800',
+    'jetbrains-mono@5.1.0/400', 'jetbrains-mono@5.1.0/500', 'jetbrains-mono@5.1.0/700', 'noto-emoji@5.1.0/400'];
+
+  // Los emojis se dibujan con la fuente de color del sistema, que el PDF incrusta como Type 3
+  // (algunos visores la muestran vacía). En papel cada emoji pasa a ser su imagen de Twemoji
+  // (CC-BY 4.0): una imagen vectorial se ve igual en cualquier visor.
+  var EMOJI = /[0-9#*]️?⃣|\p{Extended_Pictographic}(?:️|‍\p{Extended_Pictographic}️?)*/gu;
+  var TWEMOJI = 'https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/';
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  function emojiUrl(seq) {
+    var cps = Array.from(seq).map(function (c) { return c.codePointAt(0).toString(16); });
+    if (cps.indexOf('200d') === -1) cps = cps.filter(function (c) { return c !== 'fe0f'; });
+    return TWEMOJI + cps.join('-') + '.svg';
+  }
+
+  function emojiImages(root) {
+    var loads = [];
+    var track = function (img, fallback) {
+      loads.push(new Promise(function (resolve) {
+        img.addEventListener('load', resolve);
+        img.addEventListener('error', function () { fallback(); resolve(); });
+      }));
+    };
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    var has = new RegExp(EMOJI.source, 'u'); // sin g: test() con g avanza lastIndex y saltea nodos
+    while (walker.nextNode()) if (has.test(walker.currentNode.nodeValue)) nodes.push(walker.currentNode);
+    var svgTexts = [];
+    nodes.forEach(function (node) {
+      var text = node.parentElement && node.parentElement.closest('text');
+      if (text) { if (svgTexts.indexOf(text) === -1) svgTexts.push(text); return; }
+      var frag = document.createDocumentFragment(), last = 0, v = node.nodeValue, m;
+      EMOJI.lastIndex = 0;
+      while ((m = EMOJI.exec(v))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(v.slice(last, m.index)));
+        var img = document.createElement('img');
+        img.className = 'mn-emoji';
+        img.alt = m[0];
+        img.src = emojiUrl(m[0]);
+        (function (img, seq) { track(img, function () { img.replaceWith(document.createTextNode(seq)); }); })(img, m[0]);
+        frag.appendChild(img);
+        last = m.index + m[0].length;
+      }
+      if (last < v.length) frag.appendChild(document.createTextNode(v.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+    // En las figuras el emoji sale del texto y se dibuja como <image> justo antes
+    svgTexts.forEach(function (text) {
+      var found = (text.textContent.match(EMOJI) || [])[0];
+      if (!found) return;
+      var size = parseFloat(getComputedStyle(text).fontSize) * 1.15;
+      var x0 = parseFloat(text.getAttribute('x')), y0 = parseFloat(text.getAttribute('y'));
+      var w = document.createTreeWalker(text, NodeFilter.SHOW_TEXT);
+      while (w.nextNode()) w.currentNode.nodeValue = w.currentNode.nodeValue.replace(EMOJI, '').replace(/^\s+/, '');
+      var img = document.createElementNS(SVGNS, 'image');
+      img.setAttribute('href', emojiUrl(found));
+      img.setAttribute('width', size);
+      img.setAttribute('height', size);
+      var box = text.textContent.trim() ? text.getBBox() : null;
+      img.setAttribute('x', box ? box.x - size - 3 : x0);
+      img.setAttribute('y', box ? box.y + (box.height - size) / 2 : y0 - size * 0.85);
+      loads.push(new Promise(function (resolve) { img.addEventListener('load', resolve); img.addEventListener('error', resolve); }));
+      text.parentNode.insertBefore(img, text);
+    });
+    return Promise.all(loads);
+  }
+
+  function staticFonts() {
+    document.querySelectorAll('link[href*="fonts.googleapis.com/css"]').forEach(function (l) { l.remove(); });
+    return Promise.all(STATIC_FONTS.map(function (name) {
+      return new Promise(function (resolve) {
+        var l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://cdn.jsdelivr.net/npm/@fontsource/' + name + '.css';
+        l.onload = l.onerror = resolve;
+        document.head.appendChild(l);
+      });
+    })).then(function () {
+      // Cada fuente viene en subconjuntos que se bajan recién cuando un texto los usa, y eso
+      // pasaría durante la paginación: se cargan antes, con todos los caracteres del libro
+      var seen = {}, chars = '';
+      Array.from(document.body.textContent).forEach(function (ch) { if (!seen[ch]) { seen[ch] = true; chars += ch; } });
+      return Promise.all(['400 16px Inter', '500 16px Inter', '600 16px Inter', '700 16px Inter', '800 16px Inter',
+        '400 16px "JetBrains Mono"', '500 16px "JetBrains Mono"', '700 16px "JetBrains Mono"', '400 16px "Noto Emoji"']
+        .map(function (f) { return document.fonts.load(f, chars).catch(function () {}); }));
+    }).then(function () { return document.fonts.ready; });
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build);

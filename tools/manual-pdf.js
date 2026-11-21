@@ -155,7 +155,7 @@ async function connect(url) {
     preferCSSPageSize: true,
     printBackground: true,
     generateDocumentOutline: true,
-    generateTaggedPDF: true,
+    generateTaggedPDF: false,
     transferMode: 'ReturnAsBase64'
   });
   if (!pdf.result || !pdf.result.data) { console.log('No se pudo imprimir: ' + JSON.stringify(pdf.error || pdf)); finish(1); return; }
@@ -163,10 +163,26 @@ async function connect(url) {
   fs.writeFileSync(OUT, Buffer.from(pdf.result.data, 'base64'));
   const kb = Math.round(fs.statSync(OUT).size / 1024);
   console.log('PDF: ' + path.relative(ROOT, OUT) + ' · ' + pages + ' páginas · ' + kb + ' KB');
+  // Las fuentes Type 3 (así se incrustan los emojis de color) dejan cajas vacías en algunos visores.
+  // Los diccionarios pueden estar en flujos comprimidos: se descomprime cada uno para buscarlas
+  const zlib = require('zlib');
+  const raw = fs.readFileSync(OUT);
+  let type3 = (raw.toString('latin1').match(/\/Subtype\s*\/Type3/g) || []).length;
+  for (let at = raw.indexOf('stream'); at !== -1; at = raw.indexOf('stream', at + 6)) {
+    let start = at + 6;
+    if (raw[start] === 13) start++;
+    if (raw[start] === 10) start++;
+    const end = raw.indexOf('endstream', start);
+    if (end === -1) break;
+    try { type3 += (zlib.inflateSync(raw.subarray(start, end)).toString('latin1').match(/\/Subtype\s*\/Type3/g) || []).length; } catch (e) { /* no es Flate */ }
+    at = end;
+  }
+  if (type3) console.log('FALLA: ' + type3 + ' fuentes Type 3 (emojis de color): algunos visores muestran cajas vacías');
+
   // Un índice sin páginas o algo que se sale de la hoja es un libro roto: falla, para que la CI lo vea
   if (tocMissing) console.log('FALLA: ' + tocMissing + ' entradas del índice sin número de página');
   if (overflow) console.log('FALLA: ' + overflow + ' páginas con contenido más ancho que la hoja (REPORT=1 dice cuáles)');
   if (errors.length) console.log('Errores de JavaScript durante la paginación:\n' + errors.join('\n'));
   c.close();
-  finish(errors.length || tocMissing || overflow ? 1 : 0);
+  finish(errors.length || tocMissing || overflow || type3 ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(1); });
