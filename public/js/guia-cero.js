@@ -559,7 +559,7 @@ var GuiaCero = (function () {
           '<div class="gc-item"><span class="gc-tag">Por qué</span><p>' + d.porque + '</p></div>' +
           '<div class="gc-item"><span class="gc-tag">Para qué sirve</span><p>' + d.paraque + '</p></div>' +
         '</div>' +
-        '<div class="gc-day"><strong>☕ Ejemplo del día a día:</strong> ' + d.dia + '</div>' +
+        (typeof PRACTICA !== 'undefined' && PRACTICA[lesson.id] && PRACTICA[lesson.id].escalera ? '' : '<div class="gc-day"><strong>☕ Ejemplo del día a día:</strong> ' + d.dia + '</div>') +
       '</div>';
   }
 

@@ -235,7 +235,7 @@ var JavaBot = (function () {
     {
       id: 'archivos',
       lessonId: 26,
-      keywords: ['archivo', 'archivos', 'filewriter', 'bufferedwriter', 'filereader', 'ioexception', 'try with resources'],
+      keywords: ['archivo', 'archivos', 'archivo de texto', 'guardar datos', 'filewriter', 'bufferedwriter', 'filereader', 'ioexception', 'try with resources'],
       title: 'Lectura y escritura de archivos (I/O)',
       que: 'Guarda y lee texto persistente en disco usando streams/writers como <code>FileWriter</code> y <code>BufferedWriter</code>.',
       porque: 'Todo lo guardado en variables desaparece al cerrar el programa; los archivos permanecen.',
@@ -245,7 +245,7 @@ var JavaBot = (function () {
     {
       id: 'excepciones',
       lessonId: 27,
-      keywords: ['try', 'catch', 'finally', 'throw', 'throws', 'excepcion', 'excepciones', 'error', 'numberformatexception', 'nullpointer', 'nullpointerexception'],
+      keywords: ['try', 'catch', 'finally', 'throw', 'throws', 'excepcion', 'excepciones', 'error', 'numberformatexception', 'nullpointer', 'nullpointerexception', 'explote', 'se rompa', 'letras en vez de numeros'],
       title: 'Manejo de errores con try-catch y excepciones',
       que: '<code>try</code> envuelve código riesgoso y <code>catch</code> atrapa fallos concretos para responder sin colgar la app.',
       porque: 'Un dato mal ingresado o un archivo faltante no deberían cerrar todo el programa abruptamente.',
@@ -345,7 +345,7 @@ var JavaBot = (function () {
     {
       id: 'modern_java',
       lessonId: 108,
-      keywords: ['optional', 'stream', 'lambda', 'lambdas', 'map', 'hashmap', 'filter', 'maptoint'],
+      keywords: ['optional', 'stream', 'lambda', 'lambdas', 'map', 'hashmap', 'filter', 'filtro', 'filtrar', 'maptoint', 'java moderno'],
       title: 'Java moderno: Map, Optional y Streams',
       que: '<code>Map</code> busca por clave al instante, <code>Optional</code> representa un resultado que puede faltar sin usar <code>null</code> crudo, y <code>Stream</code> filtra/transforma listas en cadena.',
       porque: 'Reduce bucles largos a tuberías declarativas claras y evita muchos <code>NullPointerException</code>.',
@@ -525,7 +525,7 @@ var JavaBot = (function () {
     {
       id: 'errores_compilacion',
       lessonId: 1,
-      keywords: ['cannot find symbol', 'incompatible types', 'reached end of file while parsing', 'expected', 'no compila', 'error de compilacion', 'punto y coma', 'llave sin cerrar'],
+      keywords: ['cannot find symbol', 'incompatible types', 'reached end of file while parsing', 'expected', 'no compila', 'error de compilacion', 'punto y coma', 'llave sin cerrar', 'cierro una llave', 'llave'],
       title: 'Errores de compilación más comunes en Java',
       que: 'Son los avisos rojos de <code>javac</code> antes de ejecutar: <code>cannot find symbol</code> (variable o método mal escrito o sin declarar), <code>incompatible types</code> (guardar un tipo en otro, ej. <code>String</code> en <code>int</code>), <code>\';\' expected</code> (falta punto y coma) y <code>reached end of file while parsing</code> (falta cerrar una llave <code>}</code>).',
       porque: 'El compilador revisa ortografía, tipos y llaves para evitar que el programa falle a mitad de camino.',
@@ -591,6 +591,56 @@ var JavaBot = (function () {
       porque: 'Simplifica problemas naturalmente jerárquicos como carpetas dentro de carpetas, árboles o cálculos matemáticos como factorial.',
       ejemplo: 'Abrir muñecas rusas (matrioshkas) una por una hasta llegar a la más chiquita que ya no se abre (el caso base).',
       buenaPractica: 'Definí siempre el caso base en la primera línea del método: si te olvidás de cortar o no achicás el problema, Java lanza <code>StackOverflowError</code>.'
+    },
+    {
+      id: 'bucle_infinito',
+      lessonId: 11,
+      keywords: ['bucle infinito', 'no termina', 'no termina nunca', 'no para', 'se cuelga', 'se traba', 'infinito', 'infinitamente', 'bucle eterno'],
+      title: 'Bucle infinito: por qué tu programa no termina nunca',
+      que: 'Un bucle infinito ocurre cuando la condición de un <code>while</code> o <code>for</code> nunca pasa a <code>false</code>, y el programa repite para siempre hasta que el entorno lo detiene.',
+      porque: 'Casi siempre pasa por olvidar actualizar el contador adentro del bucle (ej. falta <code>i++</code>), escribir la condición al revés (<code>i &gt;= 0</code> subiendo) o poner un punto y coma justo después del <code>while (...);</code>.',
+      ejemplo: 'Como decir "seguí caminando mientras la puerta esté cerrada", pero nunca acercarte a abrirla.',
+      buenaPractica: 'Antes de ejecutar un <code>while</code>, señalá con el dedo qué línea adentro de las llaves hace que la condición cambie hacia <code>false</code>.'
+    },
+    {
+      id: 'parse_conversion',
+      lessonId: 5,
+      keywords: ['string a int', 'texto a int', 'texto a numero', 'string a double', 'int a string', 'numero a texto', 'parseint', 'parsedouble', 'valueof', 'paso de string', 'pasar de string', 'convertir texto'],
+      title: 'Cómo convertir String a int/double (y viceversa)',
+      que: 'Para pasar de texto a número usá <code>Integer.parseInt(texto)</code> o <code>Double.parseDouble(texto)</code>; para pasar de número a texto usá <code>String.valueOf(num)</code>.',
+      porque: 'En Java <code>"10" + "5"</code> concatena texto (<code>"105"</code>), mientras que <code>10 + 5</code> suma números (<code>15</code>). No podés guardar un <code>String</code> directo en un <code>int</code>.',
+      ejemplo: 'Leer el número impreso en una etiqueta ("450") y cargarlo en la calculadora para poder sumar.',
+      buenaPractica: 'Si el texto viene del teclado (<code>Scanner</code>), limpiá espacios con <code>.trim()</code> y envolvé <code>Integer.parseInt(...)</code> en <code>try / catch (NumberFormatException e)</code>.'
+    },
+    {
+      id: 'asignar_vs_comparar',
+      lessonId: 7,
+      keywords: ['= y ==', '= vs ==', '== y =', 'un igual', 'dos iguales', 'asignar', 'asignacion', 'operador de asignacion'],
+      title: 'Diferencia entre = (asignar) y == (comparar)',
+      que: 'Un solo igual (<code>=</code>) <strong>guarda</strong> un valor en una variable (<code>int x = 5;</code>). Dos iguales (<code>==</code>) <strong>preguntan</strong> si dos valores primitivos son iguales y devuelven <code>true</code> o <code>false</code> (<code>if (x == 5)</code>).',
+      porque: 'Poner <code>=</code> adentro de un <code>if</code> intenta asignar en lugar de comparar (en Java solo compila por error con <code>boolean</code> y genera bugs silenciosos).',
+      ejemplo: '<code>edad = 18</code> es escribir 18 en una ficha; <code>edad == 18</code> es mirar la ficha y preguntar "¿dice 18?".',
+      buenaPractica: 'Usá <code>==</code> solo para primitivos (<code>int</code>, <code>double</code>, <code>boolean</code>, <code>char</code>); para textos (<code>String</code>) usá siempre <code>.equals()</code>.'
+    },
+    {
+      id: 'null_ref',
+      lessonId: 18,
+      keywords: ['null', 'nulo', 'referencia nula', 'es null', 'que es null', 'valor null'],
+      title: 'Qué es null en Java (y cómo evitar NullPointerException)',
+      que: '<code>null</code> significa "esta variable de referencia todavía no apunta a ningún objeto en memoria". Solo existe para objetos (<code>String</code>, <code>Producto</code>, <code>List</code>), nunca para primitivos (<code>int</code>, <code>boolean</code>).',
+      porque: 'Si llamás un método sobre una referencia que vale <code>null</code> (ej. <code>nombre.length()</code>), Java frena con <code>NullPointerException</code>.',
+      ejemplo: 'Un sobre vacío sin carta adentro: la variable existe, pero si intentás leer la primera palabra te encontrás con la nada.',
+      buenaPractica: 'Inicializá colecciones vacías (<code>new ArrayList&lt;&gt;()</code>) en vez de <code>null</code>, usá <code>Optional</code> en búsquedas y escribí <code>"admin".equals(rol)</code> cuando <code>rol</code> pueda ser <code>null</code>.'
+    },
+    {
+      id: 'spring_bean',
+      lessonId: 111,
+      keywords: ['bean', 'beans', '@bean', '@component', '@service', '@repository', 'ioc', 'contenedor spring', 'inversion de control'],
+      title: 'Qué es un Bean en Spring Boot (y el contenedor IoC)',
+      que: 'Un <strong>Bean</strong> es simplemente un objeto Java que crea, configura y administra automáticamente el contenedor de Spring en lugar de que vos hagas <code>new</code> a mano.',
+      porque: 'Cuando anotás una clase con <code>@Service</code>, <code>@Repository</code>, <code>@RestController</code> o <code>@Component</code> (o un método con <code>@Bean</code>), Spring la instancia una vez y la inyecta donde otra clase la pida por constructor.',
+      ejemplo: 'En vez de armar vos cada herramienta al llegar al taller (<code>new</code>), el encargado del depósito (Spring) te entrega listas las herramientas compartidas que pediste.',
+      buenaPractica: 'Dejá que Spring gestione tus servicios y repositorios como beans e inyectalos siempre por constructor en campos <code>private final</code>.'
     },
     {
       id: 'buenas_practicas',
@@ -807,22 +857,24 @@ var JavaBot = (function () {
   function findBestLesson(q) {
     if (typeof LESSONS === 'undefined') return null;
     var all = LESSONS.concat(typeof LESSONS_F2 !== 'undefined' ? LESSONS_F2 : []);
-    var tokens = q.split(/\s+/).filter(function (w) { return w.length >= 3; });
+    var tokens = q.split(/\s+/).filter(function (w) { return w.length >= 3 && !STOP_WORDS[w]; });
     if (!tokens.length) return null;
     var best = null, bestScore = 0;
     all.forEach(function (l) {
       var g = typeof GuiaCero !== 'undefined' ? GuiaCero.get(l.id) : null;
+      var titleF = fold(l.title);
       var hay = fold(l.title + ' ' + l.desc + ' ' + (g ? g.que + ' ' + g.dia + ' ' + g.tip : ''));
       var sc = 0;
       tokens.forEach(function (t) {
-        if (hay.indexOf(t) !== -1) sc += fold(l.title).indexOf(t) !== -1 ? 4 : 1;
+        if (titleF.indexOf(t) !== -1) sc += 5;
+        else if (matchKeyword(hay, t)) sc += 1;
       });
       if (sc > bestScore) { bestScore = sc; best = l; }
     });
-    return bestScore >= 2 ? best : null;
+    return bestScore >= 4 ? best : null;
   }
 
-  var GENERIC_KW = { error: 1, dato: 1, tipo: 1, tipos: 1, codigo: 1, java: 1, valor: 1, get: 1, add: 1, set: 1, map: 1, simple: 1, cuerpo: 1 };
+  var GENERIC_KW = Object.assign(Object.create(null), { error: 1, dato: 1, tipo: 1, tipos: 1, codigo: 1, java: 1, valor: 1, get: 1, add: 1, set: 1, map: 1, simple: 1, cuerpo: 1, clase: 2, lista: 2, consola: 2 });
 
   function escapeRx(s) {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -831,7 +883,7 @@ var JavaBot = (function () {
   function matchKeyword(q, k) {
     if (!k) return false;
     if (/^[a-z0-9_@.\s-]+$/.test(k) && /[a-z0-9]/.test(k)) {
-      return new RegExp('(?:^|[^a-z0-9_@])' + escapeRx(k) + '(?:$|[^a-z0-9_])').test(q);
+      return new RegExp('(?:^|[^a-z0-9_])' + escapeRx(k) + '(?:$|[^a-z0-9_])').test(q);
     }
     return q.indexOf(k) !== -1;
   }
@@ -847,22 +899,100 @@ var JavaBot = (function () {
     return tip;
   }
 
+  function editDist(a, b) {
+    if (a === b) return 0;
+    var la = a.length, lb = b.length;
+    if (Math.abs(la - lb) > 2) return 3;
+    var prev2 = null, prev = [], curr = [];
+    for (var j = 0; j <= lb; j++) prev[j] = j;
+    for (var i = 1; i <= la; i++) {
+      curr = [i];
+      var rowMin = i;
+      for (var k = 1; k <= lb; k++) {
+        var cost = a.charCodeAt(i - 1) === b.charCodeAt(k - 1) ? 0 : 1;
+        var val = Math.min(prev[k] + 1, curr[k - 1] + 1, prev[k - 1] + cost);
+        if (prev2 && i > 1 && k > 1 && a.charCodeAt(i - 1) === b.charCodeAt(k - 2) && a.charCodeAt(i - 2) === b.charCodeAt(k - 1)) {
+          val = Math.min(val, prev2[k - 2] + 1); // transposición Damerau (ej. fro -> for)
+        }
+        curr[k] = val;
+        if (val < rowMin) rowMin = val;
+      }
+      if (rowMin > 2) return 3;
+      prev2 = prev;
+      prev = curr;
+    }
+    return prev[lb];
+  }
+
+  var STOP_WORDS = Object.assign(Object.create(null), { que: 1, como: 1, para: 1, por: 1, con: 1, sin: 1, del: 1, las: 1, los: 1, una: 1, uno: 1, unos: 1, esta: 1, este: 1, esto: 1, esa: 1, ese: 1, eso: 1, son: 1, hay: 1, tiene: 1, hacer: 1, hace: 1, sentencia: 1, palabra: 1, sirve: 1, usa: 1, usar: 1, java: 1 });
+
   function topSuggestions(q, limit) {
-    var tokens = q.split(/\s+/).filter(function (w) { return w.length >= 3; });
+    var tokens = q.split(/\s+/).filter(function (w) { return w.length >= 3 && !STOP_WORDS[w]; });
     if (!tokens.length) return [];
     var scored = [];
     KB.forEach(function (item) {
       if (item.id === 'como_empezar') return;
-      var hay = fold(item.title + ' ' + item.keywords.join(' '));
+      var kwWords = fold(item.keywords.join(' ') + ' ' + item.title).split(/\s+/).filter(function (w) { return w.length >= 3 && !STOP_WORDS[w]; });
       var sc = 0;
       tokens.forEach(function (t) {
-        if (hay.indexOf(t) !== -1) sc += 2;
-        else if (t.length >= 4 && hay.indexOf(t.slice(0, 4)) !== -1) sc += 1;
+        var bestTok = 0;
+        for (var i = 0; i < kwWords.length; i++) {
+          var w = kwWords[i];
+          if (w === t) { bestTok = Math.max(bestTok, 6); break; }
+          var maxD = t.length <= 4 ? 1 : 2;
+          if (Math.abs(w.length - t.length) <= maxD) {
+            var d = editDist(t, w);
+            if (d <= maxD) {
+              var bonus = d === 1 ? 5 : 3;
+              if (w[0] === t[0]) bonus += 1;
+              bestTok = Math.max(bestTok, bonus);
+              continue;
+            }
+          }
+          if (t.length >= 4 && w.length >= 4 && (w.indexOf(t) !== -1 || t.indexOf(w) !== -1)) {
+            bestTok = Math.max(bestTok, 3);
+          }
+        }
+        sc += bestTok;
       });
       if (sc > 0) scored.push({ item: item, sc: sc });
     });
     scored.sort(function (a, b) { return b.sc - a.sc; });
     return scored.slice(0, limit || 3).map(function (x) { return x.item; });
+  }
+
+  function followupReply(q, entry) {
+    var isShort = q.split(' ').length <= 6;
+    if (!isShort) return null;
+    if (/^(y )?(dame )?(un |otro )?ejemplo( de eso| cotidiano| real)?$|^como seria en la vida real$/.test(q)) {
+      return {
+        title: entry.title,
+        lessonId: entry.lessonId,
+        html: '<div class="bot-card"><div class="bot-card-title">☕ Ejemplo de: ' + esc(entry.title) + '</div><p>' + entry.ejemplo + '</p></div>'
+      };
+    }
+    if (/^(y )?(eso )?(por que|porque)( se usa| existe| sirve| es importante)?( eso)?$|^(y )?(eso )?(para que)( sirve| se usa| lo uso)?( eso)?$|^cuando se usa( eso)?$/.test(q)) {
+      return {
+        title: entry.title,
+        lessonId: entry.lessonId,
+        html: '<div class="bot-card"><div class="bot-card-title">🎯 Por qué y para qué: ' + esc(entry.title) + '</div><p>' + entry.porque + '</p></div>'
+      };
+    }
+    if (/^(y )?(cual es la )?(buena practica|consejo|tip)( de eso| para eso)?$|^como (se usa|lo uso)( bien)?( eso)?$/.test(q)) {
+      return {
+        title: entry.title,
+        lessonId: entry.lessonId,
+        html: '<div class="bot-card"><div class="bot-card-title">✨ Buena práctica en: ' + esc(entry.title) + '</div><p class="bot-bp">' + entry.buenaPractica + '</p></div>'
+      };
+    }
+    if (/^(y eso|mas detalle|explicamelo mejor|no entendi eso)$/.test(q)) {
+      return {
+        title: entry.title,
+        lessonId: entry.lessonId,
+        html: '<div class="bot-card"><div class="bot-card-title">🔁 En resumen: ' + esc(entry.title) + '</div><p>' + entry.que + '</p><p><strong>☕ Ejemplo:</strong> ' + entry.ejemplo + '</p></div>'
+      };
+    }
+    return null;
   }
 
   function ask(rawQuery, ctx) {
@@ -890,18 +1020,10 @@ var JavaBot = (function () {
       };
     }
 
-    // Seguimiento conversacional sobre el último tema consultado
-    if (lastEntry && /^(y eso para que|y para que|para que sirve eso|y eso|dame un ejemplo|ejemplo de eso|mas detalle|explicamelo mejor|como se usa eso|como lo uso)/.test(q)) {
-      return {
-        title: lastEntry.title,
-        lessonId: lastEntry.lessonId,
-        html: '<div class="bot-card">' +
-          '<div class="bot-card-title">🔁 Siguiendo con: ' + esc(lastEntry.title) + '</div>' +
-          '<p><strong>Para qué te sirve en la práctica:</strong> ' + lastEntry.porque + '</p>' +
-          '<p><strong>☕ Ejemplo cotidiano:</strong> ' + lastEntry.ejemplo + '</p>' +
-          '<p class="bot-bp"><strong>✨ Buena práctica:</strong> ' + lastEntry.buenaPractica + '</p>' +
-          '</div>'
-      };
+    // Seguimiento conversacional por faceta sobre el último tema consultado (antes de buscar keywords globales)
+    if (lastEntry) {
+      var fup = followupReply(q, lastEntry);
+      if (fup) return fup;
     }
 
     // Pedidos abiertos de ayuda contextualizados en la lección actual
@@ -935,6 +1057,16 @@ var JavaBot = (function () {
       return { title: tip.title, lessonId: lesson ? lesson.id : null, html: renderTip(tip) };
     }
 
+    // Reconocimiento de patrones de código dentro de la pregunta (ej. 5 / 2 o Persona@4e25154f)
+    if (/[a-zA-Z0-9_]+@[0-9a-fA-F]{4,}/.test(rawQuery || '')) {
+      var tsEntry = KB.find(function (x) { return x.id === 'tostring'; });
+      if (tsEntry) { lastEntry = tsEntry; return { title: tsEntry.title, lessonId: tsEntry.lessonId, html: renderEntry(tsEntry) }; }
+    }
+    if (/\b\d+\s*\/\s*\d+\b/.test(q) && /\b(da|decimal|entero|2\.5|punto|coma)\b/.test(q)) {
+      var divEntry = KB.find(function (x) { return x.id === 'division'; });
+      if (divEntry) { lastEntry = divEntry; return { title: divEntry.title, lessonId: divEntry.lessonId, html: renderEntry(divEntry) }; }
+    }
+
     var best = null, bestScore = 0;
     var introEntry = null, introScore = 0;
     KB.forEach(function (item) {
@@ -943,7 +1075,11 @@ var JavaBot = (function () {
         var k = fold(kw);
         if (!k) return;
         if (q === k) score += 24;
-        else if (matchKeyword(q, k)) score += GENERIC_KW[k] ? 1 : Math.max(5, k.length);
+        else if (matchKeyword(q, k)) {
+          var w = GENERIC_KW[k] ? GENERIC_KW[k] : Math.max(5, k.length);
+          if (q.indexOf('@' + k) !== -1 || k[0] === '@') w += 6;
+          score += w;
+        }
       });
       if (item.id === 'como_empezar') {
         introEntry = item;
@@ -1278,6 +1414,13 @@ var JavaBot = (function () {
         lastManualEditor = e.target;
       }
     });
+    var scrollTimer = null;
+    window.addEventListener('scroll', function () {
+      if (panelOpen) return;
+      fab.classList.add('is-compact');
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(function () { fab.classList.remove('is-compact'); }, 900);
+    }, { passive: true });
     document.addEventListener('keydown', function (e) {
       if (!panelOpen) return;
       if (e.key === 'Escape') { close(); return; }

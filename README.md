@@ -24,7 +24,7 @@ La Fase 2 sigue el orden del segundo semestre de Programación 1. Ver [PLAN-FASE
 - **Guía 0 Conocimiento:** en las 60 lecciones explica qué estás haciendo, por qué existe, para qué sirve, un ejemplo del día a día y una buena práctica profesional, más acceso al **Capítulo 0: ¿Qué es Java?**
 - **Explicación simple e ilustrada:** escalera de cinco pasos de la vida diaria al código + **66 figuras SVG didácticas** (6 de orientación y 60/60 lecciones)
 - **Asistente offline Profe Java (`JavaBot`):** disponible en la app y en el manual; responde dudas de Java, buenas prácticas, errores de compilación/runtime y analiza tu código actual sin dar la solución
-- **Manual "Java desde cero" en 6 Tomos + Completo:** vista interactiva ejecutable en pantalla, vista imprimible en hoja A4 y **7 PDFs A4 con marcadores** (de Súper Básico a Spring Boot, Calidad y Entrega)
+- **Manual "Java desde cero" en 6 Tomos + Completo F1 y F2:** vista interactiva ejecutable en pantalla, vista imprimible en hoja A4 y **8 PDFs A4 con marcadores** (edición completa Fase 1, edición completa Fase 2 y Tomos I a VI)
 - **Tutorial técnico:** código, tablas y errores comunes
 - **Ejercicio con editor:** autocompletado, pistas y un intérprete que ejecuta tu código de verdad
 - **Práctica:** 549 actividades de once tipos, con devolución inmediata
@@ -72,12 +72,13 @@ Después abrí `http://127.0.0.1:8765/`. El ingreso con Google o Facebook usa el
 
 ```bash
 node tests/run.js
+node tests/bot-holdout.js
 node tests/sync.js
 ```
 
-Requiere Node y un JDK en el `PATH`. Compila con Java real las soluciones y las actividades, compara el intérprete contra el JDK, valida las 66 figuras SVG, `GuiaCero`, `JavaBot` y el guardado del progreso (`sync.js`).
+Requiere Node y un JDK en el `PATH`. Compila con Java real las soluciones y las actividades, compara el intérprete contra el JDK, valida las 66 figuras SVG, `GuiaCero`, `JavaBot` (más su batería independiente *holdout* de 30 preguntas) y el guardado del progreso (`sync.js`).
 
-Para generar y verificar los 7 PDFs A4 del manual (edición completa + 6 Tomos, con marcadores y sin fuentes Type 3):
+Para generar y verificar los 8 PDFs A4 del manual (edición completa Fase 1, edición completa Fase 2 y 6 Tomos, con marcadores y sin fuentes Type 3):
 
 ```bash
 node tools/manual-pdf.js --all

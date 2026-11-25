@@ -291,6 +291,10 @@ function checkData() {
     ok(rBox.ok && norm(rBox.output) === 'true false', 'JavaRun caché de Integer falló: ' + JSON.stringify(rBox));
     const rRnd = ctx.JavaRun.run('import java.util.Random; public class Main { public static void main(String[] args) { Random r = new Random(42); System.out.println(r.nextInt(100) + "," + r.nextInt(100)); } }');
     ok(rRnd.ok && norm(rRnd.output) === '30,63', 'JavaRun Random(42) falló: ' + JSON.stringify(rRnd));
+    const rByteBad = ctx.JavaRun.run('public class Main { public static void main(String[] args) { byte b = 1; b = b + 1; System.out.println(b); } }');
+    ok(rByteBad.compile && /lossy conversion/i.test(rByteBad.compile.javac), 'JavaRun byte b = b + 1 debe dar error de compilación: ' + JSON.stringify(rByteBad));
+    const rByteOk = ctx.JavaRun.run('public class Main { public static void main(String[] args) { byte b = 1; b += 1; byte c = (byte)(b + 1); System.out.println(b + "," + c); } }');
+    ok(rByteOk.ok && norm(rByteOk.output) === '2,3', 'JavaRun byte += / cast falló: ' + JSON.stringify(rByteOk));
   }
   ok(ctx.MANUAL && Array.isArray(ctx.MANUAL.ERRORES_F2) && ctx.MANUAL.ERRORES_F2.length >= 8, 'MANUAL.ERRORES_F2 debe tener errores de Fase 2');
   ok(ctx.MANUAL && Array.isArray(ctx.MANUAL.REFERENCIA_F2) && ctx.MANUAL.REFERENCIA_F2.length >= 10, 'MANUAL.REFERENCIA_F2 debe tener referencia de Fase 2');

@@ -49,9 +49,11 @@ function selectJobs() {
     out: path.join(PUBLIC, 'manual', `${t.slug}.pdf`),
     label: t.num
   }));
-  const fullJob = { url: '/manual.html?print=1', out: path.join(PUBLIC, 'manual', 'java-desde-cero.pdf'), label: 'Completo' };
+  const fullJob = { url: '/manual.html?print=1', out: path.join(PUBLIC, 'manual', 'java-desde-cero.pdf'), label: 'Completo (Fase 1)' };
+  const f2Job = { url: '/manual.html?print=1&fase=2', out: path.join(PUBLIC, 'manual', 'java-fase-2.pdf'), label: 'Completo (Fase 2)' };
   if (args.includes('--tomos')) return tomoJobs;
-  if (args.includes('--all')) return [fullJob].concat(tomoJobs);
+  if (args.includes('--fase2')) return [f2Job];
+  if (args.includes('--all')) return [fullJob, f2Job].concat(tomoJobs);
   return [fullJob];
 }
 

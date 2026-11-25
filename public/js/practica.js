@@ -687,8 +687,10 @@ var Practica = (function () {
     var p = dataFor(l.id);
     if (!p || !p.escalera) return '';
     var before = p.antes && typeof f2Mini === 'function' ? f2Mini(p.antes[0], p.antes[1]) : '';
+    var hasGuia = typeof GuiaCero !== 'undefined' && !!GuiaCero.get(l.id);
     return before + '<div class="pr-ladder"><h4>🪜 De la vida diaria al código</h4><ol>' + LADDER.map(function (s) {
-      return '<li><span class="pr-step"><span aria-hidden="true">' + s[1] + '</span> ' + s[2] + '</span><span class="pr-step-txt">' + p.escalera[s[0]] + '</span></li>';
+      var lbl = (s[0] === 'vida' && hasGuia) ? 'Ejemplo del día a día' : s[2];
+      return '<li><span class="pr-step"><span aria-hidden="true">' + s[1] + '</span> ' + lbl + '</span><span class="pr-step-txt">' + p.escalera[s[0]] + '</span></li>';
     }).join('') + '</ol></div>';
   }
 

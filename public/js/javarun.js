@@ -1410,17 +1410,46 @@ var JavaRun = (function () {
         (c.sup && !classes[c.sup]) || c.ifaces.some(function (i) { return !classes[i] || classes[i].builtin; });
     }
 
-    function fits(to, from) {
+    function fits(to, from, isConst) {
       if (!to || !from) return true;
       if (NUM_RANK[to]) {
         if (from === 'String' || from === 'boolean') return false;
         if (!NUM_RANK[from]) return true;
-        // Una constante int entra en byte, short y char: acá no se distingue, y no se marca
-        if (from === 'int' && NUM_RANK[to] < 3) return true;
+        // Solo una constante int (literal/expresión constante en rango) entra en byte, short o char sin cast
+        if (from === 'int' && NUM_RANK[to] < 3) return !!isConst;
         return NUM_RANK[from] <= NUM_RANK[to];
       }
       if (to === 'boolean') return !(from === 'String' || NUM_RANK[from]);
       if (to === 'String') return !(from === 'boolean' || NUM_RANK[from]);
+      return true;
+    }
+
+    function constIntVal(e, sc) {
+      if (!e) return null;
+      if (e.k === 'lit' && (e.lt === 'int' || e.lt === 'char')) return e.v;
+      if (e.k === 'name' && sc && sc[e.name] && sc[e.name].constVal != null) return sc[e.name].constVal;
+      if (e.k === 'un' && (e.op === '-' || e.op === '+' || e.op === '~')) {
+        var u = constIntVal(e.e, sc);
+        if (u === null) return null;
+        return e.op === '-' ? -u : e.op === '~' ? ~u : u;
+      }
+      if (e.k === 'bin' && /^(\+|-|\*|\/|%|&|\||\^|<<|>>)$/.test(e.op)) {
+        var a = constIntVal(e.a, sc), b = constIntVal(e.b, sc);
+        if (a === null || b === null) return null;
+        if (e.op === '+') return (a + b) | 0;
+        if (e.op === '-') return (a - b) | 0;
+        if (e.op === '*') return Math.imul(a, b);
+        if (e.op === '/' && b !== 0) return (a / b) | 0;
+        if (e.op === '%' && b !== 0) return (a % b) | 0;
+      }
+      return null;
+    }
+
+    function fitsConstNarrow(to, val) {
+      if (val === null) return false;
+      if (to === 'byte') return val >= -128 && val <= 127;
+      if (to === 'short') return val >= -32768 && val <= 32767;
+      if (to === 'char') return val >= 0 && val <= 65535;
       return true;
     }
 
@@ -1491,7 +1520,8 @@ var JavaRun = (function () {
           return;
         }
         var from = typeOf(e, sc, ctx);
-        if (fits(to, from)) return;
+        var isConst = from === 'int' && NUM_RANK[to] && NUM_RANK[to] < 3 ? fitsConstNarrow(to, constIntVal(e, sc)) : false;
+        if (fits(to, from, isConst)) return;
         if (NUM_RANK[to] && NUM_RANK[from]) {
           compileErr(line, 'incompatible types: possible lossy conversion from ' + from + ' to ' + to, 'Un ' + from + ' no entra en un ' + to + ' sin perder datos. Si es lo que querés, hacé un cast: (' + to + ') valor.');
         }
@@ -1651,7 +1681,7 @@ var JavaRun = (function () {
                 if (d.type !== 'var') mustFit(d.type, d.init, sc, ctx, d.line);
               } else if (d.init) exprCheck(d.init, sc, ctx);
               var ty = d.type === 'var' ? typeOf(d.init, sc, ctx) : d.type;
-              declareLocal(sc, d.name, { type: ty, local: true, isFinal: d.isFinal, hasValue: !!d.init, gen: d.gen }, d.line);
+              declareLocal(sc, d.name, { type: ty, local: true, isFinal: d.isFinal, hasValue: !!d.init, gen: d.gen, constVal: (d.isFinal && d.init && (ty === 'int' || ty === 'byte' || ty === 'short' || ty === 'char')) ? constIntVal(d.init, sc) : null }, d.line);
             });
             return;
           case 'if':

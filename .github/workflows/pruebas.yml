@@ -18,6 +18,8 @@ jobs:
           java-version: 21
       - name: Contenido e intérprete contra el JDK
         run: node tests/run.js
+      - name: Generalización de JavaBot (holdout)
+        run: node tests/bot-holdout.js
       - name: Guardado del progreso
         run: node tests/sync.js
       - name: Spring, SQL y la API real

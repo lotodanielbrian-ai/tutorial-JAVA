@@ -9,6 +9,7 @@ var Manual = (function () {
   var TOMO = (typeof MANUAL !== 'undefined' && MANUAL.TOMOS && TOMO_ID)
     ? MANUAL.TOMOS.find(function (t) { return t.id === TOMO_ID; }) || null
     : null;
+  var FASE2 = !TOMO && /[?&]fase=2\b/.test(location.search);
   var answers = [];   // apéndice A: [{ cap, titulo, items: [{ n, html }] }]
   var solutions = []; // apéndice B: [{ cap, titulo, code, stdin, expected }]
   var figureCount = {};
@@ -34,6 +35,7 @@ var Manual = (function () {
 
   function activeLessons() {
     if (TOMO) return TOMO.ids.map(findLessonById).filter(Boolean);
+    if (FASE2) return typeof LESSONS_F2 !== 'undefined' ? LESSONS_F2 : [];
     return typeof LESSONS !== 'undefined' ? LESSONS : [];
   }
 
@@ -145,18 +147,18 @@ var Manual = (function () {
         a = '<em>Respuesta modelo:</em> ' + it.model;
         break;
       case 'http':
-        if (!TOMO) return null;
+        if (!TOMO && !FASE2) return null;
         q = '<strong>' + esc(it.q) + ':</strong> ' + it.task + '<div class="mn-write" aria-hidden="true"></div>';
         a = '<code>' + esc(it.goal.method + ' ' + it.goal.path.replace(/^\^|\$$/g, '')) + '</code> → HTTP <strong>' + it.goal.status + '</strong>' +
           (it.demo && it.demo.length ? '<pre class="mn-out">' + esc(it.demo.map(function (d) { return d[0] + ' ' + d[1] + (d[2] ? '\n' + d[2] : ''); }).join('\n')) + '</pre>' : '');
         break;
       case 'step':
-        if (!TOMO) return null;
+        if (!TOMO && !FASE2) return null;
         q = '<strong>' + esc(it.q) + ':</strong> ' + it.do + (it.cmd ? codeBox(it.cmd) : '') + '<p class="mn-small">Tiene que pasar: ' + it.ok + '</p>';
         a = '<em>Comprobación:</em> ' + it.ok;
         break;
       case 'code':
-        if (!TOMO) return null;
+        if (!TOMO && !FASE2) return null;
         q = '<strong>Reto práctico — ' + esc(it.title || 'Código') + ':</strong> ' + it.task +
           (it.stdin && it.stdin.length ? '<p class="mn-small">Entrada simulada: <code>' + esc(it.stdin.join(' ⏎ ')) + '</code></p>' : '') +
           '<p class="mn-small">Salida esperada:</p><pre class="mn-out">' + esc(it.expected) + '</pre>' +
@@ -267,11 +269,14 @@ var Manual = (function () {
 
   // ── Partes y Tomos del libro ────────────────────────────────────────
   function cover() {
-    var kicker = TOMO ? 'Java INPRO · ' + TOMO.num + ' · ' + TOMO.nivel : 'Java INPRO';
-    var title = TOMO ? TOMO.num + '<br>' + esc(TOMO.nivel) : 'Java<br>desde cero';
-    var sub = TOMO ? esc(TOMO.titulo) + '. ' + esc(TOMO.subtitulo) : 'De no saber nada a tu primer proyecto con objetos y Git. Un libro para aprender aunque nunca hayas programado.';
+    var kicker = TOMO ? 'Java INPRO · ' + TOMO.num + ' · ' + TOMO.nivel : FASE2 ? 'Java INPRO · Edición Completa Fase 2' : 'Java INPRO · Edición Completa Fase 1';
+    var title = TOMO ? TOMO.num + '<br>' + esc(TOMO.nivel) : FASE2 ? 'Java Backend<br>Fase 2' : 'Java<br>desde cero';
+    var sub = TOMO ? esc(TOMO.titulo) + '. ' + esc(TOMO.subtitulo)
+      : FASE2 ? 'Código limpio, Spring Boot, API REST, JPA, MySQL, testing con JUnit/Mockito, Docker y entrega profesional (Tomos V y VI).'
+      : 'De no saber nada a tu primer proyecto con objetos y Git. Un libro para aprender aunque nunca hayas programado.';
     var foot = TOMO
       ? esc(MANUAL.EDICION) + ' · ' + TOMO.ids.length + ' capítulos' + (TOMO.includeCap0 ? ' + cap. 0' : '') + ' · A4 imprimible con actividades y soluciones'
+      : FASE2 ? esc(MANUAL.EDICION) + ' · 25 capítulos (Tomos V y VI) · figuras, actividades y soluciones'
       : esc(MANUAL.EDICION) + ' · 35 capítulos · figuras, actividades y soluciones';
     return '<section class="mn-cover" id="tapa"><div class="mn-cover-band"></div>' +
       '<div class="mn-cover-in"><p class="mn-cover-kicker">' + esc(kicker) + '</p><h1>' + title + '</h1>' +
@@ -285,8 +290,12 @@ var Manual = (function () {
     return '<section class="mn-tomos mn-screen" aria-label="Colección por tomos">' +
       '<div class="mn-tomos-head">' +
         '<div><h2>📚 Manual por Tomos (Súper Básico → Fase 2)</h2>' +
-        '<p class="mn-small">Elegí el tomo de tu etapa actual o leé la edición completa de Fase 1. Todos vienen seccionados para imprimir en A4.</p></div>' +
-        (TOMO ? '<a class="mn-btn ghost" href="manual.html">📖 Ver edición completa (Fase 1)</a>' : '') +
+        '<p class="mn-small">Elegí el tomo de tu etapa actual o leé la edición completa de Fase 1 o Fase 2. Todos vienen seccionados para imprimir en A4.</p></div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+          ((TOMO || FASE2) ? '<a class="mn-btn ghost" href="manual.html">📖 Completo (Fase 1)</a>' : '') +
+          (!FASE2 ? '<a class="mn-btn ghost" href="manual.html?fase=2">🚀 Completo (Fase 2)</a>' : '') +
+          '<a class="mn-btn ghost" href="manual/java-fase-2.pdf" download>⬇ PDF Fase 2</a>' +
+        '</div>' +
       '</div>' +
       '<div class="mn-tomos-grid">' +
       MANUAL.TOMOS.map(function (t) {
@@ -321,7 +330,9 @@ var Manual = (function () {
   function howTo() {
     var lead = TOMO
       ? 'Este <strong>' + esc(TOMO.num) + ' (' + esc(TOMO.nivel) + ')</strong> acompaña paso a paso tus ejercicios en Java INPRO, seccionado en hojas A4 para estudiar o imprimir.'
-      : 'Este libro acompaña al curso <strong>Java INPRO</strong>, pero se puede leer solo. Está pensado para alguien que <strong>nunca programó</strong>: cada idea nueva arranca de algo que ya conocés y recién al final llega al código.';
+      : FASE2
+        ? 'Esta <strong>Edición Completa de Fase 2</strong> reúne los Tomos V y VI (25 capítulos): código limpio, Spring Boot, API REST, JPA/SQL, testing con JUnit y Mockito, Docker y defensa oral.'
+        : 'Este libro acompaña al curso <strong>Java INPRO</strong>, pero se puede leer solo. Está pensado para alguien que <strong>nunca programó</strong>: cada idea nueva arranca de algo que ya conocés y recién al final llega al código.';
     return '<section class="mn-front" id="como-usar"><h2 class="mn-front-title">Antes de empezar</h2>' +
       '<p>' + lead + '</p>' +
       '<p>Leelo en orden. Cada capítulo abre con <strong>Qué estás haciendo, Por qué y Para qué</strong>, un <strong>ejemplo del día a día</strong> y la escalera de la vida real al código.</p>' +
@@ -337,7 +348,7 @@ var Manual = (function () {
 
   function toc() {
     var rows = '';
-    if (!TOMO || TOMO.includeCap0) {
+    if ((!TOMO && !FASE2) || (TOMO && TOMO.includeCap0)) {
       rows += '<li class="mn-toc-part"><a href="#cap-0">0 · Antes de escribir código<span class="mn-toc-dots"></span></a></li>';
       MANUAL.CAP0.forEach(function (s, i) { rows += '<li class="mn-toc-sub"><a href="#c0-' + s.id + '">0.' + (i + 1) + ' ' + esc(s.titulo) + '<span class="mn-toc-dots"></span></a></li>'; });
     }
@@ -345,6 +356,14 @@ var Manual = (function () {
       rows += '<li class="mn-toc-part"><a href="#parte-' + TOMO.id + '">' + esc(TOMO.num) + ' · ' + esc(TOMO.titulo) + '<span class="mn-toc-dots"></span></a></li>';
       activeLessons().forEach(function (l) {
         rows += '<li><a href="#cap-' + l.id + '"><span class="mn-toc-n">' + l.id + '</span>' + esc(l.title) + '<span class="mn-toc-dots"></span></a></li>';
+      });
+    } else if (FASE2) {
+      MANUAL.TOMOS.filter(function (t) { return t.id === '5' || t.id === '6'; }).forEach(function (t) {
+        rows += '<li class="mn-toc-part"><a href="#parte-' + t.id + '">' + esc(t.num) + ' · ' + esc(t.titulo) + '<span class="mn-toc-dots"></span></a></li>';
+        t.ids.forEach(function (id) {
+          var l = findLessonById(id);
+          if (l) rows += '<li><a href="#cap-' + id + '"><span class="mn-toc-n">' + id + '</span>' + esc(l.title) + '<span class="mn-toc-dots"></span></a></li>';
+        });
       });
     } else {
       MANUAL.PARTES.forEach(function (p) {
@@ -428,7 +447,7 @@ var Manual = (function () {
           }).join('')
         : '<p class="mn-small">Este tomo evalúa mediante actividades y cuestionarios.</p>') +
       '</article>';
-    var isF2Tomo = TOMO && (TOMO.id === '5' || TOMO.id === '6');
+    var isF2Tomo = FASE2 || (TOMO && (TOMO.id === '5' || TOMO.id === '6'));
     var errsList = (isF2Tomo && MANUAL.ERRORES_F2) ? MANUAL.ERRORES_F2 : MANUAL.ERRORES;
     var refList = (isF2Tomo && MANUAL.REFERENCIA_F2) ? MANUAL.REFERENCIA_F2 : MANUAL.REFERENCIA;
     html += '<article class="mn-appendix" id="ap-errores">' + runHead('Apéndice C · Errores') + '<h2 class="mn-ap-title">C · Mensajes de error traducidos</h2>' +
@@ -441,7 +460,7 @@ var Manual = (function () {
   }
 
   function backCover() {
-    var title = TOMO ? esc(TOMO.num + ' · ' + TOMO.titulo) : 'Java desde cero';
+    var title = TOMO ? esc(TOMO.num + ' · ' + TOMO.titulo) : FASE2 ? 'Java Backend · Fase 2 (Tomos V y VI)' : 'Java desde cero (Fase 1)';
     return '<section class="mn-back"><p>Java INPRO · <strong>' + title + '</strong></p><p class="mn-small">' + esc(MANUAL.EDICION) +
       '. Los ejemplos y las soluciones se verifican con el compilador de Java real antes de cada edición. Emojis del PDF: Twemoji, CC-BY 4.0.</p></section>';
   }
@@ -488,7 +507,12 @@ var Manual = (function () {
     else if (r.unsupported) { text = (r.output || '') + 'ℹ️ Esto usa algo que el emulador del navegador no tiene (' + r.unsupported + '). En tu computadora funciona.'; cls = 'warn'; }
     else if (r.limit) { text = (r.output || '') + '⏱ ' + r.limit; cls = 'bad'; }
     else if (r.noMain) { text = 'Falta el método main.'; cls = 'bad'; }
-    else text = r.output === '' ? '(el programa no imprimió nada)' : r.output;
+    else {
+      text = r.output === '' ? '(el programa no imprimió nada)' : r.output;
+      if (/\b(?:printf|format)\s*\([^)]*%[\d.,+-]*f/.test(currentCode(block))) {
+        text += '\n\nℹ️ Nota: el emulador usa punto decimal (1.65); en una PC en español Java puede mostrar coma (1,65) salvo que uses Locale.US.';
+      }
+    }
     out.hidden = false;
     out.className = 'mn-out mn-result is-' + cls;
     out.textContent = text;
@@ -572,18 +596,19 @@ var Manual = (function () {
   }
 
   function navBar(lessonsList) {
-    var tomoOpts = '<option value="">📚 Completo (F1)</option>' +
+    var tomoOpts = '<option value=""' + (!TOMO && !FASE2 ? ' selected' : '') + '>📚 Completo (Fase 1)</option>' +
+      '<option value="fase2"' + (FASE2 ? ' selected' : '') + '>🚀 Completo (Fase 2)</option>' +
       (MANUAL.TOMOS || []).map(function (t) {
         return '<option value="' + t.id + '"' + (TOMO && TOMO.id === t.id ? ' selected' : '') + '>' + esc(t.num + ' · ' + t.nivel) + '</option>';
       }).join('');
     var capOpts = '<option value="indice">Índice</option>' +
-      (!TOMO || TOMO.includeCap0 ? '<option value="cap-0">0 · Antes de escribir código</option>' : '') +
+      ((!TOMO && !FASE2) || (TOMO && TOMO.includeCap0) ? '<option value="cap-0">0 · Antes de escribir código</option>' : '') +
       lessonsList.map(function (l) { return '<option value="cap-' + l.id + '">' + l.id + ' · ' + esc(l.title) + '</option>'; }).join('') +
       '<option value="apendices">Apéndices</option>';
-    var pdfHref = TOMO ? ('manual/' + TOMO.slug + '.pdf') : 'manual/java-desde-cero.pdf';
+    var pdfHref = TOMO ? ('manual/' + TOMO.slug + '.pdf') : FASE2 ? 'manual/java-fase-2.pdf' : 'manual/java-desde-cero.pdf';
     var bar = document.createElement('header');
     bar.className = 'mn-bar mn-screen';
-    bar.innerHTML = '<a class="mn-brand" href="index.html" title="Volver al curso">☕ <span>' + (TOMO ? esc(TOMO.num) : 'Java desde cero') + '</span></a>' +
+    bar.innerHTML = '<a class="mn-brand" href="index.html" title="Volver al curso">☕ <span>' + (TOMO ? esc(TOMO.num) : FASE2 ? 'Fase 2' : 'Java desde cero') + '</span></a>' +
       '<label class="mn-tomo-sel"><span class="mn-sr">Tomo</span><select id="mn-tomo-select" aria-label="Elegir tomo">' + tomoOpts + '</select></label>' +
       '<label class="mn-jump"><span class="mn-sr">Ir a</span><select id="mn-cap-select" aria-label="Ir al capítulo">' + capOpts + '</select></label>' +
       '<div class="mn-actions">' +
@@ -593,7 +618,8 @@ var Manual = (function () {
       '<a class="mn-btn ghost" href="index.html">← Curso</a></div><div class="mn-progress" aria-hidden="true"><span></span></div>';
     document.body.prepend(bar);
     bar.querySelector('#mn-tomo-select').addEventListener('change', function () {
-      location.href = this.value ? ('manual.html?tomo=' + this.value) : 'manual.html';
+      if (this.value === 'fase2') location.href = 'manual.html?fase=2';
+      else location.href = this.value ? ('manual.html?tomo=' + this.value) : 'manual.html';
     });
     bar.querySelector('#mn-cap-select').addEventListener('change', function () {
       var t = document.getElementById(this.value);
@@ -613,15 +639,24 @@ var Manual = (function () {
     figureCount = {};
     var lessonsList = activeLessons();
     if (TOMO) document.title = TOMO.num + ' · ' + TOMO.titulo + ' · Java INPRO';
+    else if (FASE2) document.title = 'Java Backend · Fase 2 (Tomos V y VI) · Java INPRO';
 
     var html = cover();
     if (!PRINT) html += tomoShelf();
     html += howTo() + toc();
-    if (!TOMO || TOMO.includeCap0) html += chapter0();
+    if ((!TOMO && !FASE2) || (TOMO && TOMO.includeCap0)) html += chapter0();
 
     if (TOMO) {
       html += tomoOpener(TOMO);
       lessonsList.forEach(function (l) { html += chapter(l, TOMO.id); });
+    } else if (FASE2) {
+      MANUAL.TOMOS.filter(function (t) { return t.id === '5' || t.id === '6'; }).forEach(function (t) {
+        html += tomoOpener(t);
+        t.ids.forEach(function (id) {
+          var l = findLessonById(id);
+          if (l) html += chapter(l, t.id);
+        });
+      });
     } else {
       MANUAL.PARTES.forEach(function (p) {
         html += partOpener(p);

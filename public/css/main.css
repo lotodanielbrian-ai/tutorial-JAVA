@@ -583,7 +583,9 @@ body,code,pre,kbd,textarea,input,button,select,svg text{font-variant-ligatures:n
 .gc-card,.gc-tip,.gc-ex-note{padding:12px}
 .gc-bot-btn{width:100%;text-align:center}
 #main,.tab-pane{padding-bottom:76px}
-.bot-fab{padding:8px 12px;font-size:12px;right:10px;bottom:10px;opacity:.95}
+.bot-fab{padding:8px 12px;font-size:12px;right:10px;bottom:10px;opacity:.95;transition:padding .18s,opacity .18s}
+.bot-fab.is-compact{padding:9px;opacity:.65}
+.bot-fab.is-compact span{display:none}
 .bot-panel{right:10px;bottom:56px;width:calc(100vw - 20px)}
 }
 @media print{.bot-fab,.bot-panel,.gc-bot-btn,.gc-err-help{display:none!important}}

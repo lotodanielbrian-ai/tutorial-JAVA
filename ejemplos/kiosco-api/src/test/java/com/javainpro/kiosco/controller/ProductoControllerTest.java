@@ -61,7 +61,7 @@ class ProductoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Mate\",\"precio\":900,\"stock\":4}"))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/api/productos/5"))
+                .andExpect(header().string("Location", "http://localhost/api/productos/5"))
                 .andExpect(jsonPath("$.id").value(5));
     }
 

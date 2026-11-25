@@ -12,9 +12,9 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 |---|---|
 | `public/index.html` | Esqueleto, certificado y overlays |
 | `public/js/ui.js` | `UI.confirm` y `UI.alert`: diálogos propios. No usar `confirm()` ni `alert()` del navegador (la prueba de navegador falla si aparecen) |
-| `public/manual.html` | El libro "Java desde cero" (edición completa de Fase 1 o por Tomo `?tomo=1..6` cubriendo ambas fases): se arma con `LESSONS`, `LESSONS_F2`, `PRACTICA`, `GuiaCero`, `manual-contenido.js` (capítulo 0, partes, tomos, apéndices F1 y F2), `manual-figuras.js` (66 figuras SVG) y `bot.js`. Lo arma `manual.js` |
+| `public/manual.html` | El libro "Java desde cero" (edición completa Fase 1, edición completa Fase 2 `?fase=2` o por Tomo `?tomo=1..6`): se arma con `LESSONS`, `LESSONS_F2`, `PRACTICA`, `GuiaCero`, `manual-contenido.js` (capítulo 0, partes, tomos, apéndices F1 y F2), `manual-figuras.js` (66 figuras SVG) y `bot.js`. Lo arma `manual.js` |
 | `public/css/manual.css` · `manual-print.css` | El libro en pantalla (oscuro, interactivo, con botón de vista hoja A4) y en hojas A4 (claro, con índice paginado) |
-| `tools/manual-pdf.js` | Genera los 7 PDFs A4 (`--all`: `java-desde-cero.pdf` + 6 Tomos) con Paged.js 0.4.3 y Edge o Chrome. Verifica `0` fuentes Type 3, `0` desbordes, índice completo y marcadores (`/Outlines`). Corre en `predeploy` |
+| `tools/manual-pdf.js` | Genera los 8 PDFs A4 (`--all`: `java-desde-cero.pdf`, `java-fase-2.pdf` y 6 Tomos) con Paged.js 0.4.3 y Edge o Chrome. Verifica `0` fuentes Type 3, `0` desbordes, índice completo y marcadores (`/Outlines`). Corre en `predeploy` |
 | `public/js/guia-cero.js` | `GuiaCero`: fichas Qué / Por qué / Para qué / Ejemplo del día a día / Buena práctica para las 60 lecciones |
 | `public/js/bot.js` | `JavaBot` ("Profe Java"): asistente offline sensible al contexto en la app y el manual, con fichas de Java/buenas prácticas/errores y revisión de código actual |
 | `public/css/main.css` | Estilos. La sección "Práctica y evaluaciones" está al final |
@@ -33,6 +33,7 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 | `public/js/auth.js` | Login obligatorio con Google o Facebook |
 | `firestore.rules` | Reglas de seguridad |
 | `tests/run.js` | Suite completa. `tests/JavaOracle.java` compila y ejecuta con el JDK |
+| `tests/bot-holdout.js` | Batería independiente de 30 preguntas naturales + memoria por faceta y tipeos para medir generalización real de `JavaBot` |
 | `tests/sync.js` | Guardado contra un Firestore simulado: carga fallida, dos pestañas, reiniciar en varios navegadores y ranking sin emails |
 | `tests/spring-check.js` | Compila fragmentos con Spring, ejecuta SQL en H2 y compara `ApiLab` con la API real |
 | `tests/browser.js` | Prueba en Edge o Chrome con Firebase simulado, y mide cada pantalla a 360 px. El guion está en `tests/browser-scenario.js` |
@@ -166,7 +167,7 @@ Los simulacros solo usan actividades con corrección objetiva: ni `short`, que v
 `manual.html` no tiene texto propio de las lecciones: cada capítulo sale de la lección y de su práctica (escalera, objetivos, pregunta previa, "La idea en simple", "En detalle", actividades y desafío). **Corregir una lección corrige el libro.** Las respuestas van al apéndice A y las soluciones (la última pista de cada ejercicio) al B; el glosario sale de los `gl()` de las lecciones.
 
 - En pantalla, los bloques con `main` tienen ▶ Ejecutar y ✎ Editar (usa `JavaRun`), el botón 📄 Hoja A4 previsualiza cada capítulo como hoja imprimible, y las respuestas arrancan tapadas.
-- Con `?print=1` (y opcionalmente `&tomo=1..6`) queda listo para paginar. `node tools/manual-pdf.js --all` genera los 7 PDFs (completo + 6 Tomos) y **falla** si hay errores de JavaScript, entradas del índice sin página, desbordes, fuentes Type 3 o falta de marcadores (`/Outlines`). `SHOTS=1,20 REPORT=1` deja capturas y detalles en `tools/.cache`.
+- Con `?print=1` (y opcionalmente `&fase=2` o `&tomo=1..6`) queda listo para paginar. `node tools/manual-pdf.js --all` genera los 8 PDFs (completo F1, completo F2 y 6 Tomos) y **falla** si hay errores de JavaScript, entradas del índice sin página, desbordes, fuentes Type 3 o falta de marcadores (`/Outlines`). `SHOTS=1,20 REPORT=1` deja capturas y detalles en `tools/.cache`.
 - Los Tomos V y VI (Fase 2) incluyen los retos `code` en capítulos y usan `MANUAL.ERRORES_F2` y `MANUAL.REFERENCIA_F2` en los apéndices C y D.
 - Paged.js aplica las reglas `@media print` de `main.css`, que ocultan todo para imprimir el certificado: `manual-print.css` lo vuelve visible.
 - Paged.js descarta los nodos de texto que son solo espacios: `manual.js` pasa los saltos del código a `<br>` en modo impresión. Las cajas con `overflow:hidden` no se parten entre hojas: en la hoja impresa van visibles.
@@ -192,8 +193,9 @@ No soporta Spring, varargs, clases anónimas, clases internas que usan al objeto
 
 ```bash
 node tests/run.js                                  # pruebas: requiere Node y un JDK
+node tests/bot-holdout.js                          # generalización de JavaBot (30 preguntas independientes)
 node tests/sync.js                                 # guardado del progreso: solo Node
-node tools/manual-pdf.js --all                     # los 7 PDFs A4 (completo + 6 tomos): requiere Edge o Chrome
+node tools/manual-pdf.js --all                     # los 8 PDFs A4 (completo F1/F2 + 6 tomos): requiere Edge o Chrome
 node tests/spring-check.js                         # Spring, SQL y API real: requiere además Maven
 node tests/browser.js                              # navegador real: requiere Edge o Chrome
 VIEWS=practica,pasos node tests/browser.js         # solo esas pantallas, a 360 px

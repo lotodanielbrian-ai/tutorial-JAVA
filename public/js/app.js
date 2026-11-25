@@ -1004,7 +1004,11 @@ function runCode() {
       const res = localValidate(lessonList()[cur].id, code);
       const isGit = lessonList()[cur].id === 31 || lessonList()[cur].id === 33;
       const style = (!isGit && typeof styleNotes === 'function') ? styleNotes(code) : '';
-      const styleBox = style ? `<div class="out-box box-expected"><div class="out-head">Buenas prácticas</div><div class="out-body style-note">${style}</div></div>` : '';
+      const localeNote = (!isGit && /\b(?:printf|format)\s*\([^)]*%[\d.,+-]*f/.test(code))
+        ? 'ℹ️ <strong>Nota de formato decimal (<code>%f</code>):</strong> el emulador muestra punto (<code>1.65</code>). En una PC configurada en español, Java puede imprimir coma (<code>1,65</code>) salvo que uses <code>Locale.US</code>.'
+        : '';
+      const combinedNote = [style, localeNote].filter(Boolean).join('<br>');
+      const styleBox = combinedNote ? `<div class="out-box box-expected"><div class="out-head">Buenas prácticas</div><div class="out-body style-note">${combinedNote}</div></div>` : '';
 
       if (res.syntax) {
         highlightErrorLine(res.line);
