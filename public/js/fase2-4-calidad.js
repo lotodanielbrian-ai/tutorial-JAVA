@@ -367,12 +367,12 @@ ${cb('En el service', `public void eliminar(Long id) {
   quiz: {
     passing: 5,
     questions: [
-      { question: 'Para pasar de H2 a MySQL, ¿qué hay que cambiar?', options: ['La dependencia y la configuración', 'Todas las clases', 'El lenguaje', 'Los controllers'], correct: 0 },
-      { question: '¿Qué pasa con DELETE FROM productos; sin WHERE?', options: ['Borra todas las filas', 'Da error siempre', 'Borra solo la primera', 'No hace nada'], correct: 0 },
-      { question: '¿Qué es el borrado lógico?', options: ['Marcar la fila como inactiva', 'Borrarla de la base', 'Borrar la tabla', 'Vaciar la memoria'], correct: 0 },
-      { question: '¿Qué hace ddl-auto: update?', options: ['Ajusta las tablas sin borrar datos', 'Borra todo al apagar', 'Solo lee', 'Crea un backup'], correct: 0 },
-      { question: '¿Qué instrucción SQL lee datos?', options: ['SELECT', 'INSERT', 'UPDATE', 'DROP'], correct: 0 },
-      { question: '¿En qué puerto escucha MySQL por defecto?', options: ['3306', '8080', '443', '5432'], correct: 0 }
+      { question: 'Para pasar de H2 a MySQL, ¿qué hay que cambiar?', options: ['La dependencia y la configuración', 'Todas las clases de entidad y servicio', 'El lenguaje de programación completo', 'Todos los controllers y DTOs REST'], correct: 0 },
+      { question: '¿Qué pasa con DELETE FROM productos; sin WHERE?', options: ['Borra todas las filas', 'Lanza error de sintaxis siempre', 'Borra solo la primera fila cargada', 'No modifica ningún dato guardado'], correct: 0 },
+      { question: '¿Qué es el borrado lógico?', options: ['Marcar la fila como inactiva', 'Eliminarla físicamente de la tabla', 'Borrar la tabla completa en SQL', 'Vaciar la memoria caché temporal'], correct: 0 },
+      { question: '¿Qué hace ddl-auto: update?', options: ['Ajusta las tablas sin borrar datos', 'Borra todas las tablas al apagar Spring', 'Permite solo consultas de lectura GET', 'Genera un archivo de backup automático'], correct: 0 },
+      { question: '¿Qué instrucción SQL lee datos?', options: ['SELECT', 'INSERT INTO', 'UPDATE SET', 'DROP TABLE'], correct: 0 },
+      { question: '¿En qué puerto escucha MySQL por defecto?', options: ['3306', '80800', '4430', '5432'], correct: 0 }
     ]
   }
 });

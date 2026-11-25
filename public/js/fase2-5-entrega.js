@@ -10,7 +10,7 @@ LESSONS_F2.push({
 ${f2Card('🚢', 'El contenedor del barco', `<p>Antes, cada carga se acomodaba a mano. El <strong>contenedor</strong> cambió todo: mismo tamaño y mismo trato, sin importar lo que lleve adentro. Docker hace lo mismo con el software: tu aplicación viaja con Java, sus librerías y su configuración.</p>
 <p>Se terminó el "en mi máquina funciona".</p>`)}
 ${f2Mini('¿Qué diferencia hay entre imagen y contenedor?', 'La imagen es la receta congelada. El contenedor es esa receta en marcha.')}
-${f2Mini('¿Y entre Dockerfile y Docker Compose?', 'El Dockerfile define un contenedor. Compose coordina varios, como la aplicación y la base.')}`,
+${f2Mini('¿Y entre Dockerfile y Docker Compose?', 'El Dockerfile define cómo construir una imagen. Compose coordina varios contenedores a la vez, como la aplicación y la base.')}`,
   tutorial: () => `
 <div class="ts"><h3>Conceptos</h3>
 <table class="sym-tbl"><thead><tr><th>Término</th><th>Qué es</th><th>Analogía</th></tr></thead><tbody>
@@ -192,11 +192,11 @@ ${ann('java', '☕', 'Un repositorio prolijo con un proyecto propio es tu mejor 
   quiz: {
     passing: 4,
     questions: [
-      { question: '¿Qué dependencia agrega Swagger a Spring Boot?', options: ['springdoc-openapi', 'lombok', 'h2', 'mysql-connector-j'], correct: 0 },
-      { question: '¿En qué dirección se ve la interfaz de Swagger?', options: ['/swagger-ui.html', '/h2-console', '/api/productos', '/docker'], correct: 0 },
-      { question: '¿Qué anotación describe un endpoint?', options: ['@Operation', '@Entity', '@Id', '@Mock'], correct: 0 },
-      { question: '¿Qué no debe faltar en un README?', options: ['Cómo levantar el proyecto', 'Las contraseñas', 'Tu nota', 'El contenido de target'], correct: 0 },
-      { question: '¿Qué conviene hacer antes de entregar?', options: ['Probar el proyecto desde cero en una carpeta nueva', 'Borrar los tests', 'Subir target', 'Sacar el README'], correct: 0 }
+      { question: '¿Qué dependencia agrega Swagger a Spring Boot?', options: ['springdoc-openapi', 'lombok-annotations', 'h2-database-engine', 'mysql-connector-j'], correct: 0 },
+      { question: '¿En qué dirección se ve la interfaz de Swagger?', options: ['/swagger-ui.html', '/h2-console/login', '/api/productos/all', '/docker-compose'], correct: 0 },
+      { question: '¿Qué anotación describe un endpoint?', options: ['@Operation', '@Repository', '@Generated', '@MockMvcTest'], correct: 0 },
+      { question: '¿Qué no debe faltar en un README?', options: ['Cómo levantar el proyecto', 'Las contraseñas de producción', 'Tu calificación del examen final', 'El contenido compilado de target/'], correct: 0 },
+      { question: '¿Qué conviene hacer antes de entregar?', options: ['Probar el proyecto desde cero en una carpeta nueva', 'Borrar los tests automáticos que fallan', 'Subir la carpeta target completa al repo', 'Eliminar el archivo README y dependencias'], correct: 0 }
     ]
   }
 });
@@ -269,11 +269,11 @@ WHERE p.total > 1000;`)}
   quiz: {
     passing: 4,
     questions: [
-      { question: 'Un cliente tiene muchos pedidos. Desde Pedido, ¿qué anotación corresponde?', options: ['@ManyToOne', '@OneToOne', '@Id', '@Column'], correct: 0 },
-      { question: '¿Dónde queda la clave foránea?', options: ['En la tabla del lado "muchos"', 'En la tabla del lado "uno"', 'En ambas', 'En el pom.xml'], correct: 0 },
-      { question: '¿Qué hace un JOIN?', options: ['Combina filas de dos tablas', 'Borra una tabla', 'Crea un índice', 'Copia la base'], correct: 0 },
-      { question: 'Alumnos y materias es una relación...', options: ['Muchos a muchos', 'Uno a uno', 'Uno a muchos', 'Ninguna'], correct: 0 },
-      { question: '¿Por qué devolver DTO con entidades relacionadas?', options: ['Para evitar referencias circulares en el JSON', 'Porque Java lo exige', 'Para escribir más', 'No hay motivo'], correct: 0 }
+      { question: 'Un cliente tiene muchos pedidos. Desde Pedido, ¿qué anotación corresponde?', options: ['@ManyToOne', '@OneToMany', '@GeneratedValue', '@JoinTable'], correct: 0 },
+      { question: '¿Dónde queda la clave foránea?', options: ['En la tabla del lado "muchos"', 'En la tabla del lado "uno" únicamente', 'En ambas tablas al mismo tiempo', 'En el archivo pom.xml de Maven'], correct: 0 },
+      { question: '¿Qué hace un JOIN?', options: ['Combina filas de dos tablas', 'Elimina una tabla completa', 'Crea una clave primaria nueva', 'Duplica la base en memoria'], correct: 0 },
+      { question: 'Alumnos y materias es una relación...', options: ['Muchos a muchos', 'Uno a uno estricto', 'Uno a muchos simple', 'Ninguna relación JPA'], correct: 0 },
+      { question: '¿Por qué devolver DTO con entidades relacionadas?', options: ['Para evitar referencias circulares en el JSON', 'Porque Java no compila entidades en Spring', 'Para escribir más clases innecesariamente', 'Por estética sin ningún efecto práctico'], correct: 0 }
     ]
   }
 });
@@ -292,7 +292,9 @@ PRACTICA[120] = {
     { t: 'match', q: 'Uní cada caso con su relación.', pairs: [['Persona y DNI', 'Uno a uno'], ['Cliente y pedidos', 'Uno a muchos'], ['Alumnos y materias', 'Muchos a muchos']], why: 'Preguntate cuántos de cada lado puede haber.' },
     { t: 'fill', q: 'Completá la relación.', code: '@Entity\nclass ClienteA {\n    @Id\n    private Long id;\n}\n\n@Entity\nclass PedidoA {\n    @Id\n    private Long id;\n\n    @___\n    @___(name = "cliente_id")\n    private ClienteA cliente;\n}', a: [['ManyToOne'], ['JoinColumn']], spring: true, noRun: true, why: 'Muchos pedidos apuntan a un cliente, y <code>JoinColumn</code> nombra la columna.' },
     { t: 'bug', q: 'Encontrá el error en la consulta: no da error, pero muestra cada cliente con los pedidos de todos.', code: 'SELECT c.nombre, p.total\nFROM clientes c\nJOIN pedidos p\nWHERE p.total > 1000;', line: 3, fix: 'JOIN pedidos p ON p.cliente_id = c.id', noRun: true, why: 'Sin <code>ON</code> la base combina todas las filas con todas. Es el peor tipo de error: no falla, y devuelve datos equivocados.' },
-    { t: 'tf', q: 'Copiar el nombre del cliente en cada pedido es una buena idea.', a: false, why: 'Se llama redundancia: al cambiarlo, habría que actualizarlo en todas las filas.' }
+    { t: 'tf', q: 'Copiar el nombre del cliente en cada pedido es una buena idea.', a: false, why: 'Se llama redundancia: al cambiarlo, habría que actualizarlo en todas las filas.' },
+    { t: 'mc', q: '¿Cómo evitás bucles infinitos en JSON al devolver entidades relacionadas?', o: ['Usando DTOs sin referencias circulares', 'Borrando la clave foránea de la tabla', 'Cambiando todos los @ManyToOne a @Id', 'Quitando los getters de las dos clases'], a: 0, hint: 'Separar lo que devolvés al cliente de las tablas internas.', why: 'Convertir las entidades a DTOs corta la recursión infinita entre padre e hijos.' },
+    { t: 'order', q: 'Ordená los pasos para registrar un pedido asociado a un cliente.', lines: ['Buscar y validar que el cliente existe', 'Asociar ese cliente al nuevo pedido', 'Guardar el pedido en el repositorio', 'Devolver el DTO de respuesta del pedido'], why: 'Primero validás que el cliente exista, después conectás la relación, persistís y transformás a DTO.' }
   ]
 };
 
@@ -329,10 +331,10 @@ public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoReques
   quiz: {
     passing: 3,
     questions: [
-      { question: '¿Qué activa las validaciones en el controller?', options: ['@Valid', '@Service', '@Id', '@Mock'], correct: 0 },
-      { question: '¿Qué anotación rechaza un texto vacío o con espacios?', options: ['@NotBlank', '@NotNull', '@Id', '@Min'], correct: 0 },
-      { question: '¿Qué código devuelve la API ante un dato inválido?', options: ['400', '200', '201', '500'], correct: 0 },
-      { question: '¿Por qué validar en el servidor si la pantalla ya valida?', options: ['Porque se puede llamar a la API sin la pantalla', 'No hace falta', 'Para que sea más lento', 'Por estética'], correct: 0 }
+      { question: '¿Qué activa las validaciones en el controller?', options: ['@Valid', '@Service', '@NotBlank', '@RestController'], correct: 0 },
+      { question: '¿Qué anotación rechaza un texto vacío o con espacios?', options: ['@NotBlank', '@Size(min = 1)', '@Positive', '@Min(0)'], correct: 0 },
+      { question: '¿Qué código devuelve la API ante un dato inválido?', options: ['400', '200 (éxito)', '201 (creado)', '500 (fallo)'], correct: 0 },
+      { question: '¿Por qué validar en el servidor si la pantalla ya valida?', options: ['Porque se puede llamar a la API sin la pantalla', 'No hace falta si el formulario HTML ya controla', 'Para hacer más lentas las peticiones HTTP', 'Por una simple convención visual sin impacto'], correct: 0 }
     ]
   }
 });
@@ -352,7 +354,8 @@ PRACTICA[121] = {
     { t: 'bug', q: 'Las anotaciones del DTO no están haciendo nada. ¿Qué línea corregís?', code: '@PostMapping\npublic ProductoResponse crear(@RequestBody ProductoRequest request) {\n    return service.crear(request);\n}', line: 2, fix: 'public ProductoResponse crear(@Valid @RequestBody ProductoRequest request) {', noRun: true, why: 'Sin <code>@Valid</code>, las anotaciones del DTO se ignoran.' },
     { t: 'http', q: 'Precio inválido', task: 'Mandá un precio negativo y conseguí el <strong>400</strong> con su mensaje.', goal: { method: 'POST', path: '^/api/productos$', status: 400, contains: 'positivo' }, demo: [['POST', '/api/productos', '{"nombre":"Mate","precio":-5,"stock":1}']], hint: '<code>{"nombre":"Mate","precio":-5,"stock":1}</code>', why: 'El mensaje dice exactamente qué corregir.' },
     { t: 'http', q: 'JSON roto', task: 'Mandá un JSON mal formado y mirá qué pasa.', goal: { method: 'POST', path: '^/api/productos$', status: 400, contains: 'JSON' }, demo: [['POST', '/api/productos', '{"nombre":']], hint: 'Probá escribir <code>{"nombre":</code> y dejarlo incompleto.', why: 'Ni siquiera llega a tu código: falla al leer el cuerpo.' },
-    { t: 'tf', q: 'Validar en el frontend es suficiente.', a: false, why: 'Cualquiera puede llamar a la API directamente con curl o Postman.' }
+    { t: 'tf', q: 'Validar en el frontend es suficiente.', a: false, why: 'Cualquiera puede llamar a la API directamente con curl o Postman.' },
+    { t: 'mc', q: '¿Qué anotación valida que un texto no sea nulo ni solo espacios en blanco?', o: ['@NotBlank', '@NotNull', '@Positive', '@Generated'], a: 0, hint: 'Pensá en el texto "   ": no es null, pero está vacío para un usuario.', why: '<code>@NotBlank</code> exige al menos un carácter visible; <code>@NotNull</code> deja pasar cadenas vacías.' }
   ]
 };
 
@@ -458,7 +461,9 @@ PRACTICA[122] = {
     { t: 'match', q: 'Uní cada patrón con su problema.', pairs: [['Strategy', 'Varias formas de hacer lo mismo'], ['Factory', 'Elegir qué objeto crear'], ['Builder', 'Armar objetos con muchos datos']], why: 'Primero el problema; después, el patrón.' },
     { t: 'output', q: 'Strategy en acción. ¿Qué imprime?', code: 'interface Envio {\n    int costo(int km);\n}\n\npublic class Main {\n    public static void main(String[] args) {\n        Envio moto = km -> km * 10;\n        Envio camion = km -> km * 50 + 100;\n        System.out.println(moto.costo(5));\n        System.out.println(camion.costo(5));\n    }\n}', a: '50\n350', why: 'Una interfaz con un solo método se puede implementar con una lambda.' },
     { t: 'tf', q: 'Conviene aplicar patrones aunque el problema no exista todavía.', a: false, why: 'Es optimización prematura. KISS primero.' },
-    { t: 'short', q: '¿Qué patrón usa Spring para entregarte los beans y qué ventaja tiene?', any: [['inyeccion', 'singleton', 'dependenc', 'contenedor'], ['desacopl', 'una sola', 'unica', 'reutiliz', 'administr', 'cambiar']], model: 'Inyección de dependencias con beans singleton: Spring administra una instancia y desacopla las clases.', why: 'Sin saberlo, ya venías usando patrones.' }
+    { t: 'short', q: '¿Qué patrón usa Spring para entregarte los beans y qué ventaja tiene?', any: [['inyeccion', 'singleton', 'dependenc', 'contenedor'], ['desacopl', 'una sola', 'unica', 'reutiliz', 'administr', 'cambiar']], model: 'Inyección de dependencias con beans singleton: Spring administra una instancia y desacopla las clases.', why: 'Sin saberlo, ya venías usando patrones.' },
+    { t: 'mc', q: '¿Cuándo aporta verdadero valor aplicar el patrón Strategy?', o: ['Cuando hay varias formas intercambiables de calcular', 'Siempre que una clase tenga dos atributos privados', 'Para reemplazar un único método simple sin variantes', 'Cuando querés evitar definir interfaces en tu código'], a: 0, hint: 'Pensá en descuentos, envíos o medios de pago que cambian.', why: 'Strategy brilla cuando necesitás intercambiar algoritmos distintos manteniendo el mismo contrato.' },
+    { t: 'tf', q: 'Si hoy existe una única regla fija y simple, conviene aplicar KISS antes que agregar patrones extra.', a: true, why: 'Sumar patrones sin una variación real complica el código innecesariamente.' }
   ]
 };
 
@@ -805,16 +810,16 @@ ${ann('java', '☕', 'Cerrá con el cuestionario y con la práctica de esta lecc
   quiz: {
     passing: 8,
     questions: [
-      { question: '¿Qué es la deuda técnica?', options: ['El costo futuro de soluciones rápidas', 'Lo que cuesta una licencia', 'Un error de compilación', 'Un tipo de base de datos'], correct: 0 },
-      { question: '¿Qué dice la S de SOLID?', options: ['Una clase, una sola responsabilidad', 'Usar static', 'Evitar interfaces', 'Escribir sin comentarios'], correct: 0 },
-      { question: '¿Qué es un bean?', options: ['Un objeto administrado por Spring', 'Un archivo de configuración', 'Una tabla', 'Un test'], correct: 0 },
+      { question: '¿Qué es la deuda técnica?', options: ['El costo futuro de soluciones rápidas', 'El precio mensual de licencias de software', 'Un error de sintaxis que impide compilar', 'Un tipo especial de base de datos SQL'], correct: 0 },
+      { question: '¿Qué dice la S de SOLID?', options: ['Una clase, una sola responsabilidad', 'Usar métodos static en cada servicio', 'Evitar siempre definir interfaces públicas', 'Escribir el código sin ningún comentario'], correct: 0 },
+      { question: '¿Qué es un bean?', options: ['Un objeto administrado por Spring', 'Un archivo de configuración YAML externo', 'Una tabla relacional creada en MySQL', 'Un test unitario ejecutado con JUnit'], correct: 0 },
       { question: '¿Dónde va la lógica de negocio?', options: ['En el service', 'En el controller', 'En el repository', 'En el application.yml'], correct: 0 },
-      { question: '¿Cuál es la inyección recomendada?', options: ['Por constructor', 'Por atributo público', 'Con new', 'Con static'], correct: 0 },
-      { question: '¿Qué diferencia hay entre PUT y PATCH?', options: ['PUT reemplaza todo y PATCH una parte', 'PATCH crea', 'PUT elimina', 'No hay diferencia'], correct: 0 },
-      { question: '¿Para qué sirve un DTO?', options: ['Transferir solo los datos necesarios', 'Crear tablas', 'Ejecutar tests', 'Levantar Docker'], correct: 0 },
-      { question: '¿Qué es un mock?', options: ['Un doble que reemplaza una dependencia', 'Un tipo de excepción', 'Una tabla temporal', 'Un comando Git'], correct: 0 },
-      { question: '¿Qué es un contenedor?', options: ['Una imagen en ejecución', 'Una carpeta', 'Un archivo .java', 'Un endpoint'], correct: 0 },
-      { question: '¿Qué estructura tiene un test?', options: ['Preparar, ejecutar y verificar', 'Compilar y borrar', 'Leer e imprimir', 'Solo verificar'], correct: 0 }
+      { question: '¿Cuál es la inyección recomendada?', options: ['Por constructor', 'Por atributo público', 'Con operador new', 'Con variables static'], correct: 0 },
+      { question: '¿Qué diferencia hay entre PUT y PATCH?', options: ['PUT reemplaza todo y PATCH una parte', 'PATCH crea un recurso nuevo desde cero', 'PUT elimina el recurso definitivamente', 'No existe ninguna diferencia en HTTP REST'], correct: 0 },
+      { question: '¿Para qué sirve un DTO?', options: ['Transferir solo los datos necesarios', 'Crear tablas nuevas en la base SQL', 'Ejecutar tests unitarios de Mockito', 'Levantar contenedores de Docker Compose'], correct: 0 },
+      { question: '¿Qué es un mock?', options: ['Un doble que reemplaza una dependencia', 'Un tipo de excepción checked en Java', 'Una tabla temporal en memoria con H2', 'Un comando de historial usado en Git'], correct: 0 },
+      { question: '¿Qué es un contenedor?', options: ['Una imagen en ejecución', 'Una carpeta compartida de código fuente', 'Un archivo fuente .java sin compilar', 'Un endpoint HTTP expuesto en Swagger'], correct: 0 },
+      { question: '¿Qué estructura tiene un test?', options: ['Preparar, ejecutar y verificar', 'Compilar el jar y limpiar target', 'Leer el archivo e imprimir consola', 'Verificar aserciones sin preparar nada'], correct: 0 }
     ]
   }
 });

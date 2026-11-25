@@ -24,8 +24,8 @@ jobs:
         run: node tests/spring-check.js
       - name: Navegador
         run: node tests/browser.js
-      - name: Manual en PDF (A4, con índice y sin errores)
-        run: node tools/manual-pdf.js
+      - name: Manual en PDF (A4, completo y 6 tomos sin errores)
+        run: node tools/manual-pdf.js --all
 
   docker:
     runs-on: ubuntu-latest

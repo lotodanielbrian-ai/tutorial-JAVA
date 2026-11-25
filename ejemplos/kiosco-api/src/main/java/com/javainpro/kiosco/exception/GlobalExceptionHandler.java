@@ -1,6 +1,7 @@
 package com.javainpro.kiosco.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ProductoDuplicadoException.class)
     public ResponseEntity<Object> duplicado(ProductoDuplicadoException e) {
         return responder(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> conflictoDeDatos(DataIntegrityViolationException e) {
+        log.warn("Conflicto de integridad en base de datos: {}", e.getMostSpecificCause().getMessage());
+        return responder(HttpStatus.CONFLICT, "Ya existe un registro con esos datos únicos");
     }
 
     @ExceptionHandler(Exception.class)

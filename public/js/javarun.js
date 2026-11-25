@@ -567,6 +567,7 @@ var JavaRun = (function () {
       return { k: 'for', init: init, c: cond, upd: upd, body: stmt(), line: line };
     }
 
+    var inCaseLabel = false;
     function switchBody() {
       var line = t().line;
       expect('switch');
@@ -582,7 +583,8 @@ var JavaRun = (function () {
         else {
           if (!is('case')) fail("case, default, or '}' expected", 'Dentro de un switch solo van bloques case y default.');
           p++;
-          do { labels.push(ternary()); } while (eat(','));
+          inCaseLabel = true;
+          try { do { labels.push(ternary()); } while (eat(',')); } finally { inCaseLabel = false; }
         }
         var arrow = false;
         if (eat('->')) arrow = true;
@@ -831,7 +833,7 @@ var JavaRun = (function () {
           if (PRIMS[x.v] && la(1).v === '.') throw new Unsupported('literal de clase');
           fail('illegal start of expression', x.v + ' no puede ir en este lugar.');
         }
-        if (la(1).v === '->') return lambda();
+        if (!inCaseLabel && la(1).v === '->') return lambda();
         p++;
         if (is('(')) return { k: 'call', target: null, name: x.v, args: args(), line: x.line };
         return { k: 'name', name: x.v, line: x.line };
@@ -3179,9 +3181,18 @@ var JavaRun = (function () {
         case 'toString': return str('[' + arr.a.map(toStr).join(', ') + ']');
         case 'deepToString':
           return str((function deep(x) { return '[' + x.a.map(function (e) { return e instanceof JArr ? deep(e) : toStr(e); }).join(', ') + ']'; })(arr));
-        case 'sort':
-          arr.a.sort(a[1] ? fnCompare(a[1]) : compareValues);
+        case 'sort': {
+          if (a.length >= 3 && isNum(a[1]) && isNum(a[2])) {
+            var from = asNumber(a[1]) | 0, to = asNumber(a[2]) | 0;
+            if (from > to) throwJava('IllegalArgumentException', 'fromIndex(' + from + ') > toIndex(' + to + ')', line);
+            if (from < 0 || to > arr.a.length) throwJava('ArrayIndexOutOfBoundsException', String(from < 0 ? from : to), line);
+            var part = arr.a.slice(from, to).sort(a[3] ? fnCompare(a[3]) : compareValues);
+            for (var si = 0; si < part.length; si++) arr.a[from + si] = part[si];
+          } else {
+            arr.a.sort(a[1] ? fnCompare(a[1]) : compareValues);
+          }
           return undefined;
+        }
         case 'stream':
           return new JPipe(arr.a.slice(), arr.type === 'int' ? 'int' : arr.type === 'double' ? 'double' : 'obj');
         case 'fill': {
@@ -3533,6 +3544,15 @@ var JavaRun = (function () {
         case 'values': return new JList(mapEntries(m).map(function (en) { return en.v; }), 'Values');
         case 'entrySet': return new JList(mapEntries(m), 'EntrySet');
         case 'forEach': mapEntries(m).forEach(function (en) { a[0].call([en.k, en.v]); }); return undefined;
+        case 'merge': {
+          at = mapFind(m, a[0]);
+          var nv = (at === -1 || m.e[at].v === null) ? a[1] : a[2].call([m.e[at].v, a[1]]);
+          if (nv === null) { if (at !== -1) m.e.splice(at, 1); }
+          else mapPut(m, a[0], nv);
+          return nv;
+        }
+        case 'compute': case 'computeIfAbsent': case 'computeIfPresent': case 'replace': case 'replaceAll':
+          throw new Unsupported('Map.' + name);
         case 'toString': return str(toStr(m));
       }
       missingMethod(name, a, line);
@@ -3621,8 +3641,11 @@ var JavaRun = (function () {
         case 'reverse': b.s = b.s.split('').reverse().join(''); return b;
         case 'insert': b.s = b.s.slice(0, a[0]) + toStr(a[1]) + b.s.slice(a[0]); return b;
         case 'deleteCharAt': strIndex(b.s, a[0], line); b.s = b.s.slice(0, a[0]) + b.s.slice(a[0] + 1); return b;
+        case 'setCharAt': strIndex(b.s, a[0], line); b.s = b.s.slice(0, a[0]) + toStr(a[1]) + b.s.slice(a[0] + 1); return undefined;
         case 'setLength': b.s = b.s.slice(0, a[0]); return undefined;
         case 'isEmpty': return b.s.length === 0;
+        case 'delete': case 'replace': case 'substring': case 'indexOf': case 'lastIndexOf': case 'capacity':
+          throw new Unsupported('StringBuilder.' + name);
       }
       missingMethod(name, a, line);
     }
@@ -3769,7 +3792,7 @@ var JavaRun = (function () {
         return { exception: text, type: e.obj.cls.name, line: curLine, output: out };
       }
       if (e instanceof RangeError) return { exception: 'java.lang.StackOverflowError', type: 'StackOverflowError', line: curLine, output: out };
-      throw e;
+      return { unsupported: 'expresión no soportada por el emulador' + (e && e.message ? ' (' + e.message + ')' : ''), output: out };
     }
   }
 

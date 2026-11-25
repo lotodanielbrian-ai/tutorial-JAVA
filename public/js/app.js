@@ -239,6 +239,27 @@ function filterLessons(query) {
     if (!q) { btn.classList.remove('hidden'); return; }
     btn.classList.toggle('hidden', !lessonText(Number(btn.dataset.id)).includes(q));
   });
+  var sbList = document.getElementById('sb-list');
+  if (!sbList) return;
+  var cross = document.getElementById('sb-cross');
+  if (!cross) {
+    cross = document.createElement('div');
+    cross.id = 'sb-cross';
+    cross.className = 'sb-cross';
+    sbList.appendChild(cross);
+  }
+  if (!q) { cross.hidden = true; cross.innerHTML = ''; return; }
+  var otherFase = fase === 1 ? 2 : 1;
+  if (otherFase === 2 && !fase2Unlocked()) { cross.hidden = true; cross.innerHTML = ''; return; }
+  var otherList = otherFase === 2 ? LESSONS_F2 : LESSONS;
+  var hits = otherList.filter(function (l) { return lessonText(l.id).includes(q); }).length;
+  if (hits > 0) {
+    cross.hidden = false;
+    cross.innerHTML = '<button type="button" class="sb-cross-btn" onclick="showFase(' + otherFase + ')">🔎 Ver ' + hits + ' coincidencia' + (hits === 1 ? '' : 's') + ' en Fase ' + otherFase + '</button>';
+  } else {
+    cross.hidden = true;
+    cross.innerHTML = '';
+  }
 }
 
 // ── Sidebar ────────────────────────────────────────────────────────────
@@ -319,6 +340,13 @@ function seguir() {
   nextStep().go();
 }
 
+function lessonFigure(l) {
+  if (typeof FIGURAS === 'undefined' || !FIGURAS[l.id]) return '';
+  var f = FIGURAS[l.id]();
+  if (!f || !f.svg) return '';
+  return '<figure class="app-fig">' + f.svg + '<figcaption>' + esc(f.caption || '') + '</figcaption></figure>';
+}
+
 // ── Main render ────────────────────────────────────────────────────────
 function render() {
   lockedView = false;
@@ -339,8 +367,8 @@ function render() {
       <button type="button" class="tab-btn" id="tab-ex" onclick="switchTab('ex')">${exBtnLabel}</button>
       <button type="button" class="tab-btn" id="tab-prac" onclick="switchTab('prac')">🧠 Práctica</button>
     </div>
-    <div class="tab-pane active" id="pane-simple">${typeof Practica !== 'undefined' ? Practica.ladder(l) : ''}${l.simple()}</div>
-    <div class="tab-pane" id="pane-tut">${l.tutorial()}</div>
+    <div class="tab-pane active" id="pane-simple">${l.id === 1 ? '<div class="gc-ex-note"><div><strong>🧭 ¿Primera vez programando?</strong> Antes de escribir código, podés leer el <strong>Capítulo 0</strong>: qué es Java, por qué no es JavaScript y cómo funciona.</div><a class="gc-bot-btn" href="manual.html#cap-0">📖 Abrir Capítulo 0</a></div>' : ''}${typeof GuiaCero !== 'undefined' ? GuiaCero.cardSimple(l) : ''}${typeof Practica !== 'undefined' ? Practica.ladder(l) : ''}${lessonFigure(l)}${l.simple()}</div>
+    <div class="tab-pane" id="pane-tut">${l.tutorial()}${typeof GuiaCero !== 'undefined' ? GuiaCero.cardTutorial(l) : ''}</div>
     <div class="tab-pane" id="pane-ex">${exPaneHtml}</div>
     <div class="tab-pane" id="pane-prac">${typeof Practica !== 'undefined' ? Practica.buildTab(l) : ''}</div>
     <div class="nav-row">
@@ -362,6 +390,7 @@ function render() {
   }
   closeSuggest();
   offerCertificate();
+  if (typeof JavaBot !== 'undefined' && JavaBot.syncLesson) JavaBot.syncLesson(l);
 }
 
 function showCertOverlay() {
@@ -424,6 +453,7 @@ function handleEditorKeydown(e) {
     this.value = this.value.substring(0, s) + '    ' + this.value.substring(en);
     this.selectionStart = this.selectionEnd = s + 4;
     updateLineNumbers();
+    keepDraft();
     closeSuggest();
   }
 }
@@ -517,6 +547,7 @@ function buildExercise(l) {
     <div class="ex-task">
       <h4>🎯 Tarea</h4>
       <p>${ex.desc}</p>
+      ${typeof GuiaCero !== 'undefined' ? GuiaCero.cardExercise(l) : ''}
       ${ex.stdin ? `<div class="exp-out-label">Entrada simulada (el emulador la escribe por vos)</div><div class="exp-out">${esc(ex.stdin.join('\n'))}</div>` : ''}
       <div class="exp-out-label">Output esperado</div>
       <div class="exp-out">${esc(displayExpected)}</div>
@@ -551,6 +582,7 @@ function resetCode() {
     keepDraft();
     editorErrorLine = 0;
     updateLineNumbers();
+    keepDraft();
     closeSuggest();
   }
 }
@@ -715,6 +747,7 @@ function acceptSuggest() {
   ed.focus();
   closeSuggest();
   updateLineNumbers();
+  keepDraft();
 }
 
 function positionSuggest() {
@@ -777,7 +810,7 @@ function shuffledIndexes(n) {
 function buildQuiz(l) {
   var qz = l.quiz;
   _quizAnswers[l.id] = {};
-  var html = '<div><h4>🧪 Cuestionario — ' + qz.passing + ' correctas para aprobar</h4>';
+  var html = '<div><h4>🧪 Cuestionario — ' + qz.passing + ' correctas para aprobar</h4>' + (typeof GuiaCero !== 'undefined' ? GuiaCero.cardExercise(l) : '');
   for (var qi = 0; qi < qz.questions.length; qi++) {
     var q = qz.questions[qi];
     html += '<div class="quiz-question"><h4>' + (qi + 1) + '. ' + q.question + '</h4>';
@@ -785,10 +818,10 @@ function buildQuiz(l) {
     for (var pos = 0; pos < order.length; pos++) {
       var oi = order[pos];
       var letter = String.fromCharCode(65 + pos);
-      html += '<label class="quiz-option" data-oi="' + oi + '" onclick="selectQuizOption(' + qi + ',' + oi + ',this,' + l.id + ')">' +
+      html += '<label class="quiz-option" data-oi="' + oi + '">' +
         '<span class="quiz-opt-letter">' + letter + '</span>' +
         '<span>' + q.options[oi] + '</span>' +
-        '<input type="radio" name="q' + l.id + '_' + qi + '" value="' + oi + '" class="sr-only">' +
+        '<input type="radio" name="q' + l.id + '_' + qi + '" value="' + oi + '" class="sr-only" onchange="selectQuizOption(' + qi + ',' + oi + ',this.parentElement,' + l.id + ')">' +
         '</label>';
     }
     html += '</div>';
@@ -831,6 +864,8 @@ function runQuiz(lid) {
     for (var pos = 0; pos < opts.length; pos++) {
       var oi = Number(opts[pos].dataset.oi);
       opts[pos].classList.add('disabled');
+      var radio = opts[pos].querySelector('input');
+      if (radio) radio.disabled = true;
       // Si no aprobó, la correcta queda sin marcar: el próximo intento tiene que salir de la memoria
       if (oi === q.correct && (passed || selected === q.correct)) { opts[pos].classList.add('correct'); }
       else if (oi === selected && selected !== q.correct) { opts[pos].classList.add('incorrect'); }
@@ -982,6 +1017,7 @@ function runCode() {
                 <div class="compile-javac">Línea ${res.line}: ${esc(res.javac || '')}</div>
                 <div class="compile-why">${esc(res.why || '')}</div>
                 ${res.suggest ? `<div class="compile-suggest">${esc(res.suggest)}</div>` : ''}
+                <div class="gc-err-help"><button type="button" class="pr-link" onclick="JavaBot.openTopic('code')">🤖 Preguntarle al Profe Java por este error</button></div>
               </div>
             </div>
             <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
@@ -997,7 +1033,7 @@ function runCode() {
             <div class="cmp-grid">
               <div class="out-box box-err">
                 <div class="out-head">Error al ejecutar</div>
-                <div class="out-body">${got ? consoleBox : ''}<div class="compile-javac">${esc(res.runtime)}</div><div class="compile-why">El programa compiló, pero se detuvo en la línea ${res.blameLine}.</div></div>
+                <div class="out-body">${got ? consoleBox : ''}<div class="compile-javac">${esc(res.runtime)}</div><div class="compile-why">El programa compiló, pero se detuvo en la línea ${res.blameLine}.</div><div class="gc-err-help"><button type="button" class="pr-link" onclick="JavaBot.openTopic('code')">🤖 Preguntarle al Profe Java por este error</button></div></div>
               </div>
               <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
             </div>` + styleBox;
@@ -1008,7 +1044,7 @@ function runCode() {
             <div class="cmp-grid">
               <div class="out-box box-err">
                 <div class="out-head">La consola coincide, pero falta algo</div>
-                <div class="out-body">${consoleBox}<div class="compile-suggest">${esc(res.conceptErr)}</div></div>
+                <div class="out-body">${consoleBox}<div class="compile-suggest">${esc(res.conceptErr)}</div><div class="gc-err-help"><button type="button" class="pr-link" onclick="JavaBot.openTopic('code')">🤖 Preguntarle al Profe Java por este error</button></div></div>
               </div>
               <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
             </div>` + styleBox;
@@ -1025,7 +1061,7 @@ function runCode() {
             <div class="cmp-grid">
               <div class="out-box box-err">
                 <div class="out-head">Incorrecto</div>
-                <div class="out-body">${consoleBox}${res.suggest ? `<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div><div class="compile-suggest">${esc(res.suggest)}</div>` : '<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div>'}</div>
+                <div class="out-body">${consoleBox}${res.suggest ? `<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div><div class="compile-suggest">${esc(res.suggest)}</div>` : '<div class="compile-why">La consola no coincide con lo que pide el ejercicio.</div>'}<div class="gc-err-help"><button type="button" class="pr-link" onclick="JavaBot.openTopic('code')">🤖 Preguntarle al Profe Java por este error</button></div></div>
               </div>
               <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
             </div>` + styleBox;
@@ -1036,7 +1072,7 @@ function runCode() {
         else clearErrorLine();
         outArea.innerHTML = `
           <div class="cmp-grid">
-            <div class="out-box box-err"><div class="out-head">Incorrecto</div><div class="out-body">${esc(res.err)}</div></div>
+            <div class="out-box box-err"><div class="out-head">Incorrecto</div><div class="out-body">${esc(res.err)}<div class="gc-err-help"><button type="button" class="pr-link" onclick="JavaBot.openTopic('code')">🤖 Preguntarle al Profe Java por este error</button></div></div></div>
             <div class="out-box box-expected"><div class="out-head">Output esperado</div><div class="out-body">${esc(expected)}</div></div>
           </div>` + styleBox;
         failedRun();

@@ -79,15 +79,18 @@
 </div>
 
 
-<div class="grad-overlay" id="grad-overlay">
+<div class="grad-overlay" id="grad-overlay" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="grad-box">
-    <h2>🎉 ¡Felicitaciones! 🎉</h2>
+    <div class="modal-head">
+      <h2>🎉 ¡Felicitaciones! 🎉</h2>
+      <button type="button" class="hint-btn" onclick="document.getElementById('grad-overlay').classList.remove('show')" aria-label="Cerrar">✕ Cerrar</button>
+    </div>
     <p>¡Felicitaciones! Completaste <b>Java INPRO</b>, el examen final y la entrevista junior.</p>
     <p>Ingresá tu nombre y apellido para emitir tu certificado de aprobación.</p>
     <label for="cert-name" style="display:block;text-align:left;font-size:13px;color:var(--text3);margin-bottom:6px;font-weight:600;">Nombre y apellido:</label>
     <input type="text" id="cert-name" placeholder="Ej. Juan Pérez" autocomplete="off">
     <button type="button" class="btn-cert" onclick="generateCert()">Emitir Certificado (PDF)</button>
-    <p id="cert-date-preview" style="font-size:13px;color:var(--greentx);margin-top:12px;margin-bottom:0;"></p><p style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:0;">Seleccioná "Guardar como PDF" · Orientación: <b>Horizontal</b> · Papel: <b>A3</b> · Márgenes: <b>Ninguno</b></p>
+    <p id="cert-date-preview" style="font-size:13px;color:var(--greentx);margin-top:12px;margin-bottom:0;"></p><p style="font-size:12px;color:var(--text3);margin-top:8px;margin-bottom:0;">Seleccioná "Guardar como PDF" · Orientación: <b>Horizontal</b> · Papel: <b>Tamaño personalizado (se ajusta solo al guardar como PDF)</b> · Márgenes: <b>Ninguno</b></p>
   </div>
 </div>
 
@@ -180,11 +183,14 @@
 <script src="js/fase2-4-calidad.js"></script>
 <script src="js/fase2-5-entrega.js"></script>
 <script src="js/practica-6-ayudas.js"></script>
+<script src="js/guia-cero.js"></script>
 <script src="js/apilab.js"></script>
 <script src="js/practica.js"></script>
 <script src="js/progress.js"></script>
 <script src="js/ranking.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/manual-figuras.js"></script>
 <script src="js/app.js"></script>
+<script src="js/bot.js"></script>
 </body>
 </html>

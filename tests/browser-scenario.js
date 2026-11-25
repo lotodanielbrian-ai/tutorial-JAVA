@@ -156,6 +156,7 @@
     runQuiz(14);
     ok(q('#quiz-result-14').textContent.indexOf('No alcanzó') !== -1, 'reprobar el cuestionario');
     ok(!q('#pane-ex .quiz-option.correct'), 'al reprobar no se marca la correcta');
+    ok(q('#pane-ex .quiz-option input').disabled === true, 'runQuiz deshabilita los inputs radio');
     ok(qa('#pane-ex .quiz-why').length === quiz14.length, 'cada error trae su explicación');
     retryQuiz(14);
     ok(!q('#pane-ex .quiz-why') && !done.has(14), 'reintentar limpia la pantalla');
@@ -361,6 +362,14 @@
     showFase(2);
     ok(fase === 2, 'la Fase 2 abre con la prueba de nivel');
     showFase(1);
+    search.value = 'swagger';
+    filterLessons(search.value);
+    ok(!q('#sb-cross').hidden && q('#sb-cross button').textContent.indexOf('Fase 2') !== -1, 'la búsqueda en Fase 1 avisa coincidencias en Fase 2');
+    q('#sb-cross button').click();
+    ok(fase === 2 && qa('.lb:not(.hidden)').length >= 1, 'el aviso cross-fase cambia a Fase 2 filtrada');
+    search.value = '';
+    filterLessons('');
+    showFase(1);
     fase2Meta.accredited = null;
     persistFase2();
 
@@ -372,7 +381,8 @@
     await wait(800);
     ok(q('#grad-overlay').classList.contains('show'), 'el certificado aparece al terminar con un quiz');
     ok(q('#cert-print').textContent.indexOf('JAMES GOSLING') !== -1, 'el primer certificado conserva su firma');
-    q('#grad-overlay').classList.remove('show');
+    q('#grad-overlay button[aria-label="Cerrar"]').click();
+    ok(!q('#grad-overlay').classList.contains('show'), 'el certificado se puede cerrar con su botón');
 
     // Fase 2 desbloqueada
     var cert1Html = q('#cert-print').innerHTML;
@@ -493,6 +503,25 @@
     ok(q('#cert-print').innerHTML === cert1Html, 'el primer certificado queda intacto');
     ok(window.__writes.some(function (w) { return w[0].indexOf('progress/u1') === 0 && w[1].fase2 && w[1].fase2.done.length === LESSONS_F2.length; }), 'el avance de Fase 2 se guarda en Firestore');
     q('#sim-overlay').classList.remove('show');
+
+    // Guía 0 Conocimiento y Bot Profe Java
+    showFase(1);
+    goTo(0);
+    ok(!!q('.gc-card') && q('#pane-simple').textContent.indexOf('Ejemplo del día a día') !== -1, 'la guía Qué/Por qué/Para qué y ejemplo del día a día se ven en Explicación Simple');
+    ok(!!q('.app-fig svg'), 'la figura SVG didáctica se muestra en la app principal');
+    ok(!!q('.gc-tip') && q('#pane-tut').textContent.indexOf('Buena práctica profesional') !== -1, 'la buena práctica se ve en Tutorial Técnico');
+    ok(!!q('#java-bot-fab'), 'el botón flotante del Profe Java está visible');
+    q('#java-bot-fab').click();
+    ok(!q('#java-bot-panel').hidden, 'el bot abre su panel');
+    q('#java-bot-panel .bot-chip[data-topic="lesson"]').click();
+    ok(q('#java-bot-msgs').textContent.indexOf('Qué hacés') !== -1, 'el chip ¿Qué hago y para qué? responde con la lección actual');
+    q('#java-bot-panel .bot-chip[data-topic="tip"]').click();
+    ok(q('#java-bot-msgs').textContent.indexOf('Buena práctica') !== -1, 'el chip Buenas prácticas responde con consejos');
+    q('#java-bot-input').value = 'equals vs ==';
+    q('#java-bot-form').dispatchEvent(new Event('submit', { cancelable: true }));
+    ok(q('#java-bot-msgs').textContent.indexOf('.equals()') !== -1, 'el bot responde preguntas escritas del usuario');
+    q('#java-bot-close').click();
+    ok(q('#java-bot-panel').hidden, 'el bot se cierra correctamente');
 
     // Prepara el reingreso que comprueba tests/browser.js
     showFase(1);

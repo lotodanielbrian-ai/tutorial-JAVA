@@ -825,7 +825,7 @@ function conceptCheck(id, source) {
   switch (id) {
     case 1: return has('println') ? '' : 'Usá System.out.println para imprimir.';
     case 2: return (re(/\bString\s+\w+/) && re(/\bint\s+\w+/) && re(/\bdouble\s+\w+/) && re(/\bboolean\s+\w+/)) ? '' : 'Declará las cuatro variables: String, int, double y boolean.';
-    case 3: return (re(/\ba\s*\+\s*b\b/) && re(/\ba\s*-\s*b\b/) && re(/\ba\s*\*\s*b\b/) && re(/\ba\s*\/\s*b\b/) && re(/\ba\s*%\s*b\b/)) ? '' : 'Calculá cada resultado con a y b, no escribas el número a mano.';
+    case 3: return (re(/\b(a\s*\+\s*b|b\s*\+\s*a)\b/) && re(/\ba\s*-\s*b\b/) && re(/\b(a\s*\*\s*b|b\s*\*\s*a)\b/) && re(/\ba\s*\/\s*b\b/) && re(/\ba\s*%\s*b\b/)) ? '' : 'Calculá cada resultado con a y b, no escribas el número a mano.';
     case 4: return (has('.toUpperCase(') && has('.length(') && has('.charAt(') && has('.contains(')) ? '' : 'Usá los métodos .toUpperCase(), .length(), .charAt() y .contains().';
     case 5: return (has('(int)') && has('Math.round') && has('Math.sqrt')) ? '' : 'Usá el cast (int), Math.round() y Math.sqrt().';
     case 6: return (has('.trim()') && has('.toUpperCase()')) ? '' : 'Procesá el nombre con .trim() y .toUpperCase().';
@@ -833,14 +833,14 @@ function conceptCheck(id, source) {
     case 8: return (re(/\bswitch\b/) && re(/\bcase\b/) && re(/\bdefault\b/)) ? '' : 'Usá switch con sus case y un default.';
     case 9: return has('&&') ? '' : 'Combiná las dos condiciones con &&.';
     case 10: return has('+') ? '' : 'Uní el texto y las variables con +.';
-    case 11: return (re(/\bwhile\b/) && re(/\+\+|\+=/)) ? '' : 'Usá un while que incremente la variable.';
+    case 11: return (re(/\bwhile\b/) && (re(/\+\+|\+=/) || re(/\b([a-zA-Z_]\w*)\s*=\s*\1\s*\+\s*1\b/))) ? '' : 'Usá un while que incremente la variable.';
     case 12: return re(/\bfor\b/) ? '' : 'Usá un bucle for.';
     case 13: return (has('[]') && loop) ? '' : 'Recorré el array con un bucle.';
     case 15: return (loop && re(/\bif\b/)) ? '' : 'Recorré ventas con un bucle y usá un if para contar.';
-    case 16: return (has('static void imprimirSeparador') && (code.split('imprimirSeparador').length > 3 || loop)) ? '' : 'Definí imprimirSeparador() y llamalo 3 veces.';
+    case 16: return (re(/static\s+void\s+imprimirSeparador\s*\(/) && (code.split('imprimirSeparador').length > 3 || loop)) ? '' : 'Definí imprimirSeparador() y llamalo 3 veces.';
     case 17: return (has('static int calcularArea') && re(/\breturn\b/)) ? '' : 'calcularArea tiene que devolver el resultado con return.';
-    case 18: return (has('class Persona') && has('new Persona(') && has('presentarse(')) ? '' : 'Creá la clase Persona, un objeto con new y llamá a presentarse().';
-    case 19: return (has('Producto(String') && has('this.') && has('new Producto(')) ? '' : 'Definí el constructor de Producto, usá this y creá el objeto con new.';
+    case 18: return (re(/\bclass\s+Persona\b/) && re(/\bnew\s+Persona\s*\(/) && re(/presentarse\s*\(/)) ? '' : 'Creá la clase Persona, un objeto con new y llamá a presentarse().';
+    case 19: return (re(/\bProducto\s*\(\s*String\b/) && has('this.') && re(/\bnew\s+Producto\s*\(/)) ? '' : 'Definí el constructor de Producto, usá this y creá el objeto con new.';
     case 20: return (re(/private\s+String\s+nombre/) && re(/private\s+int\s+edad/) && has('getNombre') && has('setEdad')) ? '' : 'Usá atributos private con sus getters y setters.';
     case 21: return (has('extends Animal') && has('super(')) ? '' : 'Usá extends Animal y llamá a super().';
     case 22: return (has('extends Animal') && has('hacerSonido') && loop) ? '' : 'Perro y Gato tienen que sobrescribir hacerSonido() y el main recorrer un array de Animal.';
@@ -883,7 +883,7 @@ function gitValidate(id, source) {
     if (/^git add\s+\S/.test(c)) { pendingAdd = true; continue; }
     if (/^git commit\b/.test(c)) {
       if (!pendingAdd) return { err: 'Antes de cada git commit hay que preparar los cambios con git add.' };
-      if (!/-m\s+".+"/.test(c)) return { err: 'Cada commit lleva un mensaje: git commit -m "qué cambió".' };
+      if (!/-m\s+("[^"]+"|'[^']+')/.test(c)) return { err: 'Cada commit lleva un mensaje: git commit -m "qué cambió".' };
       pendingAdd = false;
       commits++;
       continue;

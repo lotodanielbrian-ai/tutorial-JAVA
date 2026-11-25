@@ -97,6 +97,15 @@ class ProductoServiceImplTest {
     }
 
     @Test
+    void actualizarRechazaUnNombreRepetido() {
+        when(repository.findByIdAndActivoTrue(1L)).thenReturn(Optional.of(producto(1L, "Alfajor", 1200)));
+        when(repository.existsByNombre("Yerba")).thenReturn(true);
+
+        assertThrows(ProductoDuplicadoException.class, () -> service.actualizar(1L, new ProductoRequest("Yerba", 1500.0, 5)));
+        verify(repository, never()).save(any());
+    }
+
+    @Test
     void eliminarEsUnBorradoLogico() {
         Producto existente = producto(1L, "Alfajor", 1200);
         when(repository.findByIdAndActivoTrue(1L)).thenReturn(Optional.of(existente));

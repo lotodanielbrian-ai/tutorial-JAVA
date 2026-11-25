@@ -342,11 +342,11 @@ ${f2Pc('tu propia prueba', [
   quiz: {
     passing: 4,
     questions: [
-      { question: '¿Qué genera Swagger?', options: ['Documentación interactiva de tu API', 'El código de la base', 'El .jar', 'Las pruebas unitarias'], correct: 0 },
-      { question: 'Enviás JSON con POST y falla. ¿Qué encabezado revisás?', options: ['Content-Type: application/json', 'User-Agent', 'Cookie', 'Accept-Language'], correct: 0 },
-      { question: '¿Qué hace @CreatedDate?', options: ['Completa sola la fecha de creación', 'Borra registros viejos', 'Crea la tabla', 'Valida un campo'], correct: 0 },
-      { question: 'Además del camino feliz, ¿qué más hay que probar?', options: ['Datos inválidos y recursos que no existen', 'Nada más', 'Solo el color de la página', 'Únicamente GET'], correct: 0 },
-      { question: '¿Qué herramienta corre desde la línea de comandos?', options: ['curl', 'Swagger UI', 'Postman', 'IntelliJ'], correct: 0 }
+      { question: '¿Qué genera Swagger?', options: ['Documentación interactiva de tu API', 'El esquema completo de la base SQL', 'El archivo ejecutable empaquetado .jar', 'Todas las pruebas unitarias con JUnit'], correct: 0 },
+      { question: 'Enviás JSON con POST y falla. ¿Qué encabezado revisás?', options: ['Content-Type: application/json', 'User-Agent: Mozilla/5.0 (Windows)', 'Cookie: session_id=123456789', 'Accept-Language: es-AR,es;q=0.9'], correct: 0 },
+      { question: '¿Qué hace @CreatedDate?', options: ['Completa sola la fecha de creación', 'Elimina los registros históricos viejos', 'Crea la tabla relacional en MySQL', 'Valida que un campo texto no sea nulo'], correct: 0 },
+      { question: 'Además del camino feliz, ¿qué más hay que probar?', options: ['Datos inválidos y recursos que no existen', 'Solo verificar que la app compile en Maven', 'Únicamente los estilos y colores de la vista', 'Únicamente peticiones GET sin parámetros'], correct: 0 },
+      { question: '¿Qué herramienta corre desde la línea de comandos?', options: ['curl', 'Swagger UI web', 'Postman Desktop', 'IntelliJ IDEA'], correct: 0 }
     ]
   }
 });

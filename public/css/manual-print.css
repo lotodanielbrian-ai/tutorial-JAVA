@@ -30,7 +30,7 @@ html, body, .mn-body { background:#fff !important; color:var(--text); }
 .mn-body, .mn-body * { visibility:visible !important; }
 body { font-size:10pt; line-height:1.55; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 .mn-book { max-width:none; padding:0; margin:0; }
-.mn-screen, .mn-run-bar, .mn-bar, .mn-sol, .mn-loading, .sync-note, .ui-dialog-overlay { display:none !important; }
+.mn-screen, .mn-run-bar, .mn-bar, .mn-sol, .mn-loading, .sync-note, .ui-dialog-overlay, .mn-tomos, .mn-print-ch { display:none !important; }
 
 /* Colores fijos de main.css, pasados a claro */
 .ts h3, .ann strong { color:var(--text) !important; }
@@ -105,6 +105,16 @@ body { font-size:10pt; line-height:1.55; -webkit-print-color-adjust:exact; print
 .mn-fig { background:#fff; border:1px solid #e5e7eb; padding:8pt; margin:10pt 0; }
 .mn-fig figcaption { font-size:8.5pt; color:#4b5563; }
 .mn-before { border-color:#f59e0b; padding:8pt 12pt; }
+.mn-guia { background:#fafafa; border:1px solid #d1d5db; border-left:3pt solid #1d4ed8; border-radius:6pt; padding:8pt 10pt; margin:8pt 0; break-inside:avoid; max-width:100%; overflow-wrap:anywhere; }
+.mn-guia .mn-h { margin-top:0; }
+.mn-guia-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6pt; margin-bottom:6pt; }
+.mn-guia-box { background:#fff; border:1px solid #e5e7eb; border-radius:4pt; padding:6pt 8pt; min-width:0; }
+.mn-guia-box strong { display:block; font-size:7.5pt; text-transform:uppercase; color:#b45309; margin-bottom:2pt; }
+.mn-guia-box p { margin:0; font-size:8.6pt; line-height:1.45; color:var(--text2); }
+.mn-guia-day { background:#fffaf0; border:1px solid #fcd9a0; border-radius:4pt; padding:6pt 8pt; font-size:8.8pt; line-height:1.45; color:var(--text); }
+.mn-tip { background:#f0fdf4; border:1px solid #bbf7d0; border-left:3pt solid #059669; border-radius:4pt; padding:7pt 10pt; margin:8pt 0; font-size:9pt; line-height:1.5; color:var(--text2); break-inside:avoid; max-width:100%; overflow-wrap:anywhere; }
+.mn-tip strong { color:#047857; }
+.mn-guia code, .mn-tip code { background:#f1f5f9; color:#0f766e; font-size:8pt; padding:0.5pt 3pt; border-radius:3pt; }
 .mn-print-only { display:block !important; }
 .mn-c0 { margin:16pt 0 6pt; }
 .mn-c0-title { break-after:avoid; }

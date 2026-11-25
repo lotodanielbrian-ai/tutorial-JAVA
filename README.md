@@ -21,10 +21,13 @@ La Fase 2 sigue el orden del segundo semestre de Programación 1. Ver [PLAN-FASE
 
 ## Qué incluye
 
-- **Explicación simple:** cada lección arranca con una escalera de cinco pasos, de la vida diaria a un sistema real
+- **Guía 0 Conocimiento:** en las 60 lecciones explica qué estás haciendo, por qué existe, para qué sirve, un ejemplo del día a día y una buena práctica profesional, más acceso al **Capítulo 0: ¿Qué es Java?**
+- **Explicación simple e ilustrada:** escalera de cinco pasos de la vida diaria al código + **66 figuras SVG didácticas** (6 de orientación y 60/60 lecciones)
+- **Asistente offline Profe Java (`JavaBot`):** disponible en la app y en el manual; responde dudas de Java, buenas prácticas, errores de compilación/runtime y analiza tu código actual sin dar la solución
+- **Manual "Java desde cero" en 6 Tomos + Completo:** vista interactiva ejecutable en pantalla, vista imprimible en hoja A4 y **7 PDFs A4 con marcadores** (de Súper Básico a Spring Boot, Calidad y Entrega)
 - **Tutorial técnico:** código, tablas y errores comunes
 - **Ejercicio con editor:** autocompletado, pistas y un intérprete que ejecuta tu código de verdad
-- **Práctica:** 519 actividades de once tipos, con devolución inmediata
+- **Práctica:** 541 actividades de once tipos, con devolución inmediata
 - **Repaso espaciado:** cada actividad vuelve a los 1, 3, 7, 14 y 30 días; lo que fallás vuelve al día siguiente
 - **Evaluaciones:** simulacros, parcial práctico con código y reloj, ping-pong oral, prueba de nivel y mapa de dominio
 - **Parciales simulados y coloquio:** en la Fase 1 y en la Fase 2, con listas de pasos verificables para hacer el proyecto real
@@ -69,9 +72,16 @@ Después abrí `http://127.0.0.1:8765/`. El ingreso con Google o Facebook usa el
 
 ```bash
 node tests/run.js
+node tests/sync.js
 ```
 
-Requiere Node y un JDK en el `PATH`. Compila con Java real las soluciones y las actividades, compara el intérprete contra el JDK y verifica que los programas incorrectos no aprueben.
+Requiere Node y un JDK en el `PATH`. Compila con Java real las soluciones y las actividades, compara el intérprete contra el JDK, valida las 66 figuras SVG, `GuiaCero`, `JavaBot` y el guardado del progreso (`sync.js`).
+
+Para generar y verificar los 7 PDFs A4 del manual (edición completa + 6 Tomos, con marcadores y sin fuentes Type 3):
+
+```bash
+node tools/manual-pdf.js --all
+```
 
 Para lo que no corre en el navegador:
 

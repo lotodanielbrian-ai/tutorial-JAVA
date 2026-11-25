@@ -38,10 +38,13 @@ var FIGURAS = (function () {
   function C(cx, cy, r, cls) {
     return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" class="' + (cls || 'f-box') + '"/>';
   }
+  var markerSeq = 0;
   function svg(w, h, body, label) {
+    var mid = 'f-arrow-' + (++markerSeq);
+    var safeBody = String(body).replace(/url\(#f-arrow\)/g, 'url(#' + mid + ')');
     return '<svg class="fig" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(label) + '" xmlns="http://www.w3.org/2000/svg">' +
-      '<defs><marker id="f-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-head"/></marker></defs>' +
-      body + '</svg>';
+      '<defs><marker id="' + mid + '" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="f-head"/></marker></defs>' +
+      safeBody + '</svg>';
   }
   function fig(w, h, body, caption) { return { svg: svg(w, h, body, caption), caption: caption }; }
 
@@ -416,12 +419,13 @@ var FIGURAS = (function () {
   };
 
   F[23] = function () {
-    var b = R(200, 10, 240, 64, 'f-blue', 10) + T(320, 34, 'interface Imprimible', 'f-m f-b') + T(320, 56, 'void imprimir();   // el contrato', 'f-m f-s');
-    b += R(40, 120, 220, 60, 'f-acc', 10) + T(150, 144, 'Documento implements', 'f-m f-s f-b') + T(150, 166, '"Imprimiendo documento..."', 'f-m f-s');
-    b += R(380, 120, 220, 60, 'f-acc', 10) + T(490, 144, 'Foto implements', 'f-m f-s f-b') + T(490, 166, '"Imprimiendo foto..."', 'f-m f-s');
-    b += A(150, 118, 270, 76, 'f-dash') + A(490, 118, 370, 76, 'f-dash');
-    b += T(320, 206, 'Clase abstracta: un molde a medio hacer · Interfaz: solo la lista de lo que hay que saber hacer', 'f-s');
-    return fig(640, 216, b, 'Una interfaz es un contrato: cada clase que la implementa promete esos métodos');
+    var b = R(18, 12, 278, 72, 'f-acc', 10) + T(157, 34, 'abstract class Figura', 'f-m f-b') + T(157, 54, 'String color; // código común', 'f-m f-s') + T(157, 72, 'abstract double area();', 'f-m f-s');
+    b += R(344, 12, 278, 72, 'f-blue', 10) + T(483, 36, 'interface Imprimible', 'f-m f-b') + T(483, 60, 'void imprimir(); // solo contrato', 'f-m f-s');
+    b += R(48, 122, 218, 56, 'f-box', 10) + T(157, 144, 'Circulo extends Figura', 'f-m f-s f-b') + T(157, 164, 'hereda color + calcula area()', 'f-s');
+    b += R(374, 122, 218, 56, 'f-ok', 10) + T(483, 144, 'Documento implements', 'f-m f-s f-b') + T(483, 164, '"Imprimiendo documento..."', 'f-m f-s');
+    b += A(157, 120, 157, 86, 'f-ln-acc') + A(483, 120, 483, 86, 'f-dash');
+    b += T(320, 204, 'Clase abstracta: molde parcial (extends) · Interfaz: contrato de capacidades (implements)', 'f-s');
+    return fig(640, 216, b, 'Clase abstracta vs interfaz: molde a medio hacer frente a contrato puro');
   };
 
   F[24] = function () {
@@ -550,6 +554,294 @@ var FIGURAS = (function () {
       b += B(x - 62, y - 15, 124, 30, t, 'f-box', 'f-s');
     });
     return fig(640, 214, b, 'Lo que suelen preguntar en una primera entrevista');
+  };
+
+  // ── Fase 2: Código limpio, Spring Boot, API REST, Calidad y Docker ───
+  F[101] = function () {
+    var b = R(20, 24, 270, 146, 'f-bad', 10) + T(155, 48, 'Código con deuda técnica', 'f-b f-tbad');
+    b += T(36, 78, 'double c(double x, double y) {', 'f-m f-s', 'start');
+    b += T(36, 98, '  return x * 1.21 - y;', 'f-m f-s', 'start');
+    b += T(36, 118, '}', 'f-m f-s', 'start');
+    b += T(155, 150, 'Nombres crípticos + número mágico', 'f-s');
+    b += A(296, 96, 344, 96, 'f-ln-ok');
+    b += R(350, 24, 270, 146, 'f-ok', 10) + T(485, 48, 'Código limpio', 'f-b f-tok');
+    b += T(366, 78, 'static final double IVA = 1.21;', 'f-m f-s', 'start');
+    b += T(366, 98, 'double precioFinal(double neto,', 'f-m f-s', 'start');
+    b += T(366, 118, '    double desc) { ... }', 'f-m f-s', 'start');
+    b += T(485, 150, 'Se lee como una frase', 'f-s');
+    return fig(640, 190, b, 'Refactorizar deuda técnica: mismo resultado, mucha mayor claridad');
+  };
+
+  F[102] = function () {
+    var b = R(20, 24, 260, 142, 'f-bad', 10) + T(150, 48, 'Código repetido (sin DRY)', 'f-b f-tbad');
+    b += T(36, 78, 'double t1 = a * 1.21;', 'f-m f-s', 'start');
+    b += T(36, 98, 'double t2 = b * 1.21;', 'f-m f-s', 'start');
+    b += T(36, 118, 'double t3 = c * 1.21;', 'f-m f-s', 'start');
+    b += T(150, 148, 'Si cambia el IVA, tocás 3 lugares', 'f-s');
+    b += A(286, 95, 344, 95, 'f-ln-ok') + T(315, 83, 'Extraer', 'f-s f-b');
+    b += R(350, 24, 270, 142, 'f-ok', 10) + T(485, 48, 'DRY + KISS', 'f-b f-tok');
+    b += T(366, 78, 'double conIva(double n) {', 'f-m f-s', 'start');
+    b += T(366, 98, '  return n * IVA;', 'f-m f-s', 'start');
+    b += T(366, 118, '}', 'f-m f-s', 'start');
+    b += T(485, 148, 'Una sola regla simple y reutilizable', 'f-s');
+    return fig(640, 186, b, 'DRY y KISS: una sola fuente de verdad y soluciones simples sin sobre-ingeniería');
+  };
+
+  F[103] = function () {
+    var b = B(210, 14, 220, 44, 'interface MedioPago\ncobrar(monto)', 'f-acc', 'f-m f-s f-b');
+    b += B(30, 106, 160, 48, 'Tarjeta\ncobrar(monto)', 'f-box', 'f-m f-s');
+    b += B(240, 106, 160, 48, 'Efectivo\ncobrar(monto)', 'f-box', 'f-m f-s');
+    b += B(450, 106, 160, 48, 'Nuevo: QR / Cripto\n(sin tocar el resto)', 'f-ok', 'f-s f-b');
+    b += A(110, 106, 260, 58, 'f-ln-acc') + A(320, 106, 320, 58, 'f-ln-acc') + A(530, 106, 380, 58, 'f-ln-ok');
+    b += T(320, 180, 'Principio Open/Closed: extendés creando una clase nueva, sin cadenas de if', 'f-s');
+    return fig(640, 196, b, 'SOLID en acción: agregar un nuevo medio de pago sin modificar lo que ya funciona');
+  };
+
+  F[104] = function () {
+    var items = [
+      ['S', 'Singleton abusado', 'estado global oculto'],
+      ['T', 'Tight Coupling', 'new fijo por todos lados'],
+      ['U', 'Untestability', 'no se puede probar aislado'],
+      ['P', 'Premature Opt.', 'complicar sin medir'],
+      ['I', 'Indescriptive', 'variables x, d1, aux'],
+      ['D', 'Duplication', 'copiar y pegar lógica']
+    ];
+    var b = '';
+    items.forEach(function (it, i) {
+      var col = i % 2, row = Math.floor(i / 2);
+      var x = 18 + col * 310, y = 14 + row * 56;
+      b += R(x, y, 294, 46, 'f-bad', 8);
+      b += B(x + 8, y + 8, 30, 30, it[0], 'f-acc', 'f-m f-b');
+      b += T(x + 48, y + 20, it[1], 'f-s f-b', 'start');
+      b += T(x + 48, y + 38, it[2], 'f-s', 'start');
+    });
+    return fig(640, 192, b, 'Antipatrones STUPID: seis señales de alerta que frenan el mantenimiento');
+  };
+
+  F[105] = function () {
+    var b = R(20, 24, 175, 138, 'f-blue', 10) + T(107, 48, 'pom.xml', 'f-m f-b') + L(20, 58, 195, 58);
+    b += T(34, 84, 'spring-boot-web', 'f-m f-s', 'start') + T(34, 108, 'spring-data-jpa', 'f-m f-s', 'start') + T(34, 132, 'h2 / mysql', 'f-m f-s', 'start');
+    b += A(198, 92, 248, 92, 'f-ln-blue') + T(223, 80, 'Maven', 'f-s f-b');
+    b += R(252, 24, 166, 138, 'f-acc', 10) + T(335, 48, 'Spring Boot', 'f-b') + L(252, 58, 418, 58) + T(335, 104, 'Autoconfigura\nTomcat (8080)\ny beans', 'f-s');
+    b += A(420, 92, 468, 92, 'f-ln-ok') + T(444, 80, 'run', 'f-m f-s');
+    b += R(472, 24, 148, 138, 'f-ok', 10) + T(546, 48, 'API lista', 'f-b f-tok') + L(472, 58, 620, 58) + T(546, 104, 'localhost:8080\n/api/...', 'f-m f-s');
+    return fig(640, 182, b, 'Maven descarga las piezas declaradas en pom.xml y Spring Boot levanta el servidor');
+  };
+
+  F[106] = function () {
+    var b = R(20, 36, 165, 112, 'f-blue', 10) + T(102, 72, 'Cliente', 'f-b') + T(102, 96, 'Web · Celular\nPostman · curl', 'f-s');
+    b += R(455, 36, 165, 112, 'f-acc', 10) + T(537, 72, 'API Spring Boot', 'f-b') + T(537, 96, 'Controller\nService · DB', 'f-s');
+    b += A(186, 68, 452, 68, 'f-ln-blue') + T(320, 56, 'POST /api/productos + JSON', 'f-m f-s f-b');
+    b += A(452, 116, 186, 116, 'f-ln-ok') + T(320, 136, '201 Created · 400 · 404 · 409', 'f-m f-s f-b');
+    return fig(640, 174, b, 'Ciclo HTTP REST: pedido con verbo y ruta, respuesta con código de estado y JSON');
+  };
+
+  F[107] = function () {
+    var b = B(20, 48, 130, 74, 'Controller\nHabla HTTP\ny DTOs', 'f-blue', 'f-s f-b');
+    b += A(152, 85, 190, 85, 'f-ln-blue');
+    b += B(192, 48, 140, 74, 'Service\nReglas de\nnegocio', 'f-acc', 'f-s f-b');
+    b += A(334, 85, 372, 85, 'f-ln-acc');
+    b += B(374, 48, 130, 74, 'Repository\nAcceso a\ndatos JPA', 'f-ok', 'f-s f-b');
+    b += A(506, 85, 536, 85, 'f-ln-ok');
+    b += B(538, 56, 82, 58, 'H2 /\nMySQL', 'f-box', 'f-m f-s f-b');
+    b += T(320, 152, 'Cada capa cumple un único rol y no invade el trabajo de la vecina', 'f-s');
+    return fig(640, 172, b, 'Arquitectura en 3 capas: Controller, Service y Repository');
+  };
+
+  F[108] = function () {
+    var b = B(16, 52, 112, 56, 'List<Producto>\n(todos)', 'f-box', 'f-m f-s');
+    b += A(130, 80, 162, 80, 'f-ln-acc');
+    b += B(164, 52, 136, 56, '.filter(...)\nstock < 5', 'f-blue', 'f-m f-s f-b');
+    b += A(302, 80, 334, 80, 'f-ln-blue');
+    b += B(336, 52, 136, 56, '.map(...)\na DTO record', 'f-acc', 'f-m f-s f-b');
+    b += A(474, 80, 506, 80, 'f-ln-ok');
+    b += B(508, 52, 116, 56, '.toList()\nresultado', 'f-ok', 'f-m f-s f-b');
+    b += T(320, 140, 'Stream procesa datos como una cinta transportadora sin modificar la lista original', 'f-s');
+    return fig(640, 160, b, 'Pipeline de Streams en Java moderno: filtrar, transformar y recolectar');
+  };
+
+  F[109] = function () {
+    var b = R(20, 26, 230, 138, 'f-blue', 10) + T(135, 48, '@Entity Producto', 'f-m f-b') + L(20, 58, 250, 58);
+    b += T(34, 80, '@Id Long id;', 'f-m f-s', 'start') + T(34, 102, 'String nombre;', 'f-m f-s', 'start') + T(34, 124, 'double precio;', 'f-m f-s', 'start') + T(34, 146, 'int stock;', 'f-m f-s', 'start');
+    b += A(254, 96, 332, 96, 'f-ln-acc') + T(293, 84, 'JPA / ORM', 'f-s f-b');
+    b += R(336, 26, 284, 138, 'f-box', 10) + T(478, 48, 'Tabla: productos', 'f-m f-b') + L(336, 58, 620, 58);
+    b += T(478, 82, 'id  |  nombre  | precio | stock', 'f-m f-s f-b');
+    b += L(348, 92, 608, 92);
+    b += T(478, 114, '1   | Alfajor  |  1200  |  30', 'f-m f-s');
+    b += T(478, 138, '2   | Yerba    |  4500  |   3', 'f-m f-s');
+    return fig(640, 184, b, 'Mapeo objeto-relacional (JPA): cada clase es una tabla y cada objeto es una fila');
+  };
+
+  F[110] = function () {
+    var b = R(18, 28, 250, 126, 'f-blue', 10) + T(143, 52, 'ProductoRepository', 'f-m f-b') + L(18, 62, 268, 62);
+    b += T(30, 86, 'findAll()', 'f-m f-s', 'start') + T(30, 108, 'findById(id)', 'f-m f-s', 'start') + T(30, 130, 'findByStockLessThan(5)', 'f-m f-s', 'start');
+    b += A(272, 92, 344, 92, 'f-ln-acc') + T(308, 80, 'Spring Data', 'f-s f-b');
+    b += R(348, 28, 274, 126, 'f-ok', 10) + T(485, 52, 'SQL generado solo', 'f-b f-tok') + L(348, 62, 622, 62);
+    b += T(362, 88, 'SELECT * FROM productos', 'f-m f-s', 'start');
+    b += T(362, 110, 'WHERE stock < 5;', 'f-m f-s', 'start');
+    b += T(485, 140, 'Sin escribir JDBC manual', 'f-s');
+    return fig(640, 174, b, 'Spring Data JPA traduce nombres de métodos de tu interfaz directamente a consultas SQL');
+  };
+
+  F[111] = function () {
+    var b = R(20, 24, 270, 132, 'f-bad', 10) + T(155, 48, 'Acoplado (con new adentro)', 'f-b f-tbad');
+    b += T(36, 80, 'class PedidoService {', 'f-m f-s', 'start');
+    b += T(36, 102, '  Repo r = new MysqlRepo();', 'f-m f-s', 'start');
+    b += T(36, 124, '}', 'f-m f-s', 'start');
+    b += T(155, 144, 'Imposible cambiar por un doble', 'f-s');
+    b += A(296, 90, 344, 90, 'f-ln-ok');
+    b += R(350, 24, 270, 132, 'f-ok', 10) + T(485, 48, 'Inyección por constructor', 'f-b f-tok');
+    b += T(366, 80, 'private final Repo repo;', 'f-m f-s', 'start');
+    b += T(366, 102, 'PedidoService(Repo repo) {', 'f-m f-s', 'start');
+    b += T(366, 124, '  this.repo = repo; }', 'f-m f-s', 'start');
+    b += T(485, 144, 'Spring entrega real o mock en test', 'f-s');
+    return fig(640, 176, b, 'Inyección de dependencias: recibir el contrato por constructor en vez de fabricarlo adentro');
+  };
+
+  F[112] = function () {
+    var b = B(16, 48, 134, 70, 'JSON externo\nRequest DTO\n(record)', 'f-blue', 'f-s f-b');
+    b += A(152, 83, 194, 83, 'f-ln-blue');
+    b += B(196, 42, 152, 82, '@RestController\nValida y delega\nal Service', 'f-acc', 'f-s f-b');
+    b += A(350, 83, 392, 83, 'f-ln-acc');
+    b += B(394, 48, 114, 70, '@Entity\nInterna\n(DB)', 'f-box', 'f-s f-b');
+    b += B(526, 48, 98, 70, 'Response\nDTO\n(seguro)', 'f-ok', 'f-s f-b');
+    b += P('M451,118 L451,148 L575,148 L575,120', 'f-ln-ok', true);
+    b += T(320, 168, 'Los DTOs separan lo que entra/sale por HTTP de las tablas internas de la base', 'f-s');
+    return fig(640, 182, b, 'Controller + DTO: la entidad de base de datos nunca se expone cruda al exterior');
+  };
+
+  F[113] = function () {
+    var b = B(20, 26, 175, 116, 'Cliente de pruebas\ncurl · Postman\nApiLab', 'f-blue', 'f-s f-b');
+    b += A(198, 62, 268, 62, 'f-ln-blue') + T(233, 52, 'Request', 'f-s');
+    b += R(272, 26, 348, 116, 'f-box', 10) + T(446, 50, 'Verificá siempre 3 casos', 'f-b');
+    b += T(288, 78, '1. Camino feliz -> 200 OK / 201 Created', 'f-m f-s f-tok', 'start');
+    b += T(288, 102, '2. Dato inválido -> 400 Bad Request', 'f-m f-s', 'start');
+    b += T(288, 126, '3. ID inexistente -> 404 Not Found', 'f-m f-s f-tbad', 'start');
+    return fig(640, 166, b, 'Probar una API no es solo ver el 200 OK: también hay que comprobar 400 y 404');
+  };
+
+  F[114] = function () {
+    var b = B(24, 42, 174, 82, '1. Arrange\nPreparar datos\ny escenario', 'f-blue', 'f-s f-b');
+    b += A(200, 83, 232, 83, 'f-ln-blue');
+    b += B(234, 42, 174, 82, '2. Act\nEjecutar el método\na probar', 'f-acc', 'f-s f-b');
+    b += A(410, 83, 442, 83, 'f-ln-acc');
+    b += B(444, 42, 174, 82, '3. Assert\nComprobar resultado\nesperado', 'f-ok', 'f-s f-b');
+    b += T(320, 152, 'Un test unitario repite estas 3 etapas en milisegundos, probando también casos borde', 'f-s');
+    return fig(640, 172, b, 'Patrón AAA en JUnit: Arrange, Act y Assert');
+  };
+
+  F[115] = function () {
+    var b = R(20, 28, 170, 112, 'f-blue', 10) + T(105, 56, 'Test JUnit', 'f-b') + T(105, 86, 'when(repo.findById)\n.thenReturn(...)', 'f-m f-s');
+    b += A(192, 84, 240, 84, 'f-ln-blue');
+    b += R(244, 28, 160, 112, 'f-acc', 10) + T(324, 56, 'Service real', 'f-b') + T(324, 86, 'Ejecuta tus\nreglas reales', 'f-s');
+    b += A(406, 84, 454, 84, 'f-ln-acc');
+    b += R(458, 28, 162, 112, 'f-ok', 10) + T(539, 56, '@Mock Repo', 'f-m f-b') + T(539, 86, 'Doble de prueba\nsin base de datos', 'f-s');
+    b += T(320, 164, 'Mockito aísla el Service; MockMvc simula pedidos HTTP completos contra el Controller', 'f-s');
+    return fig(640, 180, b, 'Mockito reemplaza dependencias externas por dobles controlados para tests rápidos');
+  };
+
+  F[116] = function () {
+    var b = R(20, 22, 280, 134, 'f-blue', 10) + T(160, 44, 'Consulta SQL', 'f-b') + L(20, 54, 300, 54);
+    b += T(34, 78, 'SELECT nombre, precio', 'f-m f-s', 'start');
+    b += T(34, 98, 'FROM productos', 'f-m f-s', 'start');
+    b += T(34, 118, 'WHERE stock > 0', 'f-m f-s', 'start');
+    b += T(34, 138, 'ORDER BY precio ASC;', 'f-m f-s', 'start');
+    b += A(304, 88, 354, 88, 'f-ln-ok');
+    b += R(358, 22, 262, 134, 'f-ok', 10) + T(489, 44, 'Resultado MySQL', 'f-b f-tok') + L(358, 54, 620, 54);
+    b += T(489, 78, 'nombre    | precio', 'f-m f-s f-b');
+    b += L(372, 88, 606, 88);
+    b += T(489, 110, 'Alfajor   | 1200', 'f-m f-s');
+    b += T(489, 132, 'Yerba     | 4500', 'f-m f-s');
+    return fig(640, 174, b, 'SQL declarativo: le decís a MySQL qué filas y columnas querés, filtradas y ordenadas');
+  };
+
+  F[117] = function () {
+    var b = B(18, 48, 154, 68, 'Service lanza\nRecursoNoEncontrado', 'f-bad', 'f-s f-b');
+    b += A(174, 82, 224, 82, 'f-ln-bad');
+    b += B(226, 38, 198, 88, '@RestControllerAdvice\nGlobalExceptionHandler\n+ log.warn(...)', 'f-acc', 'f-s f-b');
+    b += A(426, 82, 474, 82, 'f-ln-ok');
+    b += B(476, 44, 146, 76, 'HTTP 404\nJSON limpio\nsin stacktrace', 'f-ok', 'f-s f-b');
+    b += T(320, 152, 'Un solo manejador global traduce excepciones a JSON claro y registra logs sin exponer claves', 'f-s');
+    return fig(640, 168, b, 'Manejo global de excepciones y logging estructurado en Spring Boot');
+  };
+
+  F[118] = function () {
+    var b = R(18, 18, 604, 154, 'f-none', 12) + T(320, 40, 'Red interna Docker Compose', 'f-b');
+    b += R(44, 58, 224, 92, 'f-acc', 10) + T(156, 84, 'Contenedor: app', 'f-m f-b') + T(156, 108, 'kiosco-api (JDK 21)\nPuerto 8080:8080', 'f-s');
+    b += A(270, 104, 368, 104, 'f-ln-ok') + T(319, 92, 'DB_HOST=db', 'f-m f-s f-b');
+    b += R(370, 58, 226, 92, 'f-blue', 10) + T(483, 84, 'Contenedor: db', 'f-m f-b') + T(483, 108, 'MySQL 8 · Puerto 3306\nVolumen persistente', 'f-s');
+    return fig(640, 188, b, 'Docker Compose: la app se conecta a la base por nombre de servicio (db), no localhost');
+  };
+
+  F[119] = function () {
+    var b = B(20, 44, 136, 72, 'Anotaciones\nSpring + OpenAPI\nen Controllers', 'f-blue', 'f-s f-b');
+    b += A(158, 80, 198, 80, 'f-ln-blue');
+    b += B(200, 44, 146, 72, 'Swagger UI\n/swagger-ui.html\ninteractivo', 'f-acc', 'f-s f-b');
+    b += A(348, 80, 388, 80, 'f-ln-ok');
+    b += B(390, 32, 230, 96, 'Entrega profesional\nREADME · Tests verdes\nDocker Compose · Git limpio', 'f-ok', 'f-s f-b');
+    b += T(320, 154, 'Documentación viva + repositorio reproducible: cualquiera levanta tu API con un comando', 'f-s');
+    return fig(640, 170, b, 'Swagger documenta tus endpoints automáticamente y completa el paquete de entrega');
+  };
+
+  F[120] = function () {
+    var b = R(24, 34, 220, 118, 'f-blue', 10) + T(134, 58, 'clientes (lado 1)', 'f-m f-b') + L(24, 68, 244, 68);
+    b += T(38, 92, 'id = 1 | Ana', 'f-m f-s', 'start') + T(38, 116, 'id = 2 | Luis', 'f-m f-s', 'start');
+    b += R(386, 34, 230, 118, 'f-acc', 10) + T(501, 58, 'pedidos (lado muchos)', 'f-m f-b') + L(386, 68, 616, 68);
+    b += T(400, 92, 'id=10 | cliente_id=1', 'f-m f-s', 'start') + T(400, 116, 'id=11 | cliente_id=1', 'f-m f-s', 'start');
+    b += A(384, 96, 246, 96, 'f-ln-acc') + T(315, 84, 'FK cliente_id', 'f-m f-s f-b') + T(315, 116, '@ManyToOne', 'f-m f-s');
+    return fig(640, 174, b, 'Relación 1 a N: la clave foránea vive siempre en la tabla del lado "muchos"');
+  };
+
+  F[121] = function () {
+    var b = R(18, 34, 176, 112, 'f-blue', 10) + T(106, 58, 'ProductoRequest', 'f-m f-b') + L(18, 68, 194, 68);
+    b += T(30, 90, '@NotBlank nombre', 'f-m f-s', 'start') + T(30, 112, '@Positive precio', 'f-m f-s', 'start') + T(30, 134, '@Min(0) stock', 'f-m f-s', 'start');
+    b += A(196, 90, 248, 90, 'f-ln-acc') + T(222, 78, '@Valid', 'f-m f-s f-b');
+    b += D(312, 90, 124, 64, '¿válido?');
+    b += A(374, 90, 446, 56, 'f-ln-ok') + B(448, 36, 172, 42, 'Sí -> entra al Service', 'f-ok', 'f-s f-b');
+    b += A(374, 90, 446, 124, 'f-ln-bad') + B(448, 102, 172, 42, 'No -> 400 + errores', 'f-bad', 'f-s f-b');
+    return fig(640, 168, b, 'Validación en la frontera con @Valid: frena datos inválidos antes de tocar la base');
+  };
+
+  F[122] = function () {
+    var b = R(18, 26, 192, 126, 'f-blue', 10) + T(114, 50, 'Strategy', 'f-b') + T(114, 80, 'Intercambiá algoritmos\n(ej. DescuentoVIP,\nDescuentoCupon)', 'f-s');
+    b += R(224, 26, 192, 126, 'f-acc', 10) + T(320, 50, 'Factory', 'f-b') + T(320, 80, 'Centralizá la creación\nde objetos sin llenar\nde new el código', 'f-s');
+    b += R(430, 26, 192, 126, 'f-ok', 10) + T(526, 50, 'Builder', 'f-b') + T(526, 80, 'Construí objetos con\nmuchos campos paso\na paso y legibles', 'f-s');
+    b += T(320, 174, 'Patrones de diseño: soluciones probadas a problemas repetidos, solo cuando hacen falta', 'f-s');
+    return fig(640, 190, b, 'Tres patrones clásicos muy usados en Java: Strategy, Factory y Builder');
+  };
+
+  F[123] = function () {
+    var b = B(20, 44, 134, 72, '1. Código limpio\nDRY · KISS\nSOLID', 'f-blue', 'f-s f-b');
+    b += A(156, 80, 188, 80, 'f-ln-blue');
+    b += B(190, 44, 134, 72, '2. Streams\nOptional\nRecords', 'f-acc', 'f-s f-b');
+    b += A(326, 80, 358, 80, 'f-ln-acc');
+    b += B(360, 44, 134, 72, '3. Capas\nSpring · JPA\nDTOs', 'f-box', 'f-s f-b');
+    b += A(496, 80, 520, 80, 'f-ln-ok');
+    b += B(522, 44, 100, 72, 'Parcial 1\nIntegrado', 'f-ok', 'f-s f-b');
+    b += T(320, 146, 'Evaluación integradora de la primera mitad de Fase 2: diseño limpio + API REST', 'f-s');
+    return fig(640, 164, b, 'Mapa de temas del Primer Parcial Simulado');
+  };
+
+  F[124] = function () {
+    var b = B(20, 44, 134, 72, '1. JUnit\nMockito\nMockMvc', 'f-blue', 'f-s f-b');
+    b += A(156, 80, 188, 80, 'f-ln-blue');
+    b += B(190, 44, 134, 72, '2. MySQL\nRelaciones\n@Valid', 'f-acc', 'f-s f-b');
+    b += A(326, 80, 358, 80, 'f-ln-acc');
+    b += B(360, 44, 134, 72, '3. Logs\nDocker\nSwagger', 'f-box', 'f-s f-b');
+    b += A(496, 80, 520, 80, 'f-ln-ok');
+    b += B(522, 44, 100, 72, 'Parcial 2\nCalidad', 'f-ok', 'f-s f-b');
+    b += T(320, 146, 'Evaluación de calidad, persistencia real y entrega lista para producción', 'f-s');
+    return fig(640, 164, b, 'Mapa de temas del Segundo Parcial Simulado');
+  };
+
+  F[125] = function () {
+    var b = B(24, 38, 174, 84, '1. Qué hace\nArquitectura y flujo\nController -> DB', 'f-blue', 'f-s f-b');
+    b += A(200, 80, 232, 80, 'f-ln-blue');
+    b += B(234, 38, 174, 84, '2. Por qué así\nDecisiones: DTOs,\n@Valid, tests', 'f-acc', 'f-s f-b');
+    b += A(410, 80, 442, 80, 'f-ln-acc');
+    b += B(444, 38, 174, 84, '3. Demo en vivo\nSwagger + test verde\n+ cambiar un caso', 'f-ok', 'f-s f-b');
+    b += T(320, 152, 'En el coloquio defendés tu criterio técnico con claridad, no memorizando código', 'f-s');
+    return fig(640, 170, b, 'Estructura de una defensa oral sólida: arquitectura, criterio y demostración');
   };
 
   return F;

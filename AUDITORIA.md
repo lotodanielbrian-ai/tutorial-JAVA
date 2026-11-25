@@ -442,6 +442,21 @@ El trabajo de la segunda auditoría estuvo 17 días sin commitear ni publicar, y
 **Queda pendiente:**
 - Unas 27 lecciones heredadas tienen palabras sin tilde en tablas y analogías ("metodo", "MAYUSCULAS"). No se corrigieron en bloque, porque las mismas palabras aparecen como nombres de variables dentro del código.
 
+## Edición por Tomos, Guía 0 Conocimiento, JavaBot y QA Integral: 25 de noviembre de 2026
+
+### Qué se sumó y corrigió
+
+| Área | Resultado |
+|---|---|
+| Guía 0 Conocimiento (`guia-cero.js`) | Cubre las 60 lecciones (35 de Fase 1 + 25 de Fase 2) con Qué estás haciendo, Por qué existe, Para qué sirve, Ejemplo del día a día y Buena práctica profesional |
+| Figuras SVG (`manual-figuras.js`) | 66 figuras SVG (6 de orientación + 60/60 lecciones de ambas fases) con IDs únicos por marcador (`f-arrow-N`), adaptadas a modo oscuro (app) y papel (manual/PDF) |
+| Manual en 6 Tomos + Completo (`manual.js`, `manual-contenido.js`) | 7 PDFs A4 (`java-desde-cero.pdf` + Tomos I a VI), con vista imprimible hoja A4 en pantalla, retos de código en Tomos y Apéndices C/D específicos de Fase 2 en Tomos V y VI |
+| Generador PDF (`tools/manual-pdf.js`) | `generateTaggedPDF: true` + `generateDocumentOutline: true` restaurados; falla automáticamente si faltan marcadores (`/Outlines`), si hay fuentes Type 3, entradas del índice sin página o desbordes |
+| Asistente offline `JavaBot` (`bot.js`) | Integrado en la app y en el manual (con detección del capítulo visible), fichas de errores de compilación/runtime, `JSON`, `enum`, `recursividad`, `StringBuilder`, `Random`, `toString`, sobrecarga y revisión de código actual con soporte para `unsupported` y ejemplos editables del manual |
+| Intérprete `JavaRun` (`javarun.js`) | Soporta `Arrays.sort(a, from, to)` sin crashes internos, `switch` con flechas / métodos avanzados devuelven `unsupported` limpio en lugar de falsos errores de compilación |
+| API Spring Boot (`ejemplos/kiosco-api`) | Entidad `Producto` migrada de `@Data` a `@Getter`/`@Setter`, `DataIntegrityViolationException` mapeada a `409 Conflict`, pruebas JUnit/MockMvc de `PUT` duplicado y `docker-compose.yml` con variables `${DB_PASSWORD:-root}` |
+| Correcciones técnicas | Eliminadas afirmaciones imprecisas en Lección 18 (`new` y variables locales sin inicializar) y Lección 118 (`Dockerfile` define una imagen, no un contenedor), protegidas con guardia en `tests/run.js` |
+
 ## Cómo verificar
 
 ```bash

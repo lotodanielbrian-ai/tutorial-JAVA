@@ -155,6 +155,8 @@ svg.fig{width:100%;height:auto;display:block}
 .mn-appendix{margin:56px 0}
 .mn-ans-ch h3,.mn-sol-ch h3{font-size:16px;color:var(--java);margin:24px 0 8px}
 .mn-ans{display:flex;gap:12px;padding:6px 0;font-size:13.5px;color:var(--text2);line-height:1.6;border-bottom:1px solid var(--border)}
+.mn-ans>div{min-width:0;flex:1}
+.mn-ans .cblock{max-width:100%}
 .mn-ans .mn-out{margin-top:4px}
 .mn-err td:first-child{white-space:normal;font-size:12px}
 .mn-ref-tbl th{width:110px;text-transform:none;letter-spacing:0;font-size:12px;color:var(--java)}
@@ -172,3 +174,80 @@ svg.fig{width:100%;height:auto;display:block}
 .mn-chapter,.mn-part,.mn-c0,.mn-appendix,.mn-toc,.mn-sol-ch,.mn-item,#apendices{scroll-margin-top:72px}
 .mn-print-only{display:none}
 .mn-before .mn-sol{margin-top:8px}
+
+/* Selector de tomo en barra superior */
+.mn-tomo-sel select{max-width:210px;background:var(--bg3);color:var(--java);border:1px solid var(--java-b);border-radius:var(--r);padding:7px 10px;font:inherit;font-size:13px;font-weight:600}
+.mn-tomo-sel select:focus-visible{outline:2px solid var(--java);outline-offset:2px}
+@media(max-width:640px){.mn-tomo-sel{display:none}.mn-bar{gap:6px;padding:8px 10px}}
+
+/* Estante de 6 Tomos */
+.mn-tomos{margin:0 0 42px;padding:20px 22px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rlg);box-sizing:border-box;max-width:100%}
+.mn-tomos-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.mn-tomos-head h2{margin:0;font-size:20px;color:var(--text)}
+.mn-tomos-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mn-tomo-card{display:flex;flex-direction:column;gap:8px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);min-width:0;box-sizing:border-box}
+.mn-tomo-card.active{border-color:var(--java);background:var(--java-bg)}
+.mn-tomo-num{font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--java)}
+.mn-tomo-card h3{margin:0;font-size:15.5px;color:var(--text);line-height:1.3}
+.mn-tomo-card p{margin:0;font-size:12.5px;line-height:1.55;color:var(--text2);flex:1}
+.mn-tomo-meta{font-size:11.5px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.mn-tomo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.mn-tomo-actions .mn-btn{padding:6px 10px;font-size:12px}
+@media(max-width:640px){.mn-tomos{padding:14px 12px}.mn-tomos-grid{grid-template-columns:1fr}}
+
+/* Cabecera con botón Imprimir tema A4 y tarjetas GuiaCero */
+.mn-ch-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.mn-print-ch{padding:5px 10px;font-size:12px}
+.mn-guia{box-sizing:border-box;max-width:100%;margin:18px 0;padding:14px 16px;background:var(--bg2);border:1px solid var(--border2);border-left:4px solid var(--blue);border-radius:var(--rlg);overflow-wrap:anywhere}
+.mn-guia .mn-h{margin-top:0}
+.mn-guia-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.mn-guia-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;min-width:0}
+.mn-guia-box strong{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--java);margin-bottom:4px}
+.mn-guia-box p{margin:0;font-size:13px;line-height:1.55;color:var(--text)}
+.mn-guia-day{background:var(--java-bg);border:1px solid var(--java-b);border-radius:var(--r);padding:9px 12px;font-size:13px;line-height:1.6;color:var(--text)}
+.mn-tip{box-sizing:border-box;max-width:100%;margin:14px 0;padding:10px 14px;background:var(--bg2);border:1px solid var(--border2);border-left:4px solid var(--green);border-radius:var(--r);font-size:13.5px;line-height:1.6;color:var(--text2);overflow-wrap:anywhere}
+.mn-tip strong{color:var(--greentx)}
+.mn-guia code,.mn-tip code{background:var(--bg4);padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.9em;color:var(--teal)}
+@media(max-width:640px){.mn-guia-grid{grid-template-columns:1fr}.mn-guia{padding:12px}}
+
+/* Modo vista Hoja Imprimible A4 en pantalla */
+body.mn-a4-view{background:#1c2029}
+body.mn-a4-view .mn-book{max-width:228mm}
+body.mn-a4-view .mn-cover,
+body.mn-a4-view .mn-front,
+body.mn-a4-view .mn-toc,
+body.mn-a4-view .mn-part,
+body.mn-a4-view .mn-chapter,
+body.mn-a4-view .mn-appendix{
+  --bg:#ffffff; --bg2:#f7f7f8; --bg3:#eef0f3; --bg4:#e5e7eb; --code-bg:#f6f7f9;
+  --text:#1f2937; --text2:#374151; --text3:#6b7280; --border:#e5e7eb; --border2:#d1d5db;
+  --java:#b45309; --java2:#92400e; --java-bg:#fef3c7; --java-b:#f59e0b;
+  --green:#059669; --greentx:#047857; --red:#dc2626; --blue:#1d4ed8; --teal:#0f766e;
+  --f-fill:#f6f7f9; --f-line:#4b5563; --f-text:#1f2937; --f-muted:#4b5563;
+  --f-acc:#d97706; --f-acc-bg:#fef3c7; --f-ok:#059669; --f-ok-bg:#d1fae5; --f-bad:#dc2626; --f-bad-bg:#fee2e2; --f-blue:#2563eb; --f-blue-bg:#dbeafe;
+  box-sizing:border-box;background:#fff;color:#1f2937;width:100%;max-width:210mm;min-height:260mm;
+  padding:18mm 16mm;margin:22px auto;border:1px solid #d1d5db;border-radius:3px;box-shadow:0 12px 32px rgba(0,0,0,.45)
+}
+body.mn-a4-view .mn-cover{background:linear-gradient(170deg,#fff7e6 0%,#ffffff 55%,#fff7e6 100%)}
+body.mn-a4-view .mn-cover h1,
+body.mn-a4-view .mn-ch-title,
+body.mn-a4-view .mn-front-title,
+body.mn-a4-view .mn-part-title,
+body.mn-a4-view .mn-c0-title,
+body.mn-a4-view .mn-book .ts h3{color:#111827}
+body.mn-a4-view .cblock-body,body.mn-a4-view .mn-code{color:#1f2937}
+body.mn-a4-view .mn-out{background:#f0fdf4;color:#065f46}
+body.mn-a4-view .ck{color:#b45309} body.mn-a4-view .cs{color:#15803d} body.mn-a4-view .cn{color:#1d4ed8} body.mn-a4-view .cc{color:#6b7280} body.mn-a4-view .cm{color:#92400e} body.mn-a4-view .co{color:#0e7490}
+@media(max-width:640px){
+  #libro{padding-bottom:76px}
+  body.mn-a4-view .mn-book{padding:76px 10px 76px}
+  body.mn-a4-view .mn-cover,body.mn-a4-view .mn-front,body.mn-a4-view .mn-toc,body.mn-a4-view .mn-part,body.mn-a4-view .mn-chapter,body.mn-a4-view .mn-appendix{
+    min-height:0;padding:16px 12px;margin:12px auto
+  }
+}
+
+/* Impresión de un solo capítulo en A4 */
+@media print{
+  body.mn-printing-one #libro > *:not(.mn-print-target){display:none!important}
+  body.mn-printing-one .mn-chapter.mn-print-target{display:block!important;break-before:auto!important}
+}

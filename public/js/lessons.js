@@ -2,16 +2,22 @@
 // ── Syntax highlighter ─────────────────────────────────────────────────
 function jHL(raw) {
   let s = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  s = s.replace(/(\/\/[^\n]*)/g,'«cc»$1«/»');
-  s = s.replace(/(\/\*[\s\S]*?\*\/)/g,'«cc»$1«/»');
-  s = s.replace(/("[^"]*")/g,'«cs»$1«/»');
+  const tokens = [];
+  const mask = (cls, txt) => {
+    const idx = tokens.length;
+    tokens.push(`<span class="${cls}">${txt}</span>`);
+    return `\x00JHL${idx}\x00`;
+  };
+  s = s.replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|"[^"\n]*"/g, m => {
+    return mask(m[0] === '"' ? 'cs' : 'cc', m);
+  });
   s = s.replace(/\b(public|class|static|void|int|double|boolean|String|if|else|for|while|return|new|try|catch|finally|switch|case|break|default)\b/g,'«ck»$1«/»');
   s = s.replace(/\b(System|out|println|print|Math|Scanner|ArrayList)\b/g,'«co»$1«/»');
   s = s.replace(/\b([0-9]+(\.[0-9]+)?)\b/g,'«cn»$1«/»');
   s = s.replace(/\b([a-z][a-zA-Z0-9_]*)\(/g,'«cm»$1«/»(');
-  
   s = s.replace(/«([a-z]{2})»/g, '<span class="$1">');
   s = s.replace(/«\/»/g, '</span>');
+  s = s.replace(/\x00JHL(\d+)\x00/g, (_, i) => tokens[Number(i)]);
   return s;
 }
 function cb(label, code) {
@@ -478,7 +484,7 @@ String s = String.valueOf(42);            // "42" como String`)}
 <table class="sym-tbl">
 <thead><tr><th>Método</th><th>Qué hace</th><th>Ejemplo</th></tr></thead>
 <tbody>
-<tr><td>Math.round(x)</td><td>Redondea</td><td>Math.round(3.7) → 4</td></tr>
+<tr><td>Math.round(x)</td><td>Redondea (devuelve <code>long</code>)</td><td>Math.round(3.7) → 4 (para <code>int</code>: <code>(int) Math.round(3.7)</code>)</td></tr>
 <tr><td>Math.ceil(x)</td><td>Redondea arriba</td><td>Math.ceil(3.1) → 4.0</td></tr>
 <tr><td>Math.floor(x)</td><td>Redondea abajo</td><td>Math.floor(3.9) → 3.0</td></tr>
 <tr><td>Math.abs(x)</td><td>Valor absoluto</td><td>Math.abs(-5) → 5</td></tr>
@@ -1557,13 +1563,13 @@ public class Main {
 <div class="analogy-card"><h4>El molde de galletitas</h4><p>La clase es el molde con forma de estrella. Cada objeto es una galletita hecha con ese molde. Todas tienen la misma forma, pero distinto color y chispas.</p></div>
 <h3>🧪 Mini-Quiz</h3>
 <div class="analogy-card"><p><strong>¿Clase vs objeto: diferencia?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Clase=MOLDE. Objeto=INSTANCIA concreta con valores reales.</p></div>
-<div class="analogy-card"><p><strong>¿Para qué sirve new?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Reserva memoria y llama al constructor. Sin new, la variable es null.</p></div>
+<div class="analogy-card"><p><strong>¿Para qué sirve new?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Reserva memoria y llama al constructor para crear el objeto. Sin inicializar una variable local, Java ni siquiera compila; si le asignás <code>null</code>, falla al ejecutar con <code>NullPointerException</code>.</p></div>
 <div class="analogy-card"><p><strong>¿Persona p; sin new que pasa?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Si es una variable dentro de un método, no compila: Java exige darle un valor antes de usarla. Si le asignás null (Persona p = null;), compila, pero p.nombre da NullPointerException al ejecutar.</p></div>
 <div class="analogy-card"><p><strong>¿Cuántos objetos por clase?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Infinitos. Como un plano puede generar miles de casas.</p></div>
 <div class="analogy-card"><p><strong>¿Cuándo crear una clase?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Para agrupar datos relacionados (nombre+edad de persona, título+autor de libro).</p></div>
 <div class="analogy-card"><h4>Glosario de símbolos POO - que significa cada palabra</h4><table class="sym-tbl"><thead><tr><th>Símbolo/Palabra</th><th>Nombre</th><th>Que hace</th><th>Cuando usarlo</th></tr></thead><tbody><tr><td><code>class</code></td><td>Clase</td><td>Define un nuevo TIPO de dato</td><td>Siempre que creas un objeto nuevo</td></tr><tr><td><code>new</code></td><td>Instanciador</td><td>Crea un OBJETO en memoria</td><td>Siempre antes del constructor</td></tr><tr><td><code>private</code></td><td>Privado</td><td>Oculta el atributo del exterior</td><td>SIEMPRE en atributos de instancia</td></tr><tr><td><code>public</code></td><td>Publico</td><td>Permite acceso desde cualquier clase</td><td>En getters, setters y métodos principales</td></tr><tr><td><code>this</code></td><td>Auto-referencia</td><td>"Yo mismo" - el objeto actual</td><td>Para diferenciar atributo de parámetro</td></tr><tr><td><code>extends</code></td><td>Herencia</td><td>Hereda de una clase padre</td><td>Relacion "ES UN" (Perro ES Animal)</td></tr><tr><td><code>implements</code></td><td>Implementa</td><td>Cumple un contrato (interfaz)</td><td>Para definir capacidades (Volador, Nadador)</td></tr><tr><td><code>@Override</code></td><td>Sobrescritura</td><td>Redefine un método del padre</td><td>Al cambiar comportamiento heredado</td></tr></tbody></table></div>
 ${ann('warn','⚠️','Si la variable es null e intentás llamar un método, obtenés <code>NullPointerException</code> — el error más común en Java.')}
-</div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>p.nombre sin new</code></td><td>NullPointerException</td><td>p es null. Siempre new antes.</td></tr>
+</div><div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>Persona p = null; p.nombre</code></td><td>NullPointerException</td><td><code>p</code> apunta a <code>null</code> (sin objeto creado con <code>new</code>). Si solo escribís <code>Persona p;</code> en un método y la usás, ni siquiera compila.</td></tr>
 <tr><td><code>class persona minuscula</code></td><td>Convencion</td><td>Clases empiezan con MAYUSCULA.</td></tr>
 <tr><td><code>Persona() sin new</code></td><td>Error</td><td>Falta new.</td></tr>
 </tbody></table></div>
@@ -2366,11 +2372,11 @@ ${ann('ok','✅','El comando <code>javac -d bin</code> compila y organiza los .c
   quiz: {
     passing: 3,
     questions: [
-      { question: '¿Dónde se coloca el código fuente en un proyecto Java?', options: ['En la raíz del proyecto', 'En la carpeta src/', 'En la carpeta bin/', 'En cualquier lado'], correct: 1 },
-      { question: '¿Para qué sirven los paquetes (packages)?', options: ['Para comprimir archivos', 'Para organizar y agrupar clases relacionadas', 'Para instalar librerías', 'Para crear ejecutables'], correct: 1 },
-      { question: '¿Qué visibilidad tiene un miembro sin modificador (default)?', options: ['Solo la misma clase', 'Mismo paquete', 'Todas las clases', 'Solo subclases'], correct: 1 },
-      { question: '¿Cómo se llama la herramienta de construcción más usada en Java?', options: ['npm', 'pip', 'Maven / Gradle', 'make'], correct: 2 },
-      { question: '¿Qué extensión tiene un archivo compilado de Java?', options: ['.java', '.class', '.jar', '.exe'], correct: 1 }
+      { question: '¿Dónde se coloca el código fuente en un proyecto Java?', options: ['En la raíz principal del repositorio', 'En la carpeta src/', 'En la carpeta bin/ generada', 'En cualquier carpeta temporal'], correct: 1 },
+      { question: '¿Para qué sirven los paquetes (packages)?', options: ['Para comprimir todo el proyecto en un zip', 'Para organizar y agrupar clases relacionadas', 'Para descargar librerías externas desde internet', 'Para compilar archivos ejecutables sin errores'], correct: 1 },
+      { question: '¿Qué visibilidad tiene un miembro sin modificador (default)?', options: ['Solo dentro de la misma clase', 'Mismo paquete', 'Visible desde todas las clases', 'Solo en subclases directas'], correct: 1 },
+      { question: '¿Cómo se llama la herramienta de construcción más usada en Java?', options: ['npm (Node Package Manager)', 'pip (Python Installer)', 'Maven / Gradle', 'make (Compilador C)'], correct: 2 },
+      { question: '¿Qué extensión tiene un archivo compilado de Java?', options: ['.java (código)', '.class', '.jar (empaque)', '.exe (nativo)'], correct: 1 }
     ]
   }
 },
@@ -2392,6 +2398,7 @@ ${ann('ok','✅','El comando <code>javac -d bin</code> compila y organiza los .c
 <div class="analogy-card"><p><strong>¿Qué hace split(",")?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Divide String por coma. "Ana,25" -> ["Ana","25"]. Clave para CSV.</p></div>
 <div class="analogy-card"><p><strong>¿Archivo no existe?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ FileNotFoundException. Siempre try-catch.</p></div>
 <div class="analogy-card"><p><strong>¿FileWriter sobreescribe?</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ Por defecto SI. new FileWriter("f.txt",true) para append.</p></div>
+${ann('tip','💡','<strong>Puente rápido a la Lección 27:</strong> Vas a ver <code>try { ... } catch (IOException e) { ... }</code>. Pensalo como "intentá abrir el archivo; si falla porque falta o no hay permiso, atajalo acá en vez de explotar". En la Lección 27 vas a profundizar en <code>try-catch</code>.')}
 ${ann('warn','⚠️','Siempre manejá las operaciones de archivos con <strong>try-catch</strong>. Los archivos pueden no existir, no tener permisos, o el disco puede estar lleno.')}`,
   tutorial: () => `
 <div class="ts">
@@ -2718,7 +2725,7 @@ public class Main {
 🥅 <strong>try-catch</strong>: manejo de errores de entrada<br>
 📦 <strong>Encapsulamiento</strong>: atributos privados con getters</p>
 <p>Vas a construir una <strong>aplicación de consola</strong> con menú interactivo. La temática es un <strong>gestor de tareas</strong>:</p>
-<p>📋 Un menú para agregar tareas, listarlas y contar las completadas, guardándolas en un <code>ArrayList</code>. ¡Es un mini programa real! Cuando lo termines, podés inventar tu propia versión: una calculadora de áreas, una lista de compras o lo que quieras.</p>
+<p>📋 Un menú para agregar tareas, listarlas y contar las completadas, guardándolas en un <code>ArrayList</code>. El ejercicio automático evalúa este <strong>gestor de tareas</strong> (<code>Gestionable</code> y <code>GestorTareas</code>). Cuando lo apruebes, podés inventar tu propia versión libre como práctica extra.</p>
 </div>
 ${ann('java','📌','Este es el proyecto que podés mostrar en tu portfolio. Demuestra que entendés cómo se estructura una aplicación Java completa.')}`,
   tutorial: () => `
@@ -3069,15 +3076,14 @@ git commit -m "descripción"  # guardo con mensaje claro
 # Al terminar el día
 git log --oneline -5         # reviso los últimos 5 commits`)}
 </div>
-<div class="ts"><h3>Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>Escribiste "git comit" en vez de "commit"</code></td><td>git: comit is not a git command</td><td>Error de tipeo. Git es estricto con los nombres de comandos.</td></tr>
-<tr><td><code>git add sin haber hecho git init</code></td><td>fatal: not a git repository</td><td>Necesitas inicializar el repositorio primero con git init.</td></tr>
-<tr><td><code>git commit</code> sin <code>-m</code></td><td>Se abre un editor (a menudo vim)</td><td>Git pide el mensaje en un editor. Para salir de vim sin guardar: Esc y después :q! Más simple: git commit -m "descripción".</td></tr>
-<tr><td><code>git log muestra muchas lineas</code></td><td>Dificil de leer</td><td>Usa git log --oneline para ver una linea por commit.</td></tr>
-</tbody></table></div>
-<div class="ts"><h3>Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por que</th></tr></thead><tbody><tr><td><code>git push sin haber configurado remote</code></td><td>fatal: No configured push destination</td><td>Necesitas git remote add origin URL primero.</td></tr>
-<tr><td><code>Archivos .class en el commit</code></td><td>Repositorio con basura</td><td>Creaste .gitignore ANTES del primer commit. Agrega *.class y bin/.</td></tr>
-<tr><td><code>git checkout sin guardar cambios</code></td><td>Cambios no guardados se pierden</td><td>Hace commit de tus cambios actuales antes de hacer checkout.</td></tr>
-<tr><td><code>Mensaje de commit "fix" o "update"</code></td><td>Historial inutil</td><td>Escribi mensajes descriptivos: que cambiaste y por que.</td></tr>
+<div class="ts"><h3>🆘 Errores comunes</h3><table class="sym-tbl"><thead><tr><th>Escribiste</th><th>Error</th><th>Por qué</th></tr></thead><tbody><tr><td><code>git comit</code> en vez de <code>commit</code></td><td>git: 'comit' is not a git command</td><td>Error de tipeo. Git es estricto con los nombres de comandos.</td></tr>
+<tr><td><code>git add</code> sin haber hecho <code>git init</code></td><td>fatal: not a git repository</td><td>Necesitás inicializar el repositorio primero con <code>git init</code>.</td></tr>
+<tr><td><code>git commit</code> sin <code>-m</code></td><td>Se abre un editor (a menudo vim)</td><td>Git pide el mensaje en un editor. Para salir de vim sin guardar: Esc y después <code>:q!</code>. Más simple: <code>git commit -m "descripción"</code>.</td></tr>
+<tr><td><code>git log</code> muestra muchas líneas</td><td>Difícil de leer</td><td>Usá <code>git log --oneline</code> para ver una línea por commit.</td></tr>
+<tr><td><code>git push</code> sin configurar remote</td><td>fatal: No configured push destination</td><td>Necesitás configurar el remoto con <code>git remote add origin URL</code> primero.</td></tr>
+<tr><td>Archivos <code>.class</code> en el commit</td><td>Repositorio con binarios generados</td><td>Creá <code>.gitignore</code> ANTES del primer commit agregando <code>*.class</code> y <code>bin/</code>.</td></tr>
+<tr><td><code>git checkout</code> sin guardar cambios</td><td>Cambios locales sin commitear se pierden</td><td>Hacé commit o stash de tus cambios actuales antes de restaurar archivos.</td></tr>
+<tr><td>Mensaje de commit <code>"fix"</code> o <code>"update"</code></td><td>Historial poco útil</td><td>Escribí mensajes descriptivos explicando qué cambiaste y por qué.</td></tr>
 </tbody></table></div>
 `,
   exercise: {
@@ -3193,10 +3199,10 @@ ${ann('tip','💡','No necesitás memorizar todos. Empezá con Ctrl+Space (autoc
     passing: 4,
     desc: 'Responde las 4 preguntas. Necesitás todas correctas para completar la lección.',
     questions: [
-      { question: 'Para usar Git desde IntelliJ, Eclipse o VS Code, ¿qué hace falta además del IDE?', options:['Tener Git instalado en la PC','Una cuenta paga de GitHub','Usar IntelliJ y no otro IDE','Un plugin pago de Oracle'], correct:0 },
-      { question: 'En Eclipse, ¿cómo se hace un commit?', options:['Team → Commit','File → Save','Ctrl+S','Git → Push'], correct:0 },
-      { question: '¿Para qué sirve el depurador (debugger) de un IDE?', options:['Para subir el proyecto a GitHub','Para borrar solo los errores','Para ir paso a paso y ver las variables','Para pasar el código a JavaScript'], correct:2 },
-      { question: '¿Qué atajo formatea el código en Eclipse?', options:['Ctrl+Shift+F','Ctrl+S','Ctrl+Z','F5'], correct:0 }
+      { question: 'Para usar Git desde IntelliJ, Eclipse o VS Code, ¿qué hace falta además del IDE?', options:['Tener Git instalado en la PC','Una cuenta corporativa de GitHub','Usar IntelliJ en vez de otro IDE','Instalar un plugin pago de Oracle'], correct:0 },
+      { question: 'En Eclipse, ¿cómo se hace un commit?', options:['Team → Commit','File → Save All','Menu → Save File','Git → Force Push'], correct:0 },
+      { question: '¿Para qué sirve el depurador (debugger) de un IDE?', options:['Para subir el proyecto entero a GitHub','Para borrar automáticamente los errores','Para ir paso a paso y ver las variables','Para traducir el código Java a JavaScript'], correct:2 },
+      { question: '¿Qué atajo formatea el código en Eclipse?', options:['Ctrl+Shift+F','Ctrl+Alt+Save','Ctrl+Shift+Z','Shift+Alt+F5'], correct:0 }
     ]
   }
 },
@@ -3325,13 +3331,21 @@ git checkout abc123 -- GestorNotas.java`)}`
 </div>`,
   tutorial: () => `
 <div class="ts">
-<h3>Consejos</h3>
+<h3>Hoja de ruta paso a paso</h3>
+<p>Un proyecto real no se escribe de arriba hacia abajo de una sola vez: se construye en capas pequeñas, probando cada pieza antes de avanzar.</p>
+<ol>
+  <li><strong>Paso 1 · Modelo (<code>Libro</code>):</strong> definí los atributos <code>private</code> (<code>titulo</code>, <code>autor</code>, <code>anio</code>), el constructor, los getters y un <code>toString()</code> legible. Validá que el título no sea vacío y el año sea positivo.</li>
+  <li><strong>Paso 2 · Gestor (<code>Biblioteca</code>):</strong> guardá los libros en un <code>ArrayList&lt;Libro&gt;</code> privado y exponé métodos claros: <code>agregar</code>, <code>listar</code>, <code>buscarPorTitulo</code> y <code>eliminar</code>.</li>
+  <li><strong>Paso 3 · Interfaz de consola (<code>Main</code>):</strong> armá un bucle <code>while</code> con <code>switch</code> y <code>Scanner</code>. Leé los números convirtiendo con <code>Integer.parseInt(sc.nextLine())</code> dentro de <code>try / catch</code> para que el programa nunca se cierre si alguien escribe texto.</li>
+  <li><strong>Paso 4 · Historial limpio en Git:</strong> hacé un commit por cada hito completado (<code>git add</code> + <code>git commit -m "..."</code>) para dejar evidencia clara de tu avance.</li>
+</ol>
+</div>
+<div class="ts">
+<h3>Checklist de calidad antes de entregar</h3>
 <ul>
-  <li>Empezá por la clase <code>Libro</code> (la más simple).</li>
-  <li>Después creá <code>Biblioteca</code> con el <code>ArrayList</code>.</li>
-  <li>Por último, armá el menú en <code>Main</code>.</li>
-  <li>Probá cada parte antes de pasar a la siguiente.</li>
-  <li>Commiteá después de cada funcionalidad terminada usando <code>git add</code> y <code>git commit</code>.</li>
+  <li>¿Los atributos son <code>private</code> y se validan en el constructor?</li>
+  <li>¿Si buscás un libro que no existe, el programa avisa con claridad en vez de lanzar <code>NullPointerException</code>?</li>
+  <li>¿Cada método tiene una sola responsabilidad y un nombre descriptivo?</li>
 </ul>
 </div>`,
   exercise: {

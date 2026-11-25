@@ -78,6 +78,7 @@ var ApiLab = (function () {
         var u = validate(body);
         if (u.err) return u.err;
         if (!row) return missing;
+        if (server.rows.some(function (p) { return p.id !== id && p.nombre === u.data.nombre; })) return error(409, 'Ya existe un producto llamado ' + u.data.nombre);
         row.nombre = u.data.nombre;
         row.precio = u.data.precio;
         row.stock = u.data.stock;

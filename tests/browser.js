@@ -228,6 +228,8 @@ async function connect(url) {
         const sol = document.querySelector('.mn-sol');
         ok(!!sol && !sol.open, 'las respuestas arrancan tapadas');
         ok(!!document.querySelector('a[href="manual/java-desde-cero.pdf"]'), 'se puede descargar el PDF');
+        ok(document.querySelectorAll('.mn-tomo-card').length === 6, 'el estante muestra los 6 tomos');
+        ok(document.querySelectorAll('.mn-guia').length === 35 && document.querySelectorAll('.mn-tip').length === 35, 'los 35 capítulos tienen guía Qué/Por qué/Para qué y buena práctica');
         ok(!window.__errs.length, 'sin errores: ' + JSON.stringify(window.__errs));
         return out.join('\\n');
       })()`);
@@ -248,6 +250,26 @@ async function connect(url) {
     const docW = await evaluate('document.documentElement.scrollWidth');
     console.log((docW <= PHONE ? 'ok    ' : 'FALLA ') + 'manual a ' + PHONE + ' px: el documento mide ' + docW);
     if (docW > PHONE) { failed++; console.log('      se salen: ' + await evaluate(WIDEST.replace("'#main *, #sim-box *'", "'#libro *'"))); }
+
+    // Tomo I en vista Hoja A4 a 360 px y Tomo V de Fase 2
+    await c.send('Page.navigate', { url: `http://127.0.0.1:${port}/manual.html?tomo=1` });
+    await delay(500);
+    for (let i = 0; i < 40 && await evaluate("document.documentElement.getAttribute('data-ready')") !== '1'; i++) await delay(250);
+    const tomo1 = await evaluate(`(() => {
+      Manual.toggleA4View(document.getElementById('mn-a4-btn'));
+      return { caps: document.querySelectorAll('.mn-chapter').length, a4: document.body.classList.contains('mn-a4-view'), w: document.documentElement.scrollWidth, errs: window.__errs.slice() };
+    })()`);
+    console.log((tomo1.caps === 7 && tomo1.a4 && !tomo1.errs.length ? 'ok    ' : 'FALLA ') + 'tomo 1 en hoja A4: caps=' + tomo1.caps + ' ancho=' + tomo1.w + ' errores=' + JSON.stringify(tomo1.errs));
+    if (tomo1.caps !== 7 || !tomo1.a4 || tomo1.errs.length) failed++;
+    if (tomo1.w > PHONE) { failed++; console.log('      tomo 1 a4 se salen: ' + await evaluate(WIDEST.replace("'#main *, #sim-box *'", "'#libro *'"))); }
+
+    await c.send('Emulation.setDeviceMetricsOverride', { width: 1280, height: 900, deviceScaleFactor: 1, mobile: false });
+    await c.send('Page.navigate', { url: `http://127.0.0.1:${port}/manual.html?tomo=5` });
+    await delay(500);
+    for (let i = 0; i < 40 && await evaluate("document.documentElement.getAttribute('data-ready')") !== '1'; i++) await delay(250);
+    const tomo5 = await evaluate(`(() => ({ caps: document.querySelectorAll('.mn-chapter').length, guia: document.querySelectorAll('.mn-guia').length, figs: document.querySelectorAll('.mn-fig svg').length, bot: !!document.getElementById('java-bot-fab'), http: document.querySelectorAll('.mn-item').length, errs: window.__errs.slice() }))()`);
+    console.log((tomo5.caps === 13 && tomo5.guia === 13 && tomo5.figs >= 6 && tomo5.bot && tomo5.http > 50 && !tomo5.errs.length ? 'ok    ' : 'FALLA ') + 'tomo 5 (Fase 2): caps=' + tomo5.caps + ' guias=' + tomo5.guia + ' figs=' + tomo5.figs + ' bot=' + tomo5.bot + ' items=' + tomo5.http + ' errores=' + JSON.stringify(tomo5.errs));
+    if (tomo5.caps !== 13 || tomo5.guia !== 13 || tomo5.figs < 6 || !tomo5.bot || tomo5.http <= 50 || tomo5.errs.length) failed++;
   }
 
   c.close();

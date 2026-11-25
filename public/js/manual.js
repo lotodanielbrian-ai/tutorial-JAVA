@@ -1,9 +1,14 @@
-// Java INPRO — Manual: arma el libro "Java desde cero" con los mismos datos del curso
-// (LESSONS, PRACTICA) más los textos de manual-contenido.js y las figuras de
-// manual-figuras.js. En pantalla es interactivo; con ?print=1 queda listo para que
-// tools/manual-pdf.js lo pagine en hojas A4.
+// Java INPRO — Manual: arma el libro "Java desde cero" (Edición completa o por Tomo ?tomo=1..6)
+// con los mismos datos del curso (LESSONS, LESSONS_F2, PRACTICA, GuiaCero) más manual-contenido.js
+// y manual-figuras.js. En pantalla es interactivo con vista hoja A4; con ?print=1 queda listo
+// para que tools/manual-pdf.js pagine el libro completo o cada tomo en hojas A4.
 var Manual = (function () {
   var PRINT = /[?&]print=1/.test(location.search);
+  var TOMO_MATCH = /[?&]tomo=([1-6])\b/.exec(location.search);
+  var TOMO_ID = TOMO_MATCH ? TOMO_MATCH[1] : '';
+  var TOMO = (typeof MANUAL !== 'undefined' && MANUAL.TOMOS && TOMO_ID)
+    ? MANUAL.TOMOS.find(function (t) { return t.id === TOMO_ID; }) || null
+    : null;
   var answers = [];   // apéndice A: [{ cap, titulo, items: [{ n, html }] }]
   var solutions = []; // apéndice B: [{ cap, titulo, code, stdin, expected }]
   var figureCount = {};
@@ -15,6 +20,21 @@ var Manual = (function () {
     var d = document.createElement('div');
     d.innerHTML = html;
     return d.textContent;
+  }
+
+  function allLessons() {
+    var f1 = typeof LESSONS !== 'undefined' ? LESSONS : [];
+    var f2 = typeof LESSONS_F2 !== 'undefined' ? LESSONS_F2 : [];
+    return f1.concat(f2);
+  }
+
+  function findLessonById(id) {
+    return allLessons().find(function (x) { return x.id === id; }) || null;
+  }
+
+  function activeLessons() {
+    if (TOMO) return TOMO.ids.map(findLessonById).filter(Boolean);
+    return typeof LESSONS !== 'undefined' ? LESSONS : [];
   }
 
   // Mezcla determinista: el mismo libro sale igual cada vez que se genera
@@ -32,7 +52,10 @@ var Manual = (function () {
   }
 
   var LETTERS = 'abcdefghijklmnopqrstuvwxyz';
-  var LEVEL = { super: 'Súper básico', basico: 'Básico', inter: 'Intermedio', avanzado: 'Avanzado', examen: 'Proyecto', entrevista: 'Entrevista' };
+  var LEVEL = {
+    super: 'Súper básico', basico: 'Básico', inter: 'Intermedio', avanzado: 'Avanzado', examen: 'Proyecto', entrevista: 'Entrevista',
+    limpio: 'Código limpio', spring: 'Spring Boot', api: 'API REST', calidad: 'Calidad', entrega: 'Entrega', extra: 'Avanzado F2', coloquio: 'Coloquio'
+  };
   var ESCALERA = [['vida', '🏠', 'En la vida diaria'], ['modelo', '💡', 'La idea'], ['pseudo', '📝', 'En pasos'], ['java', '☕', 'En Java'], ['real', '💼', 'En un sistema real']];
 
   // ── Piezas de cada capítulo ──────────────────────────────────────────
@@ -42,6 +65,28 @@ var Manual = (function () {
       ESCALERA.map(function (s) {
         return e[s[0]] ? '<li><span class="mn-step-ico" aria-hidden="true">' + s[1] + '</span><div><strong>' + s[2] + '</strong><p>' + e[s[0]] + '</p></div></li>' : '';
       }).join('') + '</ol></section>';
+  }
+
+  function guiaPedagogica(id) {
+    if (typeof GuiaCero === 'undefined') return '';
+    var d = GuiaCero.get(id);
+    if (!d) return '';
+    return '<section class="mn-guia" aria-label="Qué estás haciendo, por qué y para qué">' +
+      '<h3 class="mn-h">Qué estás haciendo, por qué y para qué</h3>' +
+      '<div class="mn-guia-grid">' +
+        '<div class="mn-guia-box"><strong>Qué hacés</strong><p>' + d.que + '</p></div>' +
+        '<div class="mn-guia-box"><strong>Por qué existe</strong><p>' + d.porque + '</p></div>' +
+        '<div class="mn-guia-box"><strong>Para qué sirve</strong><p>' + d.paraque + '</p></div>' +
+      '</div>' +
+      '<div class="mn-guia-day"><strong>☕ Ejemplo del día a día:</strong> ' + d.dia + '</div>' +
+      '</section>';
+  }
+
+  function buenaPracticaTip(id) {
+    if (typeof GuiaCero === 'undefined') return '';
+    var d = GuiaCero.get(id);
+    if (!d || !d.tip) return '';
+    return '<aside class="mn-tip"><strong>✨ Buena práctica profesional:</strong> ' + d.tip + '</aside>';
   }
 
   function figura(key, cap) {
@@ -99,6 +144,25 @@ var Manual = (function () {
         q = it.q + '<div class="mn-write tall" aria-hidden="true"></div>';
         a = '<em>Respuesta modelo:</em> ' + it.model;
         break;
+      case 'http':
+        if (!TOMO) return null;
+        q = '<strong>' + esc(it.q) + ':</strong> ' + it.task + '<div class="mn-write" aria-hidden="true"></div>';
+        a = '<code>' + esc(it.goal.method + ' ' + it.goal.path.replace(/^\^|\$$/g, '')) + '</code> → HTTP <strong>' + it.goal.status + '</strong>' +
+          (it.demo && it.demo.length ? '<pre class="mn-out">' + esc(it.demo.map(function (d) { return d[0] + ' ' + d[1] + (d[2] ? '\n' + d[2] : ''); }).join('\n')) + '</pre>' : '');
+        break;
+      case 'step':
+        if (!TOMO) return null;
+        q = '<strong>' + esc(it.q) + ':</strong> ' + it.do + (it.cmd ? codeBox(it.cmd) : '') + '<p class="mn-small">Tiene que pasar: ' + it.ok + '</p>';
+        a = '<em>Comprobación:</em> ' + it.ok;
+        break;
+      case 'code':
+        if (!TOMO) return null;
+        q = '<strong>Reto práctico — ' + esc(it.title || 'Código') + ':</strong> ' + it.task +
+          (it.stdin && it.stdin.length ? '<p class="mn-small">Entrada simulada: <code>' + esc(it.stdin.join(' ⏎ ')) + '</code></p>' : '') +
+          '<p class="mn-small">Salida esperada:</p><pre class="mn-out">' + esc(it.expected) + '</pre>' +
+          (it.starter ? codeBox(it.starter) : '');
+        a = cb('Solución', it.solution);
+        break;
       default:
         return null;
     }
@@ -118,18 +182,22 @@ var Manual = (function () {
   function chapter(l, partN) {
     var P = (typeof PRACTICA !== 'undefined' && PRACTICA[l.id]) || {};
     var cap = l.id;
+    var g = typeof GuiaCero !== 'undefined' ? GuiaCero.get(cap) : null;
     var html = '<article class="mn-chapter" id="cap-' + cap + '" data-part="' + partN + '">' + runHead('Capítulo ' + cap + ' · ' + l.title);
-    html += '<header class="mn-ch-head"><div class="mn-ch-num">Capítulo ' + cap + '</div><h2 class="mn-ch-title">' + esc(l.title) + '</h2>' +
+    html += '<header class="mn-ch-head"><div class="mn-ch-top"><div class="mn-ch-num">Capítulo ' + cap + '</div>' +
+      '<button type="button" class="mn-btn ghost mn-print-ch mn-screen" data-print-cap="cap-' + cap + '">🖨 Imprimir tema (A4)</button></div>' +
+      '<h2 class="mn-ch-title">' + esc(l.title) + '</h2>' +
       '<p class="mn-ch-desc">' + esc(l.desc) + '</p><p class="mn-ch-meta">' + (LEVEL[l.level] || '') + ' · ' + l.stars + '</p></header>';
     if (P.objetivos) html += '<section class="mn-goals"><h3 class="mn-h">Al terminar vas a poder</h3><ul>' + P.objetivos.map(function (o) { return '<li>' + o + '</li>'; }).join('') + '</ul></section>';
     // La pregunta previa se piensa antes de leer: en pantalla la respuesta arranca tapada
     if (P.antes) html += '<aside class="mn-before"><strong>🤔 ' + P.antes[0] + '</strong>' +
       '<details class="mn-sol mn-screen"><summary>Ver respuesta</summary><div>' + P.antes[1] + '</div></details>' +
       '<p class="mn-before-a mn-print-only"><span>Respuesta:</span> ' + P.antes[1] + '</p></aside>';
+    html += guiaPedagogica(cap);
     html += escalera(P.escalera);
     html += figura(cap, cap);
     html += '<section class="mn-simple"><h3 class="mn-h mn-h-big">La idea en simple</h3>' + l.simple() + '</section>';
-    html += '<section class="mn-detail"><h3 class="mn-h mn-h-big">En detalle</h3>' + l.tutorial() + '</section>';
+    html += '<section class="mn-detail"><h3 class="mn-h mn-h-big">En detalle</h3>' + l.tutorial() + buenaPracticaTip(cap) + '</section>';
 
     // Comprobá lo que aprendiste
     var acts = [], ans = [];
@@ -151,7 +219,9 @@ var Manual = (function () {
       });
     }
     if (acts.length) {
-      html += '<section class="mn-check"><h3 class="mn-h mn-h-big">Comprobá lo que aprendiste</h3><p class="mn-small">Las respuestas, con su explicación, están en el <a href="#ap-respuestas">apéndice A</a>.</p>' + acts.join('') + '</section>';
+      html += '<section class="mn-check"><h3 class="mn-h mn-h-big">Comprobá lo que aprendiste</h3>' +
+        (g ? '<p class="mn-small"><strong>Para qué practicás esto:</strong> ' + g.practica + '</p>' : '') +
+        '<p class="mn-small">Las respuestas, con su explicación, están en el <a href="#ap-respuestas">apéndice A</a>.</p>' + acts.join('') + '</section>';
       answers.push({ cap: cap, titulo: l.title, items: ans });
     }
 
@@ -195,13 +265,43 @@ var Manual = (function () {
     });
   }
 
-  // ── Partes del libro ────────────────────────────────────────────────
+  // ── Partes y Tomos del libro ────────────────────────────────────────
   function cover() {
+    var kicker = TOMO ? 'Java INPRO · ' + TOMO.num + ' · ' + TOMO.nivel : 'Java INPRO';
+    var title = TOMO ? TOMO.num + '<br>' + esc(TOMO.nivel) : 'Java<br>desde cero';
+    var sub = TOMO ? esc(TOMO.titulo) + '. ' + esc(TOMO.subtitulo) : 'De no saber nada a tu primer proyecto con objetos y Git. Un libro para aprender aunque nunca hayas programado.';
+    var foot = TOMO
+      ? esc(MANUAL.EDICION) + ' · ' + TOMO.ids.length + ' capítulos' + (TOMO.includeCap0 ? ' + cap. 0' : '') + ' · A4 imprimible con actividades y soluciones'
+      : esc(MANUAL.EDICION) + ' · 35 capítulos · figuras, actividades y soluciones';
     return '<section class="mn-cover" id="tapa"><div class="mn-cover-band"></div>' +
-      '<div class="mn-cover-in"><p class="mn-cover-kicker">Java INPRO</p><h1>Java<br>desde cero</h1>' +
-      '<p class="mn-cover-sub">De no saber nada a tu primer proyecto con objetos y Git. Un libro para aprender aunque nunca hayas programado.</p>' +
+      '<div class="mn-cover-in"><p class="mn-cover-kicker">' + esc(kicker) + '</p><h1>' + title + '</h1>' +
+      '<p class="mn-cover-sub">' + sub + '</p>' +
       '<div class="mn-cover-art">' + coverArt() + '</div>' +
-      '<p class="mn-cover-foot">' + esc(MANUAL.EDICION) + ' · 35 capítulos · figuras, actividades y soluciones</p></div></section>';
+      '<p class="mn-cover-foot">' + foot + '</p></div></section>';
+  }
+
+  function tomoShelf() {
+    if (!MANUAL || !MANUAL.TOMOS) return '';
+    return '<section class="mn-tomos mn-screen" aria-label="Colección por tomos">' +
+      '<div class="mn-tomos-head">' +
+        '<div><h2>📚 Manual por Tomos (Súper Básico → Fase 2)</h2>' +
+        '<p class="mn-small">Elegí el tomo de tu etapa actual o leé la edición completa de Fase 1. Todos vienen seccionados para imprimir en A4.</p></div>' +
+        (TOMO ? '<a class="mn-btn ghost" href="manual.html">📖 Ver edición completa (Fase 1)</a>' : '') +
+      '</div>' +
+      '<div class="mn-tomos-grid">' +
+      MANUAL.TOMOS.map(function (t) {
+        var active = TOMO && TOMO.id === t.id;
+        return '<article class="mn-tomo-card' + (active ? ' active' : '') + '">' +
+          '<div class="mn-tomo-num">' + esc(t.num) + ' · ' + esc(t.nivel) + '</div>' +
+          '<h3>' + esc(t.titulo) + '</h3>' +
+          '<p>' + esc(t.subtitulo) + '</p>' +
+          '<div class="mn-tomo-meta">Capítulos ' + t.ids[0] + ' al ' + t.ids[t.ids.length - 1] + (t.includeCap0 ? ' (+ Cap. 0)' : '') + '</div>' +
+          '<div class="mn-tomo-actions">' +
+            '<a class="mn-btn" href="manual.html?tomo=' + t.id + '">' + (active ? '✓ Viendo ahora' : 'Abrir tomo') + '</a>' +
+            '<a class="mn-btn ghost" href="manual/' + esc(t.slug) + '.pdf" download>⬇ PDF A4</a>' +
+          '</div></article>';
+      }).join('') +
+      '</div></section>';
   }
 
   function coverArt() {
@@ -219,28 +319,42 @@ var Manual = (function () {
   }
 
   function howTo() {
+    var lead = TOMO
+      ? 'Este <strong>' + esc(TOMO.num) + ' (' + esc(TOMO.nivel) + ')</strong> acompaña paso a paso tus ejercicios en Java INPRO, seccionado en hojas A4 para estudiar o imprimir.'
+      : 'Este libro acompaña al curso <strong>Java INPRO</strong>, pero se puede leer solo. Está pensado para alguien que <strong>nunca programó</strong>: cada idea nueva arranca de algo que ya conocés y recién al final llega al código.';
     return '<section class="mn-front" id="como-usar"><h2 class="mn-front-title">Antes de empezar</h2>' +
-      '<p>Este libro acompaña al curso <strong>Java INPRO</strong>, pero se puede leer solo. Está pensado para alguien que <strong>nunca programó</strong>: cada idea nueva arranca de algo que ya conocés y recién al final llega al código.</p>' +
-      '<p>Leelo en orden. Cada capítulo usa lo anterior, y el capítulo 0 explica qué es Java, para qué sirve y cómo instalarlo.</p>' +
+      '<p>' + lead + '</p>' +
+      '<p>Leelo en orden. Cada capítulo abre con <strong>Qué estás haciendo, Por qué y Para qué</strong>, un <strong>ejemplo del día a día</strong> y la escalera de la vida real al código.</p>' +
       '<table class="sym-tbl mn-legend"><thead><tr><th>Vas a ver</th><th>Para qué</th></tr></thead><tbody>' +
+      '<tr><td>🧭 ☕</td><td>Qué hacés, por qué existe, para qué sirve y ejemplo del día a día</td></tr>' +
       '<tr><td>🏠 💡 📝 ☕ 💼</td><td>La escalera de la vida diaria al código</td></tr>' +
       '<tr><td>Figura N.1</td><td>La idea dibujada</td></tr>' +
       '<tr><td>☐ N.1, N.2 …</td><td>Actividades para comprobar lo aprendido (respuestas en el apéndice A)</td></tr>' +
       '<tr><td>🏆 Desafío</td><td>Un programa para escribir vos (soluciones en el apéndice B)</td></tr>' +
-      '<tr><td>💡 ⚠️ ☕</td><td>Consejos, errores típicos y datos del mundo Java</td></tr></tbody></table>' +
+      '<tr><td>✨ 💡 ⚠️ ☕</td><td>Buenas prácticas profesionales, consejos y errores típicos</td></tr></tbody></table>' +
       '<p class="mn-small">Versión interactiva, con ejemplos que se ejecutan y se pueden editar: <strong>java-inpro-tutorial.web.app/manual.html</strong></p></section>';
   }
 
   function toc() {
-    var rows = '<li class="mn-toc-part"><a href="#cap-0">0 · Antes de escribir código<span class="mn-toc-dots"></span></a></li>';
-    MANUAL.CAP0.forEach(function (s, i) { rows += '<li class="mn-toc-sub"><a href="#c0-' + s.id + '">0.' + (i + 1) + ' ' + esc(s.titulo) + '<span class="mn-toc-dots"></span></a></li>'; });
-    MANUAL.PARTES.forEach(function (p) {
-      rows += '<li class="mn-toc-part"><a href="#parte-' + p.n + '">Parte ' + p.n + ' · ' + esc(p.titulo) + '<span class="mn-toc-dots"></span></a></li>';
-      p.ids.forEach(function (id) {
-        var l = LESSONS.find(function (x) { return x.id === id; });
-        rows += '<li><a href="#cap-' + id + '"><span class="mn-toc-n">' + id + '</span>' + esc(l.title) + '<span class="mn-toc-dots"></span></a></li>';
+    var rows = '';
+    if (!TOMO || TOMO.includeCap0) {
+      rows += '<li class="mn-toc-part"><a href="#cap-0">0 · Antes de escribir código<span class="mn-toc-dots"></span></a></li>';
+      MANUAL.CAP0.forEach(function (s, i) { rows += '<li class="mn-toc-sub"><a href="#c0-' + s.id + '">0.' + (i + 1) + ' ' + esc(s.titulo) + '<span class="mn-toc-dots"></span></a></li>'; });
+    }
+    if (TOMO) {
+      rows += '<li class="mn-toc-part"><a href="#parte-' + TOMO.id + '">' + esc(TOMO.num) + ' · ' + esc(TOMO.titulo) + '<span class="mn-toc-dots"></span></a></li>';
+      activeLessons().forEach(function (l) {
+        rows += '<li><a href="#cap-' + l.id + '"><span class="mn-toc-n">' + l.id + '</span>' + esc(l.title) + '<span class="mn-toc-dots"></span></a></li>';
       });
-    });
+    } else {
+      MANUAL.PARTES.forEach(function (p) {
+        rows += '<li class="mn-toc-part"><a href="#parte-' + p.n + '">Parte ' + p.n + ' · ' + esc(p.titulo) + '<span class="mn-toc-dots"></span></a></li>';
+        p.ids.forEach(function (id) {
+          var l = findLessonById(id);
+          if (l) rows += '<li><a href="#cap-' + id + '"><span class="mn-toc-n">' + id + '</span>' + esc(l.title) + '<span class="mn-toc-dots"></span></a></li>';
+        });
+      });
+    }
     rows += '<li class="mn-toc-part"><a href="#apendices">Apéndices<span class="mn-toc-dots"></span></a></li>' +
       ['A · Respuestas de las actividades#ap-respuestas', 'B · Soluciones de los desafíos#ap-soluciones', 'C · Mensajes de error traducidos#ap-errores', 'D · Hoja de referencia rápida#ap-referencia', 'E · Glosario#ap-glosario']
         .map(function (s) { var p = s.split('#'); return '<li class="mn-toc-sub"><a href="#' + p[1] + '">' + p[0] + '<span class="mn-toc-dots"></span></a></li>'; }).join('');
@@ -248,7 +362,9 @@ var Manual = (function () {
   }
 
   function chapter0() {
-    var html = '<article class="mn-chapter mn-cap0" id="cap-0">' + runHead('Capítulo 0 · Antes de escribir código') + '<header class="mn-ch-head"><div class="mn-ch-num">Capítulo 0</div><h2 class="mn-ch-title">Antes de escribir código</h2>' +
+    var html = '<article class="mn-chapter mn-cap0" id="cap-0">' + runHead('Capítulo 0 · Antes de escribir código') + '<header class="mn-ch-head"><div class="mn-ch-top"><div class="mn-ch-num">Capítulo 0</div>' +
+      '<button type="button" class="mn-btn ghost mn-print-ch mn-screen" data-print-cap="cap-0">🖨 Imprimir tema (A4)</button></div>' +
+      '<h2 class="mn-ch-title">Antes de escribir código</h2>' +
       '<p class="mn-ch-desc">Qué es programar, qué es Java, para qué sirve y para qué no, cómo instalarlo y cómo leer los errores.</p></header>';
     MANUAL.CAP0.forEach(function (s, i) {
       html += '<section class="mn-c0" id="c0-' + s.id + '"><h3 class="mn-c0-title"><span>0.' + (i + 1) + '</span> ' + esc(s.titulo) + '</h3>' +
@@ -260,14 +376,23 @@ var Manual = (function () {
   function partOpener(p) {
     return '<section class="mn-part" id="parte-' + p.n + '"><div class="mn-part-n">Parte ' + p.n + '</div><h2 class="mn-part-title">' + esc(p.titulo) + '</h2>' +
       '<p class="mn-part-text">' + esc(p.texto) + '</p><ol class="mn-part-list">' + p.ids.map(function (id) {
-        var l = LESSONS.find(function (x) { return x.id === id; });
-        return '<li><span>' + id + '</span> ' + esc(l.title) + '</li>';
+        var l = findLessonById(id);
+        return l ? '<li><span>' + id + '</span> ' + esc(l.title) + '</li>' : '';
       }).join('') + '</ol></section>';
   }
 
-  function glossary() {
+  function tomoOpener(t) {
+    return '<section class="mn-part" id="parte-' + t.id + '"><div class="mn-part-n">' + esc(t.num) + ' · ' + esc(t.nivel) + '</div>' +
+      '<h2 class="mn-part-title">' + esc(t.titulo) + '</h2>' +
+      '<p class="mn-part-text">' + esc(t.subtitulo) + '</p><ol class="mn-part-list">' + t.ids.map(function (id) {
+        var l = findLessonById(id);
+        return l ? '<li><span>' + id + '</span> ' + esc(l.title) + '</li>' : '';
+      }).join('') + '</ol></section>';
+  }
+
+  function glossary(lessonsList) {
     var seen = {}, list = [];
-    LESSONS.forEach(function (l) {
+    lessonsList.forEach(function (l) {
       var src = l.simple() + l.tutorial();
       var re = /<span class="glossary" data-def="([^"]*)">([^<]*)<\/span>/g, m;
       while ((m = re.exec(src))) {
@@ -275,13 +400,19 @@ var Manual = (function () {
         if (!seen[k]) { seen[k] = true; list.push({ w: word, d: m[1], cap: l.id }); }
       }
     });
+    if (!list.length && typeof GuiaCero !== 'undefined') {
+      lessonsList.forEach(function (l) {
+        var g = GuiaCero.get(l.id);
+        if (g) list.push({ w: l.title, d: g.que + ' ' + g.tip, cap: l.id });
+      });
+    }
     list.sort(function (a, b) { return a.w.localeCompare(b.w, 'es', { sensitivity: 'base' }); });
     return '<dl class="mn-gloss">' + list.map(function (g) {
       return '<dt>' + esc(g.w) + ' <a class="mn-ref" href="#cap-' + g.cap + '">cap. ' + g.cap + '</a></dt><dd>' + g.d + '</dd>';
     }).join('') + '</dl>';
   }
 
-  function appendices() {
+  function appendices(lessonsList) {
     var html = '<section class="mn-part mn-part-ap" id="apendices"><div class="mn-part-n">Apéndices</div><h2 class="mn-part-title">Para consultar</h2>' +
       '<p class="mn-part-text">Respuestas, soluciones, errores traducidos, una hoja de referencia y el glosario.</p></section>';
     html += '<article class="mn-appendix" id="ap-respuestas">' + runHead('Apéndice A · Respuestas') + '<h2 class="mn-ap-title">A · Respuestas de las actividades</h2>' +
@@ -291,26 +422,33 @@ var Manual = (function () {
       }).join('') + '</article>';
     html += '<article class="mn-appendix" id="ap-soluciones">' + runHead('Apéndice B · Soluciones') + '<h2 class="mn-ap-title">B · Soluciones de los desafíos</h2>' +
       '<p class="mn-small">Hay muchas soluciones correctas: si la tuya imprime la salida esperada y usa lo que pide el capítulo, está bien.</p>' +
-      solutions.map(function (s) {
-        return '<section class="mn-sol-ch" id="sol-' + s.cap + '"><h3>Capítulo ' + s.cap + ' · ' + esc(s.titulo) + '</h3>' + cb('Solución', s.code) + '</section>';
-      }).join('') + '</article>';
+      (solutions.length
+        ? solutions.map(function (s) {
+            return '<section class="mn-sol-ch" id="sol-' + s.cap + '"><h3>Capítulo ' + s.cap + ' · ' + esc(s.titulo) + '</h3>' + cb('Solución', s.code) + '</section>';
+          }).join('')
+        : '<p class="mn-small">Este tomo evalúa mediante actividades y cuestionarios.</p>') +
+      '</article>';
+    var isF2Tomo = TOMO && (TOMO.id === '5' || TOMO.id === '6');
+    var errsList = (isF2Tomo && MANUAL.ERRORES_F2) ? MANUAL.ERRORES_F2 : MANUAL.ERRORES;
+    var refList = (isF2Tomo && MANUAL.REFERENCIA_F2) ? MANUAL.REFERENCIA_F2 : MANUAL.REFERENCIA;
     html += '<article class="mn-appendix" id="ap-errores">' + runHead('Apéndice C · Errores') + '<h2 class="mn-ap-title">C · Mensajes de error traducidos</h2>' +
       '<table class="sym-tbl mn-err"><thead><tr><th>El mensaje dice</th><th>Cuándo</th><th>Qué significa y qué hacer</th></tr></thead><tbody>' +
-      MANUAL.ERRORES.map(function (e) { return '<tr><td>' + esc(e[0]) + '</td><td>' + e[1] + '</td><td>' + esc(e[2]) + '</td></tr>'; }).join('') + '</tbody></table></article>';
+      errsList.map(function (e) { return '<tr><td>' + esc(e[0]) + '</td><td>' + e[1] + '</td><td>' + esc(e[2]) + '</td></tr>'; }).join('') + '</tbody></table></article>';
     html += '<article class="mn-appendix" id="ap-referencia">' + runHead('Apéndice D · Referencia') + '<h2 class="mn-ap-title">D · Hoja de referencia rápida</h2>' +
-      '<table class="sym-tbl mn-ref-tbl"><tbody>' + MANUAL.REFERENCIA.map(function (r) { return '<tr><th scope="row">' + r[0] + '</th><td><code>' + esc(r[1]) + '</code></td></tr>'; }).join('') + '</tbody></table></article>';
-    html += '<article class="mn-appendix" id="ap-glosario">' + runHead('Apéndice E · Glosario') + '<h2 class="mn-ap-title">E · Glosario</h2>' + glossary() + '</article>';
+      '<table class="sym-tbl mn-ref-tbl"><tbody>' + refList.map(function (r) { return '<tr><th scope="row">' + r[0] + '</th><td><code>' + esc(r[1]) + '</code></td></tr>'; }).join('') + '</tbody></table></article>';
+    html += '<article class="mn-appendix" id="ap-glosario">' + runHead('Apéndice E · Glosario') + '<h2 class="mn-ap-title">E · Glosario</h2>' + glossary(lessonsList) + '</article>';
     return html;
   }
 
   function backCover() {
-    return '<section class="mn-back"><p>Java INPRO · <strong>Java desde cero</strong></p><p class="mn-small">' + esc(MANUAL.EDICION) +
+    var title = TOMO ? esc(TOMO.num + ' · ' + TOMO.titulo) : 'Java desde cero';
+    return '<section class="mn-back"><p>Java INPRO · <strong>' + title + '</strong></p><p class="mn-small">' + esc(MANUAL.EDICION) +
       '. Los ejemplos y las soluciones se verifican con el compilador de Java real antes de cada edición. Emojis del PDF: Twemoji, CC-BY 4.0.</p></section>';
   }
 
   // ── Interactividad (solo en pantalla) ───────────────────────────────
   function enhanceCode(root) {
-    root.querySelectorAll('.cblock').forEach(function (block, i) {
+    root.querySelectorAll('.cblock').forEach(function (block) {
       var body = block.querySelector('.cblock-body');
       if (!body) return;
       var code = body.textContent;
@@ -390,8 +528,33 @@ var Manual = (function () {
     out.hidden = true;
   }
 
+  function printChapter(capId) {
+    var el = document.getElementById(capId);
+    if (!el) return;
+    document.body.classList.add('mn-printing-one');
+    el.classList.add('mn-print-target');
+    var cleaned = false;
+    var cleanup = function () {
+      if (cleaned) return;
+      cleaned = true;
+      document.body.classList.remove('mn-printing-one');
+      el.classList.remove('mn-print-target');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    window.print();
+    setTimeout(cleanup, 1200);
+  }
+
+  function toggleA4View(btn) {
+    var on = document.body.classList.toggle('mn-a4-view');
+    if (btn) btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
   function wire(root) {
     root.addEventListener('click', function (e) {
+      var printBtn = e.target.closest && e.target.closest('[data-print-cap]');
+      if (printBtn) { printChapter(printBtn.getAttribute('data-print-cap')); return; }
       var btn = e.target.closest && e.target.closest('.mn-run-bar button');
       if (!btn) return;
       var block = btn.closest('.cblock');
@@ -408,22 +571,35 @@ var Manual = (function () {
     });
   }
 
-  function navBar() {
-    var opts = '<option value="indice">Índice</option><option value="cap-0">0 · Antes de escribir código</option>' +
-      LESSONS.map(function (l) { return '<option value="cap-' + l.id + '">' + l.id + ' · ' + esc(l.title) + '</option>'; }).join('') +
+  function navBar(lessonsList) {
+    var tomoOpts = '<option value="">📚 Completo (F1)</option>' +
+      (MANUAL.TOMOS || []).map(function (t) {
+        return '<option value="' + t.id + '"' + (TOMO && TOMO.id === t.id ? ' selected' : '') + '>' + esc(t.num + ' · ' + t.nivel) + '</option>';
+      }).join('');
+    var capOpts = '<option value="indice">Índice</option>' +
+      (!TOMO || TOMO.includeCap0 ? '<option value="cap-0">0 · Antes de escribir código</option>' : '') +
+      lessonsList.map(function (l) { return '<option value="cap-' + l.id + '">' + l.id + ' · ' + esc(l.title) + '</option>'; }).join('') +
       '<option value="apendices">Apéndices</option>';
+    var pdfHref = TOMO ? ('manual/' + TOMO.slug + '.pdf') : 'manual/java-desde-cero.pdf';
     var bar = document.createElement('header');
     bar.className = 'mn-bar mn-screen';
-    bar.innerHTML = '<a class="mn-brand" href="index.html" title="Volver al curso">☕ <span>Java desde cero</span></a>' +
-      '<label class="mn-jump"><span class="mn-sr">Ir a</span><select aria-label="Ir al capítulo">' + opts + '</select></label>' +
-      '<div class="mn-actions"><a class="mn-btn" href="manual/java-desde-cero.pdf" download>⬇ PDF</a>' +
+    bar.innerHTML = '<a class="mn-brand" href="index.html" title="Volver al curso">☕ <span>' + (TOMO ? esc(TOMO.num) : 'Java desde cero') + '</span></a>' +
+      '<label class="mn-tomo-sel"><span class="mn-sr">Tomo</span><select id="mn-tomo-select" aria-label="Elegir tomo">' + tomoOpts + '</select></label>' +
+      '<label class="mn-jump"><span class="mn-sr">Ir a</span><select id="mn-cap-select" aria-label="Ir al capítulo">' + capOpts + '</select></label>' +
+      '<div class="mn-actions">' +
+      '<button type="button" class="mn-btn ghost" id="mn-a4-btn" aria-pressed="false" title="Ver cada tema como hoja imprimible A4">📄 Hoja A4</button>' +
+      '<a class="mn-btn" href="' + esc(pdfHref) + '" download>⬇ PDF</a>' +
       '<button type="button" class="mn-btn ghost" onclick="window.print()">🖨 Imprimir</button>' +
       '<a class="mn-btn ghost" href="index.html">← Curso</a></div><div class="mn-progress" aria-hidden="true"><span></span></div>';
     document.body.prepend(bar);
-    bar.querySelector('select').addEventListener('change', function () {
+    bar.querySelector('#mn-tomo-select').addEventListener('change', function () {
+      location.href = this.value ? ('manual.html?tomo=' + this.value) : 'manual.html';
+    });
+    bar.querySelector('#mn-cap-select').addEventListener('change', function () {
       var t = document.getElementById(this.value);
       if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    bar.querySelector('#mn-a4-btn').addEventListener('click', function () { toggleA4View(this); });
     var fill = bar.querySelector('.mn-progress span');
     window.addEventListener('scroll', function () {
       var h = document.documentElement.scrollHeight - innerHeight;
@@ -432,12 +608,31 @@ var Manual = (function () {
   }
 
   function build() {
-    var html = cover() + howTo() + toc() + chapter0();
-    MANUAL.PARTES.forEach(function (p) {
-      html += partOpener(p);
-      p.ids.forEach(function (id) { html += chapter(LESSONS.find(function (l) { return l.id === id; }), p.n); });
-    });
-    html += appendices() + backCover();
+    answers = [];
+    solutions = [];
+    figureCount = {};
+    var lessonsList = activeLessons();
+    if (TOMO) document.title = TOMO.num + ' · ' + TOMO.titulo + ' · Java INPRO';
+
+    var html = cover();
+    if (!PRINT) html += tomoShelf();
+    html += howTo() + toc();
+    if (!TOMO || TOMO.includeCap0) html += chapter0();
+
+    if (TOMO) {
+      html += tomoOpener(TOMO);
+      lessonsList.forEach(function (l) { html += chapter(l, TOMO.id); });
+    } else {
+      MANUAL.PARTES.forEach(function (p) {
+        html += partOpener(p);
+        p.ids.forEach(function (id) {
+          var l = findLessonById(id);
+          if (l) html += chapter(l, p.n);
+        });
+      });
+    }
+
+    html += appendices(lessonsList) + backCover();
     var root = document.getElementById('libro');
     root.innerHTML = html;
     if (PRINT) {
@@ -447,7 +642,7 @@ var Manual = (function () {
       var link = document.getElementById('manual-print-css');
       if (link) link.media = 'all';
     } else {
-      navBar();
+      navBar(lessonsList);
       enhanceCode(root);
       wire(root);
       if (location.hash) { var t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }
@@ -552,5 +747,10 @@ var Manual = (function () {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build);
   else build();
 
-  return { build: build, stats: function () { return { answers: answers.length, solutions: solutions.length }; } };
+  return {
+    build: build,
+    toggleA4View: toggleA4View,
+    printChapter: printChapter,
+    stats: function () { return { answers: answers.length, solutions: solutions.length, tomo: TOMO ? TOMO.id : 'all' }; }
+  };
 })();

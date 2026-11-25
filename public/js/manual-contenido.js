@@ -200,6 +200,46 @@ var MANUAL = (function () {
     { n: 'V', titulo: 'El proyecto final', ids: [34, 35], texto: 'Un sistema completo con objetos, colecciones, archivos y Git, y las preguntas típicas de una entrevista.' }
   ];
 
+  // Seis tomos progresivos alineados con los niveles del curso y los tramos de práctica
+  var TOMOS = [
+    {
+      id: '1', slug: 'tomo-1-super-basico', num: 'Tomo I', nivel: 'Súper Básico',
+      titulo: 'Primeros pasos en Java',
+      subtitulo: 'Desde 0 conocimiento: qué es programar, variables, operaciones, textos, conversiones y tu primer examen.',
+      includeCap0: true, ids: [1, 2, 3, 4, 5, 6]
+    },
+    {
+      id: '2', slug: 'tomo-2-basico', num: 'Tomo II', nivel: 'Básico',
+      titulo: 'Decisiones, bucles y arrays',
+      subtitulo: 'Condicionales if/else y switch, operadores lógicos, Scanner, while, for, arrays, paradigmas y examen integrador.',
+      includeCap0: false, ids: [7, 8, 9, 10, 11, 12, 13, 14, 15]
+    },
+    {
+      id: '3', slug: 'tomo-3-intermedio', num: 'Tomo III', nivel: 'Intermedio · POO',
+      titulo: 'Métodos, Objetos, Colecciones y Errores',
+      subtitulo: 'Métodos, clases, constructores, encapsulamiento, herencia, polimorfismo, interfaces, ArrayList, archivos, try-catch y menú POO.',
+      includeCap0: false, ids: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]
+    },
+    {
+      id: '4', slug: 'tomo-4-avanzado', num: 'Tomo IV', nivel: 'Avanzado · Cierre Fase 1',
+      titulo: 'Git, IDEs, Proyecto Final y Entrevista',
+      subtitulo: 'Control de versiones con Git, entornos de desarrollo, proyecto final de Biblioteca y entrevista técnica junior.',
+      includeCap0: false, ids: [30, 31, 32, 33, 34, 35]
+    },
+    {
+      id: '5', slug: 'tomo-5-spring-api', num: 'Tomo V', nivel: 'Fase 2 · Código Limpio y API REST',
+      titulo: 'Clean Code, SOLID, Spring Boot y JPA',
+      subtitulo: 'Deuda técnica, DRY/KISS, SOLID, STUPID, Maven, Spring Boot, HTTP/REST, capas, Java moderno, JPA/H2, DI, DTOs y pruebas de API.',
+      includeCap0: false, ids: [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113]
+    },
+    {
+      id: '6', slug: 'tomo-6-calidad-entrega', num: 'Tomo VI', nivel: 'Fase 2 · Calidad, Docker y Coloquio',
+      titulo: 'Testing, MySQL, Docker, Patrones y Defensa',
+      subtitulo: 'JUnit, Mockito/MockMvc, MySQL y SQL, logging y errores globales, Docker, Swagger, relaciones, validación, patrones, parciales y coloquio.',
+      includeCap0: false, ids: [114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125]
+    }
+  ];
+
   // Apéndice C: mensajes del compilador y de ejecución, traducidos
   var ERRORES = [
     ['\';\' expected', 'Compilación', 'Falta un punto y coma al final de la instrucción (mirá también la línea anterior).'],
@@ -244,5 +284,35 @@ var MANUAL = (function () {
     ['Git', 'git init · git status · git add . · git commit -m "msg" · git log --oneline · git push · git pull']
   ];
 
-  return { EDICION: EDICION, CAP0: CAP0, PARTES: PARTES, ERRORES: ERRORES, REFERENCIA: REFERENCIA };
+  // Apéndice C (Fase 2): errores típicos de Spring Boot, REST, JPA, SQL y Docker
+  var ERRORES_F2 = [
+    ['HTTP 415 Unsupported Media Type', 'Pedido REST', 'Falta el header Content-Type: application/json al enviar JSON con POST o PUT.'],
+    ['HTTP 400 MethodArgumentNotValidException', 'Validación DTO', 'Falló @NotBlank, @Positive o @Min en el DTO. Revisá el JSON enviado y @Valid en el Controller.'],
+    ['HTTP 409 Conflict / DataIntegrityViolationException', 'Regla de negocio', 'Intentaste crear o actualizar un valor único repetido (ej. nombre de producto duplicado).'],
+    ['HTTP 404 RecursoNoEncontradoException', 'Consulta REST', 'No existe un registro activo con ese id, o la ruta URL está mal escrita.'],
+    ['HTTP 405 Method Not Allowed', 'Pedido REST', 'La ruta existe, pero no admite ese verbo HTTP (ej. PATCH en una ruta que solo acepta GET/PUT/DELETE).'],
+    ['NoSuchBeanDefinitionException', 'Arranque Spring', 'Falta @Service, @Repository o @Component en la clase que intentás inyectar por constructor.'],
+    ['PropertyReferenceException / QueryCreationException', 'Spring Data JPA', 'Un método derivado (ej. findByNombre) nombra un atributo que no existe con ese nombre en la @Entity.'],
+    ['StackOverflowError al serializar JSON', 'Relaciones JPA', 'Devolviste una @Entity bidireccional directo desde el Controller: convertila siempre a un DTO record.'],
+    ['Communications link failure (localhost:3306)', 'Docker Compose', 'Dentro de un contenedor, localhost es el propio contenedor: usá el nombre de servicio (DB_HOST=db).'],
+    ['SQLSyntaxErrorException', 'MySQL / H2', 'Error de sintaxis SQL: olvidaste comillas simples en texto (\'Yerba\'), FROM o la cláusula ON en un JOIN.']
+  ];
+
+  // Apéndice D (Fase 2): hoja de referencia rápida de Spring Boot, JPA, Testing y Docker
+  var REFERENCIA_F2 = [
+    ['Controller', '@RestController · @RequestMapping("/api/productos") · @GetMapping · @PostMapping · @PutMapping · @DeleteMapping'],
+    ['Parámetros', '@PathVariable Long id · @RequestParam Integer minimo · @Valid @RequestBody ProductoRequest req'],
+    ['Códigos HTTP', '200 OK · 201 Created · 204 No Content · 400 Bad Request · 404 Not Found · 405 Method Not Allowed · 409 Conflict · 500'],
+    ['Capas / DI', 'Controller (HTTP/DTO) → Service (reglas) → Repository (datos) · private final + constructor'],
+    ['Java Moderno', 'record Dto(Long id, String nombre) {} · Optional.orElseThrow(...) · list.stream().filter(...).map(...).toList()'],
+    ['Entidades JPA', '@Entity · @Table(name="productos") · @Id · @GeneratedValue(strategy = GenerationType.IDENTITY) · @Column(unique=true)'],
+    ['Relaciones', '@ManyToOne + @JoinColumn(name="cliente_id") en el lado muchos · @OneToMany(mappedBy="cliente") en el lado uno'],
+    ['Validación', '@NotBlank · @NotNull · @Positive · @Min(0) · @Email en el DTO + @Valid en el Controller'],
+    ['Errores / Log', '@RestControllerAdvice + @ExceptionHandler(MiExcepcion.class) · @Slf4j → log.info / log.warn (nunca claves)'],
+    ['Testing AAA', '@Test · @ExtendWith(MockitoExtension.class) · @Mock · @InjectMocks · when(...).thenReturn(...) · verify(...)'],
+    ['SQL esencial', 'SELECT col FROM tabla WHERE cond ORDER BY col · INSERT INTO t (c) VALUES (\'x\') · UPDATE t SET c=1 WHERE id=2'],
+    ['Docker', 'Dockerfile (FROM eclipse-temurin:21-jre + ENTRYPOINT) · docker compose up -d --build · condition: service_healthy']
+  ];
+
+  return { EDICION: EDICION, CAP0: CAP0, PARTES: PARTES, TOMOS: TOMOS, ERRORES: ERRORES, REFERENCIA: REFERENCIA, ERRORES_F2: ERRORES_F2, REFERENCIA_F2: REFERENCIA_F2 };
 })();

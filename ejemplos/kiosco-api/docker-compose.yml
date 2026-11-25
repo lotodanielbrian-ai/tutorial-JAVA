@@ -2,15 +2,15 @@ services:
   db:
     image: mysql:8.4
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: kiosco
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-kiosco}
     ports:
       - "3307:3306"
     volumes:
       - datos-kiosco:/var/lib/mysql
     healthcheck:
       # Por TCP: mientras se inicializa, MySQL solo atiende por socket, y localhost daría un falso OK
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p\"$$MYSQL_ROOT_PASSWORD\""]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -22,8 +22,8 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: mysql
       DB_HOST: db
-      DB_USER: root
-      DB_PASSWORD: root
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-root}
     ports:
       - "8080:8080"
     depends_on:

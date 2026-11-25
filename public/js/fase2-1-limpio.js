@@ -4,7 +4,7 @@ var LESSONS_F2 = typeof LESSONS_F2 === 'undefined' ? [] : LESSONS_F2;
 var PRACTICA = typeof PRACTICA === 'undefined' ? {} : PRACTICA;
 
 function f2Mini(q, a) {
-  return `<div class="analogy-card"><p><strong>${q}</strong></p><p class="quiz-reveal" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ ${a}</p></div>`;
+  return `<div class="analogy-card"><p><strong>${q}</strong></p><p class="quiz-reveal" tabindex="0" role="button" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="var n=this.nextElementSibling;n.style.display=n.style.display==='block'?'none':'block'" style="cursor:pointer;color:var(--blue);font-weight:600">👆 Ver respuesta</p><p style="display:none;color:var(--greentx);font-weight:600">✅ ${a}</p></div>`;
 }
 function f2Card(emoji, title, html) {
   return `<div class="analogy-card"><span class="emoji-big">${emoji}</span><h4>${title}</h4>${html}</div>`;
@@ -369,6 +369,8 @@ PRACTICA[104] = {
     { t: 'match', q: 'Uní cada síntoma con su remedio.', pairs: [['Código repetido', 'DRY y refactorizar'], ['Clases muy atadas', 'Interfaces e inyección'], ['Nombres confusos', 'Renombrar con sentido'], ['Complicar antes de tiempo', 'KISS']], why: 'Es el recetario: síntoma y tratamiento.' },
     { t: 'tf', q: 'Optimizar todo desde el primer día es una buena práctica.', a: false, why: 'Agrega complejidad sin saber si hace falta. Primero que funcione y se entienda; después se mide.' },
     { t: 'output', q: 'Un estado global sorprende. ¿Qué imprime?', code: 'public class Main {\n    static int contador = 0;\n    static void a() { contador++; }\n    static void b() { contador = 10; }\n    public static void main(String[] args) {\n        a();\n        b();\n        a();\n        System.out.println(contador);\n    }\n}', a: '11', why: 'Cualquier método puede pisar el valor: por eso el estado global cuesta tanto de seguir.' },
-    { t: 'short', q: '¿Por qué un código muy acoplado es difícil de probar?', any: [['depende', 'atad', 'aislar', 'separar', 'junto', 'sin la otra', 'todo']], model: 'Porque no se puede probar una pieza sola: depende de las demás y hay que levantar todo junto.', why: 'Si es fácil de probar, suele estar bien diseñado.' }
+    { t: 'short', q: '¿Por qué un código muy acoplado es difícil de probar?', any: [['depende', 'atad', 'aislar', 'separar', 'junto', 'sin la otra', 'todo']], model: 'Porque no se puede probar una pieza sola: depende de las demás y hay que levantar todo junto.', why: 'Si es fácil de probar, suele estar bien diseñado.' },
+    { t: 'mc', q: 'Si <code>PedidoService</code> hace <code>new MysqlRepo()</code> adentro, ¿qué problema aparece?', o: ['Queda acoplado y cuesta testearlo aislado', 'No compila si el método main no es static', 'Spring genera dos bases de datos vacías', 'La consulta SQL siempre devuelve null'], a: 0, hint: 'Pensá cómo harías para reemplazar esa base por un doble en un test unitario.', why: 'Es alto acoplamiento (Tight Coupling): no podés inyectar un repositorio falso para testear.' },
+    { t: 'tf', q: 'Usar un Singleton global mutable para guardar datos de sesión facilita escribir tests independientes.', a: false, why: 'El estado global compartido contamina otros tests y hace que el orden de ejecución importe.' }
   ]
 };

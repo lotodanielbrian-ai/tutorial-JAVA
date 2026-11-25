@@ -282,7 +282,7 @@ var Practica = (function () {
         return '<p class="pr-task">' + it.task + '</p>' +
           (it.stdin && it.stdin.length ? '<div class="exp-out-label">Entrada simulada</div><div class="exp-out">' + e(it.stdin.join('\n')) + '</div>' : '') +
           '<div class="exp-out-label">Output esperado</div><div class="exp-out">' + e(it.expected) + '</div>' +
-          '<textarea class="pr-editor" id="pr-in-' + key + '" rows="' + Math.min(18, it.starter.split('\n').length + 4) + '" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Tu código">' + e(it.starter) + '</textarea>';
+          '<textarea class="pr-editor" id="pr-in-' + key + '" rows="' + Math.min(18, it.starter.split('\n').length + 4) + '" onkeydown="Practica.editorKey(event,this)" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Tu código">' + e(it.starter) + '</textarea>';
       case 'step':
         return '<p class="pr-task">' + it.do + '</p>' +
           (it.cmd ? '<pre class="pr-pre">' + e(it.cmd) + '</pre>' : '') +
@@ -326,8 +326,13 @@ var Practica = (function () {
       action = '<button type="button" class="pr-check" onclick="Practica.check(\'' + key + '\')">' + (it.t === 'short' ? 'Comparar' : 'Comprobar') + '</button>';
     }
     var body = bodyOf(it, key);
-    var fb = waiting ? ' bad"' : '"';
-    var fbHtml = waiting ? '<strong>📌 Respuesta:</strong> ' + answerText(it) + '<div class="pr-why">' + it.why + '</div>' : '';
+    var solvedWait = waiting && state.scores[key] !== undefined && state.scores[key] >= 0.5;
+    var fb = waiting ? (solvedWait ? ' good"' : ' bad"') : '"';
+    var fbHtml = waiting
+      ? (solvedWait
+        ? '<strong>✅ Resuelta' + (state.scores[key] < 1 ? ' en el 2.º intento' : '') + '.</strong> ' + it.why + '<div class="pr-why">Volverá en tu repaso para asegurarte de recordarla sin dudar.</div>'
+        : '<strong>📌 Respuesta:</strong> ' + answerText(it) + '<div class="pr-why">' + it.why + '</div>')
+      : '';
     return '<article class="pr-item' + (status ? ' is-' + status : '') + '" id="pr-' + key + '">' +
       '<div class="pr-head"><span class="pr-chip">' + LABELS[it.t] + '</span>' + (status ? statusChip(key, status) : '') + '<span class="pr-num">' + label + '</span></div>' +
       '<div class="pr-q">' + q + '</div>' + (waiting ? '<fieldset class="pr-fs" disabled>' + body + '</fieldset>' : body) +
@@ -588,6 +593,15 @@ var Practica = (function () {
   function resetReto(key) {
     $('pr-in-' + key).value = itemOf(key).starter;
     feedback(key, '', '');
+  }
+
+  function editorKey(e, el) {
+    if (e.key !== 'Tab') return;
+    e.preventDefault();
+    var s = el.selectionStart;
+    var en = el.selectionEnd;
+    el.value = el.value.substring(0, s) + '    ' + el.value.substring(en);
+    el.selectionStart = el.selectionEnd = s + 4;
   }
 
   function showSolution(key) {
@@ -1086,6 +1100,7 @@ var Practica = (function () {
     sendHttp: sendHttp,
     retoHint: retoHint,
     resetReto: resetReto,
+    editorKey: editorKey,
     showSolution: showSolution,
     showPanel: showPanel,
     fromForm: fromForm,

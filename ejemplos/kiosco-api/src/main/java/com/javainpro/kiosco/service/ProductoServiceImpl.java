@@ -47,6 +47,10 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     public ProductoResponse actualizar(Long id, ProductoRequest request) {
         Producto producto = buscarActivo(id);
+        if (!producto.getNombre().equals(request.nombre()) && repository.existsByNombre(request.nombre())) {
+            log.warn("Producto duplicado al actualizar id {}: {}", id, request.nombre());
+            throw new ProductoDuplicadoException(request.nombre());
+        }
         copiarDatos(request, producto);
         return aRespuesta(repository.save(producto));
     }

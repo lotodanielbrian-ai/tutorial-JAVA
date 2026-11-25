@@ -7,17 +7,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.javainpro.kiosco.dto.ProductoRequest;
 import com.javainpro.kiosco.dto.ProductoResponse;
+import com.javainpro.kiosco.exception.ProductoDuplicadoException;
 import com.javainpro.kiosco.exception.RecursoNoEncontradoException;
 import com.javainpro.kiosco.service.ProductoService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -103,5 +106,27 @@ class ProductoControllerTest {
         doThrow(new RecursoNoEncontradoException("Producto", 9L)).when(service).eliminar(9L);
 
         mockMvc.perform(delete("/api/productos/9")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void actualizarConNombreDuplicadoResponde409() throws Exception {
+        when(service.actualizar(any(Long.class), any(ProductoRequest.class)))
+                .thenThrow(new ProductoDuplicadoException("Yerba"));
+
+        mockMvc.perform(put("/api/productos/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Yerba\",\"precio\":1200,\"stock\":5}"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void conflictoDeIntegridadEnBaseResponde409() throws Exception {
+        when(service.crear(any(ProductoRequest.class)))
+                .thenThrow(new DataIntegrityViolationException("Unique index violation"));
+
+        mockMvc.perform(post("/api/productos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nombre\":\"Mate\",\"precio\":900,\"stock\":4}"))
+                .andExpect(status().isConflict());
     }
 }

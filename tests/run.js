@@ -27,6 +27,10 @@ for (const f of fs.readdirSync(path.join(ROOT, 'public/js')).sort()) {
 }
 load('public/js/apilab.js');
 load('public/js/practica.js');
+load('public/js/guia-cero.js');
+load('public/js/bot.js');
+load('public/js/manual-figuras.js');
+load('public/js/manual-contenido.js');
 vm.runInContext('this.LESSONS_F2 = LESSONS_F2;', ctx);
 const LESSONS_F1 = ctx.LESSONS;
 const LESSONS = LESSONS_F1.concat(ctx.LESSONS_F2);
@@ -114,7 +118,9 @@ function checkData() {
     const p = PRACTICA[id];
     ok(LESSONS.some(l => String(l.id) === id), 'PRACTICA[' + id + '] no corresponde a una lección');
     ok(p.escalera && ['vida', 'modelo', 'pseudo', 'java', 'real'].every(k => p.escalera[k]), 'lección ' + id + ': escalera incompleta');
+    ok(Array.isArray(p.antes) && p.antes.length === 2 && p.antes[0] && p.antes[1], 'lección ' + id + ': falta pregunta previa (antes)');
     ok(Array.isArray(p.objetivos) && p.objetivos.length >= 2, 'lección ' + id + ': faltan objetivos');
+    ok(Array.isArray(p.items) && p.items.length >= 6, 'lección ' + id + ': faltan actividades (mínimo 6, tiene ' + (p.items || []).length + ')');
     (p.items || []).forEach((it, i) => {
       const at = 'lección ' + id + ' ítem ' + i + ' (' + it.t + ')';
       ok(validTypes.includes(it.t), at + ': tipo desconocido');
@@ -159,6 +165,127 @@ function checkData() {
       if (it.t === 'step') ok(it.do && it.ok, at + ': un paso dice qué hacer y cómo comprobarlo');
     });
   }
+
+  // Guía 0 Conocimiento (60/60), jHL sin spans corruptos, equilibrio de quizzes, Bot Java y validador flexible
+  const gc = ctx.GuiaCero.validateAll(LESSONS);
+  ok(gc.total === 60 && !gc.missing.length, 'GuiaCero debe cubrir las 60 lecciones (faltan: ' + gc.missing.join(',') + ')');
+  LESSONS.forEach(l => {
+    const d = ctx.GuiaCero.get(l.id);
+    if (d) [d.que, d.porque, d.paraque, d.dia, d.practica, d.tip].forEach(h => checkHtml(h, 'GuiaCero L' + l.id));
+    if (l.quiz) {
+      let scoreFirst = 0, scoreLast = 0;
+      l.quiz.questions.forEach(q => {
+        const lens = q.options.map(o => unhtml(o).length);
+        const maxLen = Math.max(...lens);
+        if (lens.indexOf(maxLen) === q.correct) scoreFirst++;
+        if (lens.lastIndexOf(maxLen) === q.correct) scoreLast++;
+      });
+      ok(scoreFirst < l.quiz.passing && scoreLast < l.quiz.passing, 'cuestionario L' + l.id + ' no debe aprobarse eligiendo siempre la opción más larga (' + scoreFirst + '/' + scoreLast + ' vs ' + l.quiz.passing + ')');
+    }
+    const htmls = [l.simple(), l.tutorial()].concat(l.exercise ? l.exercise.hints : []);
+    const cbMatches = htmls.join('\n').match(/<div class="cblock-body">([\s\S]*?)<\/div><\/div>/g) || [];
+    cbMatches.forEach(blk => {
+      const inner = blk.replace(/^<div class="cblock-body">|<\/div><\/div>$/g, '');
+      const hasNestedSpanInCC = (inner.match(/<span class="c[cs]">[\s\S]*?<\/span>/g) || []).some(tok => /<span class="c[sknm]">/.test(tok.slice(18)));
+      ok(!hasNestedSpanInCC, 'jHL corrompió comentario/string en lección ' + l.id);
+    });
+  });
+
+  ok(ctx.JavaBot && ctx.JavaBot.KB.length >= 35 && ctx.JavaBot.TIPS_JAVA.length >= 25, 'JavaBot debe tener >=35 temas y >=25 tips');
+  [
+    ['que es un algoritmo', /algoritmo/i],
+    ['como instalo java', /JDK|instalar/i],
+    ['no entiendo public static void main', /public static void main/i],
+    ['diferencia entre print y println', /print/i],
+    ['que es char', /Variables/i],
+    ['para que sirve do while', /do-while/i],
+    ['for each como funciona', /for-each/i],
+    ['que es hashset', /HashSet/i],
+    ['que es lombok', /Lombok/i],
+    ['como uso maven', /Maven/i],
+    ['que es h2', /JPA|SQL/i],
+    ['que significa error 404', /HTTP|REST/i],
+    ['por que me da nullpointerexception', /try-catch|excepciones/i],
+    ['que es encapsulamiento', /Encapsulamiento/i],
+    ['diferencia entre interfaz y clase abstracta', /Interfaces/i],
+    ['como borrar de un arraylist', /ArrayList/i],
+    ['que es try with resources', /archivos/i],
+    ['como vuelvo atras en git', /Git/i],
+    ['que ide me conviene', /IDE/i],
+    ['que es un dto', /DTO|capas/i],
+    ['no entiendo nada por donde empiezo', /destrabarte/i],
+    ['cannot find symbol', /compilación/i],
+    ['arrayindexoutofboundsexception', /Runtime/i],
+    ['que es json', /JSON/i],
+    ['que es un enum', /enum/i],
+    ['que es recursividad', /recursividad/i],
+    ['para que sirve constructor', /Constructor/i],
+    ['por qué == no funciona con textos', /Strings/i],
+    ['cómo uso random', /Random/i],
+    ['qué pasa si divido por cero', /División/i],
+    ['qué es un log', /log/i],
+    ['cuántos bytes tiene un long', /Variables/i],
+    ['qué es Java', /Qué es Java/i],
+    ['Java y JavaScript son lo mismo', /JavaScript/i],
+    ['me sale error', /Revisión de tu código/i],
+    ['matriz', /Matrices/i],
+    ['bucles anidados', /Matrices/i],
+    ['toString', /toString/i],
+    ['StringBuilder', /StringBuilder/i],
+    ['sobrecarga', /Sobrecarga/i],
+    ['gracias', /De nada/i],
+    ['tema inexistente xyzz', /.+/]
+  ].forEach(([q, expectedTitle]) => {
+    const ans = ctx.JavaBot.ask(q, { lesson: LESSONS[0] });
+    ok(ans && typeof ans.html === 'string' && ans.html.indexOf('bot-card') !== -1, 'JavaBot.ask(' + q + ') debe responder tarjeta útil');
+    ok(expectedTitle.test(ans.title), 'JavaBot.ask(' + q + ') respondió "' + ans.title + '" en lugar de ' + expectedTitle);
+  });
+
+  // Frases técnicas falsas prohibidas (anti-regresión)
+  LESSONS.forEach(l => {
+    const txt = l.simple() + '\n' + l.tutorial();
+    ok(!/Sin new,\s*la variable es null/i.test(txt), 'lección ' + l.id + ': contiene afirmación falsa sobre new/null');
+    ok(!/El Dockerfile define un contenedor/i.test(txt), 'lección ' + l.id + ': el Dockerfile define una imagen, no un contenedor');
+  });
+
+  // Figuras SVG 100% (60/60 lecciones + orientación) con marker IDs únicos
+  const seenMarkerIds = new Set();
+  Object.keys(ctx.FIGURAS || {}).forEach(k => {
+    const f = ctx.FIGURAS[k]();
+    ok(f && f.svg && f.svg.indexOf('<svg') === 0, 'figura SVG inválida para clave ' + k);
+    const mm = f && f.svg && f.svg.match(/<marker\s+id="([^"]+)"/);
+    if (mm) {
+      ok(!seenMarkerIds.has(mm[1]), 'marker SVG duplicado: ' + mm[1]);
+      seenMarkerIds.add(mm[1]);
+    }
+  });
+  LESSONS.forEach(l => {
+    const f = ctx.FIGURAS && ctx.FIGURAS[l.id] && ctx.FIGURAS[l.id]();
+    ok(f && f.svg && f.svg.indexOf('<svg') === 0, 'falta figura SVG para la lección ' + l.id);
+  });
+
+  // Casos críticos de JavaRun (regresiones QA: Arrays.sort rango, setCharAt, Map.merge, switch con flechas)
+  {
+    const rSort = ctx.JavaRun.run('import java.util.Arrays; public class Main { public static void main(String[] args) { int[] a = {5, 4, 1, 2, 9}; Arrays.sort(a, 1, 4); System.out.println(Arrays.toString(a)); } }');
+    ok(rSort.ok && norm(rSort.output) === '[5, 1, 2, 4, 9]', 'JavaRun Arrays.sort(a, 1, 4) falló: ' + JSON.stringify(rSort));
+    const rSb = ctx.JavaRun.run('public class Main { public static void main(String[] args) { StringBuilder sb = new StringBuilder("hola"); sb.setCharAt(0, \'H\'); System.out.println(sb.toString()); } }');
+    ok(rSb.ok && norm(rSb.output) === 'Hola', 'JavaRun StringBuilder.setCharAt falló: ' + JSON.stringify(rSb));
+    const rMerge = ctx.JavaRun.run('import java.util.*; public class Main { public static void main(String[] args) { Map<String, Integer> m = new HashMap<>(); m.merge("a", 1, Integer::sum); m.merge("a", 2, Integer::sum); System.out.println(m.get("a")); } }');
+    ok(rMerge.ok && norm(rMerge.output) === '3', 'JavaRun Map.merge falló: ' + JSON.stringify(rMerge));
+    const rSw = ctx.JavaRun.run('public class Main { enum Dia { LUN, MAR } public static void main(String[] args) { Dia d = Dia.MAR; switch (d) { case LUN -> System.out.println("1"); case MAR -> System.out.println("2"); } } }');
+    ok(rSw.ok && norm(rSw.output) === '2', 'JavaRun switch con flechas falló: ' + JSON.stringify(rSw));
+  }
+  ok(ctx.MANUAL && Array.isArray(ctx.MANUAL.ERRORES_F2) && ctx.MANUAL.ERRORES_F2.length >= 8, 'MANUAL.ERRORES_F2 debe tener errores de Fase 2');
+  ok(ctx.MANUAL && Array.isArray(ctx.MANUAL.REFERENCIA_F2) && ctx.MANUAL.REFERENCIA_F2.length >= 10, 'MANUAL.REFERENCIA_F2 debe tener referencia de Fase 2');
+
+  const vL3 = ctx.localValidate(3, wrap('int a = 15, b = 4;\nSystem.out.println("Suma: " + (b + a));\nSystem.out.println("Resta: " + (a - b));\nSystem.out.println("Producto: " + (b * a));\nSystem.out.println("División entera: " + (a / b));\nSystem.out.println("Resto: " + (a % b));'));
+  ok(vL3.simulated && !vL3.conceptErr, 'L3 debe aceptar b + a y b * a');
+  const vL11 = ctx.localValidate(11, wrap('int i = 1;\nwhile (i <= 5) {\n  System.out.println("Contando: " + i);\n  i = i + 1;\n}\nSystem.out.println("¡Listo!");'));
+  ok(vL11.simulated && !vL11.conceptErr, 'L11 debe aceptar i = i + 1');
+  const vL16 = ctx.localValidate(16, 'public class Main {\n  static void imprimirSeparador () {\n    System.out.println("--- --- ---");\n  }\n  public static void main(String[] args) {\n    imprimirSeparador (); imprimirSeparador (); imprimirSeparador ();\n  }\n}');
+  ok(vL16.simulated && !vL16.conceptErr, 'L16 debe aceptar espacios antes de ()');
+  const vGit = ctx.localValidate(31, "git init\ngit add Main.java\ngit commit -m 'uno'\ngit add Main.java\ngit commit -m 'dos'\ngit log --oneline\ngit checkout abc123 -- Main.java");
+  ok(vGit.ok, 'gitValidate debe aceptar comillas simples en -m');
 }
 
 // ── 2 y 3. Programas a verificar con el JDK ────────────────────────────
