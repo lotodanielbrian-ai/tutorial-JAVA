@@ -65,17 +65,17 @@ var JavaBot = (function () {
     {
       id: 'division',
       lessonId: 3,
-      keywords: ['division', 'dividir', 'divido', 'dividir por cero', 'por cero', 'entera', 'decimal', 'resto', 'modulo', '%', 'operador', 'operadores', 'cuenta', 'promedio'],
-      title: 'División entera, división por cero y operador resto (%)',
-      que: 'Si dividís dos enteros (<code>7 / 2</code>), Java descarta lo que viene después de la coma y da <code>3</code>; el operador <code>%</code> te da lo que sobró (<code>1</code>). Dividir un <code>int</code> por <code>0</code> lanza <code>ArithmeticException</code>; con <code>double</code> (<code>10.0 / 0</code>) da <code>Infinity</code>.',
+      keywords: ['division', 'dividir', 'divido', 'dividir por cero', 'por cero', 'entera', 'decimal', 'resto', 'modulo', '%', 'par', 'impar', 'numero par', 'es par', 'operador', 'operadores', 'cuenta', 'promedio'],
+      title: 'División entera, resto (%) y saber si un número es par',
+      que: 'Si dividís dos enteros (<code>7 / 2</code>), Java descarta lo que viene después de la coma y da <code>3</code>; el operador <code>%</code> te da el resto (<code>7 % 2 == 1</code>, y <code>n % 2 == 0</code> sirve para saber si <code>n</code> es par). Dividir un <code>int</code> por <code>0</code> lanza <code>ArithmeticException</code>; con <code>double</code> (<code>10.0 / 0</code>) da <code>Infinity</code>.',
       porque: 'En Java el resultado conserva el tipo de los operandos: entero con entero da entero.',
-      ejemplo: 'Repartir 7 empanadas entre 2 personas: tocan 3 enteras cada uno (<code>7 / 2</code>) y sobra 1 en la caja (<code>7 % 2</code>). Si querés 3.5, usá <code>7.0 / 2</code>.',
+      ejemplo: 'Repartir 7 empanadas entre 2 personas: tocan 3 enteras cada uno (<code>7 / 2</code>) y sobra 1 en la caja (<code>7 % 2</code>). Si sobra <code>0</code>, el número era par.',
       buenaPractica: 'Para promedios reales con decimales usá <code>double</code> en al menos un número (<code>/ 3.0</code>) y verificá que el divisor no sea <code>0</code> antes de dividir.'
     },
     {
       id: 'strings',
       lessonId: 4,
-      keywords: ['string', 'texto', 'textos', 'cadena', 'cadenas', 'equals', '==', 'comparar', 'comparar textos', 'trim', 'mayuscula', 'touppercase', 'tolowercase', 'contains', 'charat', 'length'],
+      keywords: ['string', 'texto', 'textos', 'cadena', 'cadenas', 'equals', '==', 'comparar textos', 'trim', 'mayuscula', 'touppercase', 'tolowercase', 'contains', 'charat', 'length'],
       title: 'Strings y cómo comparar textos correctamente',
       que: '<code>String</code> guarda texto y trae métodos como <code>.trim()</code>, <code>.toUpperCase()</code>, <code>.length()</code> y <code>.equals(...)</code>.',
       porque: '<code>==</code> compara si dos variables apuntan a la misma dirección en memoria, mientras <code>.equals()</code> compara las letras reales del texto.',
@@ -95,8 +95,8 @@ var JavaBot = (function () {
     {
       id: 'condicionales',
       lessonId: 7,
-      keywords: ['if', 'else', 'condicional', 'condicion', 'decision', 'mayor', 'menor', 'comparacion'],
-      title: 'Decisiones con if / else if / else',
+      keywords: ['if', 'else', 'condicional', 'condicion', 'decision', 'mayor', 'menor', 'comparar', 'comparo', 'comparar numeros', 'comparacion'],
+      title: 'Decisiones con if / else if / else y comparación de números',
       que: 'Ejecuta un bloque de código solo cuando una condición evaluada resulta <code>true</code>.',
       porque: 'Sin condicionales el programa haría siempre lo mismo sin importar notas, edades o saldos.',
       ejemplo: 'El molinete del subte: si la tarjeta tiene saldo, gira y pasa; si no, suena la alarma y no abre.',
@@ -195,12 +195,12 @@ var JavaBot = (function () {
     {
       id: 'herencia',
       lessonId: 21,
-      keywords: ['herencia', 'extends', 'super', 'subclase', 'superclase'],
-      title: 'Herencia (extends y super)',
-      que: 'Permite que una clase hija reutilice atributos y métodos de una clase padre (<code>extends</code>) e inicialice la base con <code>super(...)</code>.',
-      porque: 'Evita duplicar campos comunes entre tipos emparentados ("un Gerente ES UN Empleado").',
-      ejemplo: 'Moto y Camión comparten patente y velocidad de <code>Vehiculo</code>, pero cada uno agrega lo propio.',
-      buenaPractica: 'Aplicá herencia solo cuando la relación "ES UN" sea estricta; si es "TIENE UN", usá composición (un atributo dentro de la clase).'
+      keywords: ['herencia', 'heredar', 'extends', 'super', 'subclase', 'superclase', 'dos clases', 'herencia multiple'],
+      title: 'Herencia (extends, super y por qué no hay herencia múltiple de clases)',
+      que: 'Permite que una clase hija reutilice atributos y métodos de una clase padre (<code>extends</code>) e inicialice la base con <code>super(...)</code>. En Java solo podés heredar de <strong>una sola clase</strong> (no existe herencia múltiple de clases), pero sí podés implementar <strong>varias interfaces</strong> (<code>implements A, B</code>).',
+      porque: 'Evita duplicar campos comunes entre tipos emparentados ("un Gerente ES UN Empleado") y evita ambigüedades (el problema del diamante) al limitar la herencia a una sola clase padre.',
+      ejemplo: 'Moto y Camión comparten patente y velocidad de <code>Vehiculo</code>, pero cada uno agrega lo propio; si además necesitan capacidades extra (<code>Asegurable</code>, <code>Rastreable</code>), implementan múltiples interfaces.',
+      buenaPractica: 'Aplicá herencia solo cuando la relación "ES UN" sea estricta; si es "TIENE UN", usá composición, y para combinar múltiples comportamientos usá interfaces.'
     },
     {
       id: 'polimorfismo',
@@ -365,7 +365,7 @@ var JavaBot = (function () {
     {
       id: 'docker_seguridad',
       lessonId: 118,
-      keywords: ['docker', 'dockerfile', 'compose', 'contenedor', 'valid', 'validacion', 'notblank', 'positive', 'advice', 'restcontrolleradvice', 'secret', 'password'],
+      keywords: ['docker', 'dockerfile', 'compose', 'contenedor', 'imagen docker', 'imagen y contenedor', 'valid', 'validacion', 'notblank', 'positive', 'advice', 'restcontrolleradvice', 'secret', 'password'],
       title: 'Validación (@Valid), Logs seguros y Docker',
       que: 'Validar entradas en la puerta con <code>@Valid</code>, centralizar errores en <code>@RestControllerAdvice</code>, loguear sin secretos y empaquetar en contenedores Docker.',
       porque: 'Protege la aplicación de datos inválidos, filtración de credenciales y fallos de entorno ("en mi PC anda").',
@@ -565,7 +565,7 @@ var JavaBot = (function () {
     {
       id: 'paso_por_valor',
       lessonId: 17,
-      keywords: ['paso por valor', 'por valor', 'por referencia', 'valor o referencia', 'copia del parametro'],
+      keywords: ['paso por valor', 'por valor', 'por referencia', 'valor o referencia', 'copia del parametro', 'no cambia afuera', 'no modifica la variable'],
       title: 'Paso por valor en Java (primitivos vs referencias)',
       que: 'En Java <strong>todo se pasa por valor</strong>: si pasás un <code>int</code>, el método recibe una copia y cambiarlo adentro no afecta la variable original. Si pasás un objeto o array, recibe una copia de la <em>referencia</em>: podés modificar sus atributos internos, pero reasignar el parámetro no cambia la variable del llamador.',
       porque: 'Explica por qué <code>duplicar(n)</code> no modifica <code>n</code> en <code>main</code>, mientras que <code>lista.add(...)</code> sí modifica la misma lista.',
@@ -585,7 +585,7 @@ var JavaBot = (function () {
     {
       id: 'recursividad',
       lessonId: null,
-      keywords: ['recursividad', 'recursion', 'recursivo', 'caso base', 'factorial'],
+      keywords: ['recursividad', 'recursion', 'recursivo', 'caso base', 'factorial', 'se llama a si misma', 'se llama a si mismo'],
       title: 'Qué es la recursividad (y el caso base)',
       que: 'Es una técnica donde un método se llama a sí mismo con un problema más chico hasta llegar a un <strong>caso base</strong> que corta la cadena.',
       porque: 'Simplifica problemas naturalmente jerárquicos como carpetas dentro de carpetas, árboles o cálculos matemáticos como factorial.',
@@ -641,6 +641,76 @@ var JavaBot = (function () {
       porque: 'Cuando anotás una clase con <code>@Service</code>, <code>@Repository</code>, <code>@RestController</code> o <code>@Component</code> (o un método con <code>@Bean</code>), Spring la instancia una vez y la inyecta donde otra clase la pida por constructor.',
       ejemplo: 'En vez de armar vos cada herramienta al llegar al taller (<code>new</code>), el encargado del depósito (Spring) te entrega listas las herramientas compartidas que pediste.',
       buenaPractica: 'Dejá que Spring gestione tus servicios y repositorios como beans e inyectalos siempre por constructor en campos <code>private final</code>.'
+    },
+    {
+      id: 'variables_entorno',
+      lessonId: 118,
+      keywords: ['variable de entorno', 'variables de entorno', '.env', 'env', 'getenv', 'system.getenv', 'entorno', 'credenciales', 'secretos'],
+      title: 'Variables de entorno (.env y System.getenv)',
+      que: 'Una <strong>variable de entorno</strong> es un dato de configuración (como contraseñas, puertos o hosts de base de datos) que vive en el sistema operativo o en Docker, fuera del código fuente. En Java se lee con <code>System.getenv("DB_PASSWORD")</code> y en Spring/Docker con <code>${DB_PASSWORD}</code>.',
+      porque: 'Permite usar la misma aplicación en tu PC, en pruebas y en producción cambiando solo la configuración, sin subir claves secretas a Git.',
+      ejemplo: 'Como la llave de un departamento guardada aparte en el llavero, en vez de dejarla pegada con cinta en el plano público del edificio.',
+      buenaPractica: 'Nunca escribas contraseñas ni tokens reales en <code>application.yml</code> o <code>docker-compose.yml</code>: leelos siempre desde variables de entorno y agregá <code>.env</code> al <code>.gitignore</code>.'
+    },
+    {
+      id: 'break_continue',
+      lessonId: 11,
+      keywords: ['break y continue', 'break vs continue', 'continue', 'salir del bucle', 'cortar bucle', 'saltar iteracion'],
+      title: 'Diferencia entre break y continue en bucles',
+      que: '<code>break</code> corta el bucle por completo y sale afuera; <code>continue</code> salta solo lo que queda de la vuelta actual y pasa inmediatamente a la siguiente iteración.',
+      porque: 'Permiten detener una búsqueda apenas encontraste el elemento (<code>break</code>) o ignorar casos inválidos sin anidar todo dentro de un <code>if</code> gigante (<code>continue</code>).',
+      ejemplo: 'Buscando un libro en una fila: <code>break</code> es parar apenas lo encontraste; <code>continue</code> es saltear los libros rotos y seguir mirando los demás.',
+      buenaPractica: 'Usá <code>break</code> y <code>continue</code> con moderación; si un método busca un dato, muchas veces un <code>return</code> temprano es todavía más claro.'
+    },
+    {
+      id: 'equals_hashcode',
+      lessonId: 24,
+      keywords: ['hashcode', 'equals y hashcode', 'contrato equals', 'comparar objetos'],
+      title: 'Por qué equals() y hashCode() van siempre juntos',
+      que: '<code>equals()</code> define cuándo dos objetos son lógicamente iguales (por ejemplo, mismo DNI o mismo ID), y <code>hashCode()</code> devuelve un número resumen usado por <code>HashSet</code> y <code>HashMap</code> para ubicarlos rápido.',
+      porque: 'El contrato de Java exige que si <code>a.equals(b)</code> es <code>true</code>, ambos <strong>deben</strong> devolver el mismo <code>hashCode()</code>; si no, <code>HashSet</code> y <code>HashMap</code> dejan de encontrar elementos que sí están adentro.',
+      ejemplo: '<code>hashCode()</code> es el número de pasillo de una biblioteca y <code>equals()</code> es revisar el título exacto: si dos libros iguales van a pasillos distintos, nunca se encuentran.',
+      buenaPractica: 'Si sobrescribís <code>equals()</code>, sobrescribí siempre <code>hashCode()</code> con los mismos campos (o usá <code>record</code> para DTOs, que los genera bien automáticamente).'
+    },
+    {
+      id: 'checked_unchecked',
+      lessonId: 28,
+      keywords: ['checked', 'unchecked', 'checked y unchecked', 'runtimeexception', 'excepcion verificada'],
+      title: 'Excepciones checked vs unchecked en Java',
+      que: 'Las <strong>checked</strong> (heredan de <code>Exception</code>, ej. <code>IOException</code>) obligan a manejarlas con <code>try/catch</code> o declararlas con <code>throws</code>; las <strong>unchecked</strong> (heredan de <code>RuntimeException</code>, ej. <code>NullPointerException</code>) no obligan en compilación.',
+      porque: 'Las checked modelan fallos externos esperables (disco, red); las unchecked suelen señalar errores de programación o reglas rotas en tiempo de ejecución.',
+      ejemplo: 'Checked es un chequeo obligatorio de equipaje antes de despegar; unchecked es tropezar con un escalón mal puesto durante el vuelo.',
+      buenaPractica: 'En Spring Boot, tus excepciones de negocio (como <code>RecursoNoEncontradoException</code>) suelen extender <code>RuntimeException</code> para manejarlas limpiamente en <code>@RestControllerAdvice</code>.'
+    },
+    {
+      id: 'bigdecimal',
+      lessonId: 5,
+      keywords: ['bigdecimal', 'precision decimal', '0.1 + 0.2', 'redondeo financiero', 'saldo bancario', 'double dinero', 'dinero double', 'centavos'],
+      title: 'BigDecimal vs double para dinero y precisión exacta',
+      que: '<code>double</code> usa punto flotante binario (por eso <code>0.1 + 0.2</code> da <code>0.30000000000000004</code>); <code>BigDecimal</code> representa decimales exactos con control de redondeo (<code>RoundingMode.HALF_UP</code>).',
+      porque: 'En facturación, impuestos o saldos bancarios perder un centavo acumulado rompe los balances contables.',
+      ejemplo: '<code>double</code> es medir con cinta métrica aproximada; <code>BigDecimal</code> es contar billetes y centavos en una caja registradora exacta.',
+      buenaPractica: 'Construí siempre <code>new BigDecimal("19.99")</code> desde <code>String</code> (nunca desde <code>double</code>) y usá <code>compareTo</code> en vez de <code>equals</code> para comparar montos.'
+    },
+    {
+      id: 'record_inmutable',
+      lessonId: 108,
+      keywords: ['record', 'records', 'inmutable', 'inmutabilidad', 'dto inmutable'],
+      title: 'Records e inmutabilidad en Java moderno (Java 16+)',
+      que: 'Un <code>record</code> (ej. <code>public record ProductoResponse(Long id, String nombre) {}</code>) crea en una sola línea una clase inmutable con campos <code>final</code>, constructor, accesores, <code>equals</code>, <code>hashCode</code> y <code>toString</code>.',
+      porque: 'Elimina código repetitivo y garantiza que un DTO no pueda ser alterado por accidente mientras viaja entre capas.',
+      ejemplo: 'Un recibo impreso: una vez emitido, todos pueden leer sus datos, pero nadie puede tacharle el monto.',
+      buenaPractica: 'Usá <code>record</code> para DTOs de entrada/salida en Spring Boot y evitá usarlos como <code>@Entity</code> de JPA (que requiere clases mutables con constructor vacío).'
+    },
+    {
+      id: 'garbage_collector',
+      lessonId: 0,
+      keywords: ['garbage collector', 'gc', 'recolector de basura', 'recoleccion de basura', 'heap', 'stack', 'memoria jvm', 'liberar memoria'],
+      title: 'Garbage Collector (GC) y memoria en la JVM',
+      que: 'El <strong>Garbage Collector</strong> es el proceso automático de la JVM que detecta objetos en el <em>heap</em> que ya no tienen ninguna referencia activa y libera su memoria sin que tengas que hacerlo a mano como en C/C++.',
+      porque: 'Evita errores graves de manejo manual de memoria y fugas básicas mientras te concentrás en la lógica de negocio.',
+      ejemplo: 'Como el personal de limpieza que retira las bandejas vacías de las mesas apenas nadie las está usando.',
+      buenaPractica: 'Aunque el GC libera memoria RAM, <strong>no cierra archivos ni conexiones</strong>: usá siempre <code>try-with-resources</code> para recursos externos y no guardes referencias innecesarias en listas <code>static</code>.'
     },
     {
       id: 'buenas_practicas',
@@ -874,7 +944,7 @@ var JavaBot = (function () {
     return bestScore >= 4 ? best : null;
   }
 
-  var GENERIC_KW = Object.assign(Object.create(null), { error: 1, dato: 1, tipo: 1, tipos: 1, codigo: 1, java: 1, valor: 1, get: 1, add: 1, set: 1, map: 1, simple: 1, cuerpo: 1, clase: 2, lista: 2, consola: 2 });
+  var GENERIC_KW = Object.assign(Object.create(null), { error: 1, dato: 1, tipo: 1, tipos: 1, codigo: 1, java: 1, valor: 1, get: 1, add: 1, set: 1, map: 1, simple: 1, cuerpo: 1, clase: 2, lista: 2, consola: 2, arreglo: 2, objeto: 2, objetos: 2, programacion: 2, menor: 2, mayor: 2, paso: 2, funcion: 2, archivo: 2, dinero: 2, imagen: 2 });
 
   function escapeRx(s) {
     return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -924,7 +994,129 @@ var JavaBot = (function () {
     return prev[lb];
   }
 
-  var STOP_WORDS = Object.assign(Object.create(null), { que: 1, como: 1, para: 1, por: 1, con: 1, sin: 1, del: 1, las: 1, los: 1, una: 1, uno: 1, unos: 1, esta: 1, este: 1, esto: 1, esa: 1, ese: 1, eso: 1, son: 1, hay: 1, tiene: 1, hacer: 1, hace: 1, sentencia: 1, palabra: 1, sirve: 1, usa: 1, usar: 1, java: 1 });
+  var STOP_WORDS = Object.assign(Object.create(null), {
+    que: 1, como: 1, para: 1, por: 1, con: 1, sin: 1, del: 1, las: 1, los: 1, una: 1, uno: 1, unos: 1,
+    esta: 1, este: 1, esto: 1, esa: 1, ese: 1, eso: 1, son: 1, hay: 1, tiene: 1, hacer: 1, hace: 1,
+    sentencia: 1, palabra: 1, sirve: 1, usa: 1, usar: 1, java: 1, puedo: 1, debo: 1, cuando: 1, donde: 1,
+    significa: 1, diferencia: 1, entre: 1, vez: 1, mas: 1, muy: 1, todo: 1, todos: 1, sobre: 1, cual: 1,
+    cuales: 1, mio: 1, programa: 1, queda: 1, sea: 1, ser: 1, conviene: 1,
+    nunca: 1, siempre: 1, numero: 1, numeros: 1, entra: 1, subo: 1, subir: 1, gana: 1, ganar: 1,
+    app: 1, programador: 1, programadores: 1, cuanto: 1, cuantos: 1, dos: 1, tres: 1, solo: 1, sola: 1,
+    entiendo: 1, entender: 1, saber: 1, quiero: 1, tengo: 1, necesito: 1, hago: 1, pasa: 1, cosas: 1, cosa: 1
+  });
+
+  var STEM_ALIASES = Object.assign(Object.create(null), {
+    mockeo: 'mock', mockear: 'mock', mockeando: 'mock', mockito: 'mock', mocks: 'mock',
+    heredar: 'herenc', hereda: 'herenc', heredan: 'herenc', heredando: 'herenc', herencia: 'herenc',
+    colgado: 'infinit', colgada: 'infinit', cuelga: 'infinit', traba: 'infinit', infinito: 'infinit', infinitamente: 'infinit',
+    nula: 'null', nulo: 'null', nulos: 'null', nulas: 'null',
+    juntar: 'concaten', concatenar: 'concaten', unir: 'concaten',
+    bidimencional: 'bidimensional', bidimensionales: 'bidimensional',
+    entornos: 'entorn', entorno: 'entorn',
+    deshacer: 'revert', volver: 'revert',
+    recorro: 'recorr', recorrer: 'recorr', recorroo: 'recorr',
+    ordeno: 'orden', ordenar: 'orden', ordenado: 'orden',
+    filtro: 'filtr', filtrar: 'filtr',
+    guardo: 'guard', guardar: 'guard',
+    convierto: 'convert', convertir: 'convert',
+    divido: 'divid', dividir: 'divid', division: 'divid',
+    leo: 'leer', leer: 'leer', lectura: 'leer',
+    escribo: 'escrib', escribir: 'escrib', escritura: 'escrib',
+    creo: 'crear', crear: 'crear',
+    pruebo: 'test', probar: 'test', prueba: 'test', pruebas: 'test', testing: 'test', unitario: 'test', unitarios: 'test',
+    compilo: 'compil', compila: 'compil', compilar: 'compil', compilacion: 'compil',
+    instalo: 'instal', instalar: 'instal', instalacion: 'instal',
+    excepciones: 'excepcion', exepcion: 'excepcion', exepciones: 'excepcion'
+  });
+
+  var KEEP_SHORT = Object.assign(Object.create(null), {
+    int: 1, for: 1, new: 1, get: 1, set: 1, map: 1, dto: 1, sql: 1, jpa: 1, log: 1, api: 1, git: 1,
+    add: 1, put: 1, try: 1, var: 1, jdk: 1, jre: 1, jvm: 1, ide: 1, dry: 1, ioc: 1, env: 1, pom: 1,
+    h2: 1, fk: 1, js: 1, io: 1, di: 1, '2d': 1, if: 1, gc: 1, par: 1
+  });
+
+  function stripHtmlText(s) {
+    return String(s == null ? '' : s).replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ');
+  }
+
+  function stemWord(w) {
+    if (!w) return '';
+    if (w[0] === '@') return w;
+    if (STEM_ALIASES[w]) return STEM_ALIASES[w];
+    if (KEEP_SHORT[w] || w.length <= 4) return w;
+    if (/^[a-z0-9_]+$/.test(w)) {
+      if (w.length >= 7 && /(aciones|iciones)$/.test(w)) return w.slice(0, -5);
+      if (w.length >= 6 && /(acion|icion)$/.test(w)) return w.slice(0, -3);
+      if (w.length >= 6 && /(ando|iendo)$/.test(w)) return w.slice(0, -4);
+      if (w.length >= 6 && /(ados|adas|idos|idas)$/.test(w)) return w.slice(0, -4);
+      if (w.length >= 5 && /(ado|ada|ido|ida)$/.test(w)) return w.slice(0, -3);
+      if (w.length >= 5 && /(es)$/.test(w) && !/(types|bytes|files|lines|nodes|cases|bases|clases)$/.test(w)) return w.slice(0, -2);
+      if (w.length >= 5 && /s$/.test(w) && !/(equals|throws|extends|implements|args|this|class|arrays|streams|collections|objects|records|beans|logs|tests)$/.test(w)) return w.slice(0, -1);
+    }
+    return w;
+  }
+
+  function tokenize(text) {
+    return fold(text).split(/\s+/).filter(function (w) {
+      if (!w) return false;
+      if (w[0] === '@' || KEEP_SHORT[w] || /^[=!&|%]+$/.test(w)) return true;
+      return w.length >= 3 && !STOP_WORDS[w];
+    });
+  }
+
+  // Índice TF-IDF / IDF precalculado sobre KB (título, keywords y cuerpo)
+  var KB_INDEX = null;
+  var KB_IDF = Object.create(null);
+
+  function ensureKbIndex() {
+    if (KB_INDEX) return;
+    var df = Object.create(null);
+    KB_INDEX = KB.map(function (item) {
+      var kwPhrases = [];
+      var kwStems = Object.create(null);
+      var kwExact = Object.create(null);
+      item.keywords.forEach(function (kw) {
+        var f = fold(kw);
+        if (!f) return;
+        if (f.indexOf(' ') !== -1) {
+          kwPhrases.push(f);
+          return;
+        }
+        kwExact[f] = 1;
+        tokenize(f).forEach(function (t) {
+          var st = stemWord(t);
+          kwStems[st] = 1;
+          if (t[0] === '@') kwStems[t.slice(1)] = 1;
+        });
+      });
+      var titleStems = Object.create(null);
+      tokenize(item.title).forEach(function (t) {
+        var st = stemWord(t);
+        titleStems[st] = 1;
+        if (t[0] === '@') titleStems[t.slice(1)] = 1;
+      });
+      var bodyStems = Object.create(null);
+      tokenize(stripHtmlText(item.que + ' ' + item.porque + ' ' + item.buenaPractica)).forEach(function (t) {
+        var st = stemWord(t);
+        bodyStems[st] = 1;
+        if (t[0] === '@') bodyStems[t.slice(1)] = 1;
+      });
+      var docSet = Object.create(null);
+      Object.keys(kwStems).forEach(function (k) { docSet[k] = 1; });
+      Object.keys(titleStems).forEach(function (k) { docSet[k] = 1; });
+      Object.keys(bodyStems).forEach(function (k) { docSet[k] = 1; });
+      Object.keys(docSet).forEach(function (k) { df[k] = (df[k] || 0) + 1; });
+      return { item: item, kwPhrases: kwPhrases, kwExact: kwExact, kwStems: kwStems, titleStems: titleStems, bodyStems: bodyStems };
+    });
+    var N = KB.length;
+    Object.keys(df).forEach(function (k) {
+      KB_IDF[k] = Math.log((N + 1) / (df[k] + 1)) + 1.0;
+    });
+  }
+
+  function idfOf(st) {
+    return KB_IDF[st] || (Math.log(KB.length + 1) + 1.0);
+  }
 
   function topSuggestions(q, limit) {
     var tokens = q.split(/\s+/).filter(function (w) { return w.length >= 3 && !STOP_WORDS[w]; });
@@ -978,7 +1170,7 @@ var JavaBot = (function () {
         html: '<div class="bot-card"><div class="bot-card-title">🎯 Por qué y para qué: ' + esc(entry.title) + '</div><p>' + entry.porque + '</p></div>'
       };
     }
-    if (/^(y )?(cual es la )?(buena practica|consejo|tip)( de eso| para eso)?$|^como (se usa|lo uso)( bien)?( eso)?$/.test(q)) {
+    if (/^(y )?(cual es la |alguna |una )?(buena practica|buenas practicas|consejo|tip)( de eso| para eso)?$|^como (se usa|lo uso)( bien)?( eso)?$/.test(q)) {
       return {
         title: entry.title,
         lessonId: entry.lessonId,
@@ -1043,7 +1235,7 @@ var JavaBot = (function () {
       };
     }
 
-    if (/^(me sale error|no entiendo el error|tengo un error|me tira error|me da error|no anda|mi codigo no anda|no funciona mi codigo|revisar mi codigo|revisa mi codigo)$/.test(q)) {
+    if (/^(me sale error|no entiendo el error|tengo un error|me tira error|me da error|no anda|mi codigo no anda|no funciona mi codigo|revisar mi codigo|revisa mi codigo|no me compila|no me compila y no se por que|no compila y no se por que|por que no me compila)$/.test(q)) {
       var diag = analyzeCurrentCode();
       return {
         title: 'Revisión de tu código',
@@ -1067,30 +1259,76 @@ var JavaBot = (function () {
       if (divEntry) { lastEntry = divEntry; return { title: divEntry.title, lessonId: divEntry.lessonId, html: renderEntry(divEntry) }; }
     }
 
+    ensureKbIndex();
+    var qTokens = tokenize(q);
+    var qStems = [];
+    var seenSt = Object.create(null);
+    qTokens.forEach(function (t) {
+      var st = stemWord(t);
+      if (st && !seenSt[st]) { seenSt[st] = 1; qStems.push({ raw: t, st: st, isAnn: t[0] === '@' }); }
+    });
+
     var best = null, bestScore = 0;
     var introEntry = null, introScore = 0;
-    KB.forEach(function (item) {
+    KB_INDEX.forEach(function (doc) {
+      var item = doc.item;
       var score = 0;
+      var kwHits = 0;
+      var bodyHits = 0;
+
+      // 1. Frases exactas y coincidencias exactas de query completa
       item.keywords.forEach(function (kw) {
         var k = fold(kw);
         if (!k) return;
-        if (q === k) score += 24;
-        else if (matchKeyword(q, k)) {
-          var w = GENERIC_KW[k] ? GENERIC_KW[k] : Math.max(5, k.length);
-          if (q.indexOf('@' + k) !== -1 || k[0] === '@') w += 6;
-          score += w;
+        if (q === k) { score += 36; kwHits += 2; return; }
+        if (k.indexOf(' ') !== -1 && matchKeyword(q, k)) {
+          score += 14 + k.length * 0.4;
+          kwHits += 2;
+        } else if (/^[=!&|%]+$/.test(k) && matchKeyword(q, k)) {
+          score += 10;
+          kwHits++;
         }
       });
+
+      // 2. Puntaje TF-IDF por token (sin doble conteo entre keyword y título; sujeto principal y @anotaciones con mayor peso)
+      qStems.forEach(function (qs, idx) {
+        var st = qs.st;
+        var idf = idfOf(st);
+        var genMult = GENERIC_KW[qs.raw] ? 0.45 : 1.0;
+        var subjMult = idx === 0 ? 1.45 : 1.0;
+        var annBoost = qs.isAnn ? 11 : 0;
+        var tokScore = 0;
+        var inKw = !!(doc.kwExact[qs.raw] || doc.kwStems[st] || (qs.isAnn && (doc.kwExact[qs.raw.slice(1)] || doc.kwStems[st.slice(1)])));
+        var inTitle = !!(doc.titleStems[st] || (qs.isAnn && doc.titleStems[st.slice(1)]));
+
+        if (inKw) {
+          tokScore = Math.max(tokScore, idf * 2.5 * genMult * subjMult + annBoost);
+          if (!GENERIC_KW[qs.raw]) kwHits++;
+        }
+        if (inTitle) {
+          tokScore = Math.max(tokScore, idf * 2.0 * genMult * subjMult + annBoost * 0.8);
+          if (inKw) tokScore += idf * 0.45 * genMult; // pequeño bonus si está en ambos
+          if (!GENERIC_KW[qs.raw]) kwHits++;
+        }
+        if (!inKw && !inTitle && (doc.bodyStems[st] || (qs.isAnn && doc.bodyStems[st.slice(1)]))) {
+          tokScore = idf * 0.75 * genMult + (qs.isAnn ? 4 : 0);
+          bodyHits++;
+        }
+        score += tokScore;
+      });
+
       if (item.id === 'como_empezar') {
         introEntry = item;
         introScore = score;
         return;
       }
-      if (lesson && item.lessonId === lesson.id && score > 0) score += 1;
+      // Si solo hubo hits en el cuerpo (sin keywords ni título), exigir al menos 2 coincidencias fuertes (si no, es preferible decir "no tengo ficha")
+      if (kwHits === 0 && (bodyHits < 2 || score < 4.5)) score = 0;
+      if (lesson && item.lessonId === lesson.id && score > 0) score += 0.6;
       if (score > bestScore) { bestScore = score; best = item; }
     });
 
-    if (best && bestScore >= 4) {
+    if (best && bestScore >= 3.8) {
       lastEntry = best;
       return { title: best.title, lessonId: best.lessonId, html: renderEntry(best) };
     }
@@ -1138,12 +1376,13 @@ var JavaBot = (function () {
     if (lesson && typeof GuiaCero !== 'undefined' && GuiaCero.get(lesson.id)) {
       var curG = GuiaCero.get(lesson.id);
       return {
-        title: lesson.title,
+        notFound: true,
+        title: 'Sin ficha exacta',
         lessonId: lesson.id,
         html: '<div class="bot-card">' +
-          '<div class="bot-card-title">🤖 Todavía no tengo una ficha exacta para "' + esc(rawQuery) + '", pero puedo orientarte</div>' +
+          '<div class="bot-card-title">🤖 Todavía no tengo una ficha exacta para "' + esc(rawQuery) + '"</div>' +
           sugHtml +
-          '<p>Probá preguntar por conceptos como <code>variables</code>, <code>String equals</code>, <code>if/else</code>, <code>while</code>, <code>arrays</code>, <code>clases</code>, <code>ArrayList</code>, <code>try-catch</code>, <code>SOLID</code>, <code>DTO</code> o <code>buenas prácticas</code>.</p>' +
+          '<p>Probá preguntar por conceptos de Java como <code>variables</code>, <code>String equals</code>, <code>if/else</code>, <code>while</code>, <code>arrays</code>, <code>clases</code>, <code>ArrayList</code>, <code>try-catch</code>, <code>SOLID</code>, <code>DTO</code> o <code>buenas prácticas</code>.</p>' +
           '<p>Mientras tanto, en tu lección actual (<strong>' + esc(lesson.title) + '</strong>): ' + curG.que + '</p>' +
           '<p class="bot-bp"><strong>✨ Consejo clave:</strong> ' + curG.tip + '</p>' +
           '</div>'
@@ -1151,7 +1390,8 @@ var JavaBot = (function () {
     }
 
     return {
-      title: 'Ayuda general Java',
+      notFound: true,
+      title: 'Sin ficha exacta',
       lessonId: null,
       html: renderEntry(KB[KB.length - 1])
     };
@@ -1348,6 +1588,210 @@ var JavaBot = (function () {
     return { html: '<p>Probá ejecutar tu código primero y después pedime una revisión.</p>' };
   }
 
+  // ── Capa opcional de IA local (Ollama: embeddings + tutor socrático) ──
+  var OLLAMA_KEY = 'java_bot_ollama';
+  var DEFAULT_OLLAMA = { enabled: false, url: 'http://localhost:11434', embedModel: 'nomic-embed-text', chatModel: 'qwen2.5-coder:7b' };
+  var embedCache = { model: '', vectors: null };
+
+  function loadOllamaCfg() {
+    var cfg = Object.assign({}, DEFAULT_OLLAMA);
+    try {
+      var raw = typeof localStorage !== 'undefined' ? localStorage.getItem(OLLAMA_KEY) : null;
+      if (raw) Object.assign(cfg, JSON.parse(raw));
+    } catch (_) {}
+    cfg.url = String(cfg.url || DEFAULT_OLLAMA.url).replace(/\/+$/, '');
+    return cfg;
+  }
+
+  function saveOllamaCfg(patch) {
+    var cfg = Object.assign(loadOllamaCfg(), patch || {});
+    cfg.url = String(cfg.url || DEFAULT_OLLAMA.url).replace(/\/+$/, '');
+    try { if (typeof localStorage !== 'undefined') localStorage.setItem(OLLAMA_KEY, JSON.stringify(cfg)); } catch (_) {}
+    if (embedCache.model !== cfg.embedModel) embedCache = { model: '', vectors: null };
+    return cfg;
+  }
+
+  function cosine(a, b) {
+    if (!a || !b || a.length !== b.length || !a.length) return 0;
+    var dot = 0, na = 0, nb = 0;
+    for (var i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      na += a[i] * a[i];
+      nb += b[i] * b[i];
+    }
+    return (na && nb) ? dot / (Math.sqrt(na) * Math.sqrt(nb)) : 0;
+  }
+
+  function fetchJsonTimeout(url, opts, ms) {
+    if (typeof fetch !== 'function') return Promise.reject(new Error('fetch no disponible'));
+    var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, ms) : null;
+    var req = Object.assign({}, opts || {});
+    if (ctrl) req.signal = ctrl.signal;
+    return fetch(url, req).then(function (r) {
+      if (timer) clearTimeout(timer);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    }, function (err) {
+      if (timer) clearTimeout(timer);
+      throw err;
+    });
+  }
+
+  function kbPlainText(item) {
+    return item.title + '. ' + stripHtmlText(item.que + ' ' + item.porque + ' ' + item.buenaPractica) + ' ' + item.keywords.join(', ');
+  }
+
+  function ensureEmbeddings(cfg) {
+    if (embedCache.vectors && embedCache.model === cfg.embedModel && embedCache.vectors.length === KB.length) {
+      return Promise.resolve(embedCache.vectors);
+    }
+    var inputs = KB.map(kbPlainText);
+    return fetchJsonTimeout(cfg.url + '/api/embed', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: cfg.embedModel, input: inputs })
+    }, 15000).then(function (data) {
+      if (!data || !Array.isArray(data.embeddings) || data.embeddings.length !== KB.length) {
+        throw new Error('Respuesta de embeddings inválida');
+      }
+      embedCache = { model: cfg.embedModel, vectors: data.embeddings };
+      return data.embeddings;
+    });
+  }
+
+  function semanticSearchOllama(query, cfg) {
+    return ensureEmbeddings(cfg).then(function (vecs) {
+      return fetchJsonTimeout(cfg.url + '/api/embed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: cfg.embedModel, input: [query] })
+      }, 5000).then(function (qData) {
+        var qVec = qData && qData.embeddings && qData.embeddings[0];
+        if (!qVec) throw new Error('No se obtuvo embedding de la consulta');
+        var scored = KB.map(function (item, idx) {
+          return { item: item, sim: item.id === 'como_empezar' ? 0 : cosine(qVec, vecs[idx]) };
+        });
+        scored.sort(function (a, b) { return b.sim - a.sim; });
+        return scored.slice(0, 3);
+      });
+    });
+  }
+
+  function askOllamaChat(rawQuery, topMatches, lesson, cfg) {
+    var context = topMatches.map(function (m, i) {
+      return 'Ficha ' + (i + 1) + ' (' + m.item.title + '):\n' + stripHtmlText(m.item.que + ' ' + m.item.porque + ' Ejemplo: ' + m.item.ejemplo + ' Buena práctica: ' + m.item.buenaPractica);
+    }).join('\n\n');
+    var ed = typeof document !== 'undefined' ? (document.getElementById('code-editor') || lastManualEditor) : null;
+    var codeSnippet = ed && ed.value ? ('\n\nCódigo actual del alumno (NO dar la solución completa, solo orientar):\n' + ed.value.slice(0, 900)) : '';
+    var sysPrompt =
+      'Sos Profe Java, un ingeniero Java Senior y mentor pedagógico en español rioplatense. ' +
+      'Respondé SOLO usando el material verificado de las fichas del curso provistas abajo. ' +
+      'REGLAS ESTRICTAS: 1) Respuesta corta (máximo 5 líneas). 2) NUNCA regales la solución completa de un ejercicio. ' +
+      '3) Dá una explicación clara + 1 ejemplo paralelo mínimo de otro dominio + 1 pregunta guía para destrabar al alumno. ' +
+      '4) Si la pregunta no tiene relación con Java ni con las fichas provistas, decí honestamente que no tenés ficha sobre eso.';
+    var userMsg = 'Lección activa: ' + (lesson ? lesson.title : 'General') + '\n\nMaterial del curso:\n' + context + codeSnippet + '\n\nPregunta del alumno: ' + rawQuery;
+
+    return fetchJsonTimeout(cfg.url + '/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: cfg.chatModel,
+        stream: false,
+        options: { temperature: 0.2, num_predict: 220 },
+        messages: [
+          { role: 'system', content: sysPrompt },
+          { role: 'user', content: userMsg }
+        ]
+      })
+    }, 30000).then(function (data) {
+      var reply = data && data.message && data.message.content ? data.message.content.trim() : '';
+      if (!reply) throw new Error('Respuesta vacía de Ollama');
+      return reply;
+    });
+  }
+
+  function askAsync(rawQuery, ctx) {
+    var cfg = loadOllamaCfg();
+    var q = fold(rawQuery);
+    var lesson = (ctx && ctx.lesson) || currentLesson();
+    // Saludos, agradecimientos, continuaciones cortas y revisión directa de código siempre son instantáneos locales
+    if (!cfg.enabled || !q ||
+        /^(gracias|muchas gracias|mil gracias|genial|perfecto|barbaro|buenisimo|joya|dale|ok|okay|chau|hasta luego|hola|buenas|buen dia|buenas tardes|buenas noches|hey|que tal)$/.test(q) ||
+        /^(me sale error|no entiendo el error|tengo un error|me tira error|me da error|no anda|mi codigo no anda|no funciona mi codigo|revisar mi codigo|revisa mi codigo|no me compila|no me compila y no se por que|no compila y no se por que|por que no me compila)$/.test(q) ||
+        (lastEntry && followupReply(q, lastEntry))) {
+      return Promise.resolve(ask(rawQuery, ctx));
+    }
+
+    return semanticSearchOllama(rawQuery, cfg).then(function (top) {
+      if (!top.length || top[0].sim < 0.45) {
+        var lex = ask(rawQuery, ctx);
+        if (!lex.notFound) return lex;
+        return {
+          notFound: true,
+          title: 'Sin ficha exacta',
+          lessonId: lesson ? lesson.id : null,
+          html: '<div class="bot-card">' +
+            '<div class="bot-card-title">🤖 No encontré una ficha de Java sobre "' + esc(rawQuery) + '"</div>' +
+            '<p>La búsqueda semántica local (<code>' + esc(cfg.embedModel) + '</code>) no encontró coincidencia cercana en el curso. Probá reformularla con un tema de Java, POO, Spring, SQL, Git o Docker.</p>' +
+            '</div>'
+        };
+      }
+      var picked = top.filter(function (m) { return m.sim >= 0.45; }).slice(0, 2);
+      lastEntry = picked[0].item;
+      var sourcesHtml = '<p class="bot-src">📚 Basado en: ' + picked.map(function (m) {
+        return '<strong>' + esc(m.item.title) + '</strong> (' + Math.round(m.sim * 100) + '%)';
+      }).join(' · ') + '</p>';
+
+      if (!cfg.chatModel || !cfg.chatModel.trim()) {
+        return {
+          title: picked[0].item.title,
+          lessonId: picked[0].item.lessonId,
+          html: renderEntry(picked[0].item, sourcesHtml)
+        };
+      }
+
+      return askOllamaChat(rawQuery, picked, lesson, cfg).then(function (reply) {
+        var formatted = esc(reply).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\n/g, '<br>');
+        var linkBtn = picked[0].item.lessonId != null
+          ? '<div class="bot-card-act"><button type="button" class="pr-link" onclick="JavaBot.goLesson(' + picked[0].item.lessonId + ')">📖 Ver ' + (picked[0].item.lessonId === 0 ? 'Capítulo 0' : 'Lección ' + (picked[0].item.lessonId % 100)) + '</button></div>'
+          : '';
+        return {
+          title: picked[0].item.title,
+          lessonId: picked[0].item.lessonId,
+          html: '<div class="bot-card">' +
+            '<div class="bot-card-title">🧠 Profe Java (Ollama · ' + esc(cfg.chatModel) + ')</div>' +
+            '<p>' + formatted + '</p>' +
+            sourcesHtml + linkBtn +
+            '</div>'
+        };
+      }).catch(function () {
+        // Si falló el modelo de chat, igual devolvemos la ficha exacta hallada por embeddings
+        return {
+          title: picked[0].item.title,
+          lessonId: picked[0].item.lessonId,
+          html: renderEntry(picked[0].item, sourcesHtml)
+        };
+      });
+    }).catch(function () {
+      // Ollama apagado o sin CORS: fallback instantáneo y silencioso al motor léxico offline
+      var fallback = ask(rawQuery, ctx);
+      return {
+        notFound: fallback.notFound,
+        title: fallback.title,
+        lessonId: fallback.lessonId,
+        html: fallback.html + '<p class="bot-src">⚡ Ollama no respondió: respondí con el motor offline.</p>'
+      };
+    });
+  }
+
+  function probeOllama(cfg) {
+    return fetchJsonTimeout(cfg.url + '/api/tags', { method: 'GET' }, 3000).then(function (data) {
+      var names = (data && Array.isArray(data.models) ? data.models : []).map(function (m) { return m.name; });
+      return { ok: true, models: names };
+    });
+  }
+
   // ── UI del Bot en el navegador ───────────────────────────────────────
   function ensureDom() {
     if (initialized || typeof document === 'undefined' || !document.body) return;
@@ -1369,13 +1813,24 @@ var JavaBot = (function () {
     panel.setAttribute('aria-modal', 'true');
     panel.setAttribute('aria-label', 'Profe Java — Bot de ayuda');
     panel.hidden = true;
+    var cfg0 = loadOllamaCfg();
     panel.innerHTML =
       '<div class="bot-head">' +
         '<div>' +
           '<div class="bot-title">☕ Profe Java · Ayuda 0 Conocimiento</div>' +
           '<div class="bot-sub" id="java-bot-sub">Listo para ayudarte</div>' +
         '</div>' +
-        '<button type="button" id="java-bot-close" class="bot-close" aria-label="Cerrar bot de ayuda">✕</button>' +
+        '<div class="bot-head-btns">' +
+          '<button type="button" id="java-bot-cfg-btn" class="bot-close" aria-label="Configurar IA local Ollama" aria-expanded="false" title="IA local opcional (Ollama)">⚙️</button>' +
+          '<button type="button" id="java-bot-close" class="bot-close" aria-label="Cerrar bot de ayuda">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="bot-cfg" id="java-bot-cfg" hidden>' +
+        '<label class="bot-cfg-chk"><input type="checkbox" id="bot-ol-on"' + (cfg0.enabled ? ' checked' : '') + '> Usar <strong>Ollama local</strong> (opcional; si está apagado sigue offline)</label>' +
+        '<div class="bot-cfg-row"><label>URL<input type="text" id="bot-ol-url" value="' + esc(cfg0.url) + '"></label>' +
+        '<label>Embeddings<input type="text" id="bot-ol-emb" value="' + esc(cfg0.embedModel) + '"></label>' +
+        '<label>Chat (opcional)<input type="text" id="bot-ol-chat" value="' + esc(cfg0.chatModel) + '" placeholder="vacío = solo embeddings"></label></div>' +
+        '<div class="bot-cfg-act"><button type="button" id="bot-ol-test" class="bot-chip">🔌 Probar conexión</button><span id="bot-ol-status" class="bot-cfg-st"></span></div>' +
       '</div>' +
       '<div class="bot-chips">' +
         '<button type="button" class="bot-chip" data-topic="lesson">🧭 ¿Qué hago y para qué?</button>' +
@@ -1394,7 +1849,34 @@ var JavaBot = (function () {
     document.body.appendChild(panel);
 
     document.getElementById('java-bot-close').addEventListener('click', close);
-    panel.querySelectorAll('.bot-chip').forEach(function (btn) {
+    var cfgBtn = document.getElementById('java-bot-cfg-btn');
+    var cfgBox = document.getElementById('java-bot-cfg');
+    cfgBtn.addEventListener('click', function () {
+      cfgBox.hidden = !cfgBox.hidden;
+      cfgBtn.setAttribute('aria-expanded', cfgBox.hidden ? 'false' : 'true');
+    });
+    function persistCfg() {
+      saveOllamaCfg({
+        enabled: document.getElementById('bot-ol-on').checked,
+        url: document.getElementById('bot-ol-url').value.trim() || DEFAULT_OLLAMA.url,
+        embedModel: document.getElementById('bot-ol-emb').value.trim() || DEFAULT_OLLAMA.embedModel,
+        chatModel: document.getElementById('bot-ol-chat').value.trim()
+      });
+    }
+    ['bot-ol-on', 'bot-ol-url', 'bot-ol-emb', 'bot-ol-chat'].forEach(function (id) {
+      document.getElementById(id).addEventListener('change', persistCfg);
+    });
+    document.getElementById('bot-ol-test').addEventListener('click', function () {
+      persistCfg();
+      var st = document.getElementById('bot-ol-status');
+      st.textContent = 'Probando…';
+      probeOllama(loadOllamaCfg()).then(function (r) {
+        st.textContent = '✅ Conectado (' + r.models.length + ' modelos)';
+      }).catch(function () {
+        st.textContent = '❌ Sin respuesta. Iniciá Ollama con OLLAMA_ORIGINS="' + (typeof location !== 'undefined' ? location.origin : '*') + '"';
+      });
+    });
+    panel.querySelectorAll('.bot-chip[data-topic]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         openTopic(btn.getAttribute('data-topic'));
       });
@@ -1406,8 +1888,18 @@ var JavaBot = (function () {
       if (!text) return;
       inp.value = '';
       appendMsg('user', esc(text));
-      var ans = ask(text);
-      appendMsg('bot', ans.html);
+      var cfg = loadOllamaCfg();
+      if (!cfg.enabled) {
+        appendMsg('bot', ask(text).html);
+        return;
+      }
+      var thinking = appendMsg('bot', '<div class="bot-card"><p>⏳ Consultando Ollama local…</p></div>');
+      askAsync(text).then(function (ans) {
+        if (thinking) thinking.innerHTML = ans.html;
+        else appendMsg('bot', ans.html);
+        var box = document.getElementById('java-bot-msgs');
+        if (box) box.scrollTop = box.scrollHeight;
+      });
     });
     document.addEventListener('focusin', function (e) {
       if (e.target && e.target.classList && e.target.classList.contains('mn-editor')) {
@@ -1445,12 +1937,13 @@ var JavaBot = (function () {
   function appendMsg(role, html) {
     ensureDom();
     var box = document.getElementById('java-bot-msgs');
-    if (!box) return;
+    if (!box) return null;
     var el = document.createElement('div');
     el.className = 'bot-msg ' + role;
     el.innerHTML = html;
     box.appendChild(el);
     box.scrollTop = box.scrollHeight;
+    return el;
   }
 
   function open() {
@@ -1610,6 +2103,10 @@ var JavaBot = (function () {
     KB: KB,
     TIPS_JAVA: TIPS_JAVA,
     ask: ask,
+    askAsync: askAsync,
+    cosine: cosine,
+    ollamaConfig: loadOllamaCfg,
+    saveOllamaConfig: saveOllamaCfg,
     analyzeCurrentCode: analyzeCurrentCode,
     open: open,
     close: close,

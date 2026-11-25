@@ -23,7 +23,7 @@ La Fase 2 sigue el orden del segundo semestre de Programación 1. Ver [PLAN-FASE
 
 - **Guía 0 Conocimiento:** en las 60 lecciones explica qué estás haciendo, por qué existe, para qué sirve, un ejemplo del día a día y una buena práctica profesional, más acceso al **Capítulo 0: ¿Qué es Java?**
 - **Explicación simple e ilustrada:** escalera de cinco pasos de la vida diaria al código + **66 figuras SVG didácticas** (6 de orientación y 60/60 lecciones)
-- **Asistente offline Profe Java (`JavaBot`):** disponible en la app y en el manual; responde dudas de Java, buenas prácticas, errores de compilación/runtime y analiza tu código actual sin dar la solución
+- **Asistente offline Profe Java (`JavaBot`) + capa opcional Ollama:** disponible en la app y en el manual; responde dudas de Java, buenas prácticas, errores y analiza tu código sin dar la solución. Opcionalmente se conecta a **Ollama en tu propia PC** (`nomic-embed-text` para búsqueda semántica + modelo socrático como `qwen2.5-coder:7b`) con *fallback* automático al motor offline
 - **Manual "Java desde cero" en 6 Tomos + Completo F1 y F2:** vista interactiva ejecutable en pantalla, vista imprimible en hoja A4 y **8 PDFs A4 con marcadores** (edición completa Fase 1, edición completa Fase 2 y Tomos I a VI)
 - **Tutorial técnico:** código, tablas y errores comunes
 - **Ejercicio con editor:** autocompletado, pistas y un intérprete que ejecuta tu código de verdad
@@ -72,11 +72,23 @@ Después abrí `http://127.0.0.1:8765/`. El ingreso con Google o Facebook usa el
 
 ```bash
 node tests/run.js
-node tests/bot-holdout.js
+node tests/bot-regression.js
 node tests/sync.js
 ```
 
-Requiere Node y un JDK en el `PATH`. Compila con Java real las soluciones y las actividades, compara el intérprete contra el JDK, valida las 66 figuras SVG, `GuiaCero`, `JavaBot` (más su batería independiente *holdout* de 30 preguntas) y el guardado del progreso (`sync.js`).
+Requiere Node y un JDK en el `PATH`. Compila con Java real las soluciones y las actividades, compara el intérprete contra el JDK, valida las 66 figuras SVG, `GuiaCero`, la regresión de `JavaBot` (incluyendo casos negativos "no tengo ficha" y capa Ollama) y el guardado del progreso (`sync.js`).
+
+### IA local opcional con Ollama (uso personal, $0)
+
+Si querés búsqueda semántica + guía socrática en tu propia PC sin gastar nada, instalá [Ollama](https://ollama.com/), bajá los modelos y habilitá CORS para el origen del sitio:
+
+```powershell
+ollama pull nomic-embed-text
+ollama pull qwen2.5-coder:7b
+setx OLLAMA_ORIGINS "https://java-inpro-tutorial.web.app,http://127.0.0.1:8765"
+```
+
+Después reiniciá Ollama, abrí **Profe Java → ⚙️** y activá **Usar Ollama local**. Si Ollama está apagado, el asistente sigue funcionando offline automáticamente.
 
 Para generar y verificar los 8 PDFs A4 del manual (edición completa Fase 1, edición completa Fase 2 y 6 Tomos, con marcadores y sin fuentes Type 3):
 

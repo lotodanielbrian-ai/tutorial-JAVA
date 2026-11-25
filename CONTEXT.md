@@ -16,7 +16,7 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 | `public/css/manual.css` · `manual-print.css` | El libro en pantalla (oscuro, interactivo, con botón de vista hoja A4) y en hojas A4 (claro, con índice paginado) |
 | `tools/manual-pdf.js` | Genera los 8 PDFs A4 (`--all`: `java-desde-cero.pdf`, `java-fase-2.pdf` y 6 Tomos) con Paged.js 0.4.3 y Edge o Chrome. Verifica `0` fuentes Type 3, `0` desbordes, índice completo y marcadores (`/Outlines`). Corre en `predeploy` |
 | `public/js/guia-cero.js` | `GuiaCero`: fichas Qué / Por qué / Para qué / Ejemplo del día a día / Buena práctica para las 60 lecciones |
-| `public/js/bot.js` | `JavaBot` ("Profe Java"): asistente offline sensible al contexto en la app y el manual, con fichas de Java/buenas prácticas/errores y revisión de código actual |
+| `public/js/bot.js` | `JavaBot` ("Profe Java"): asistente offline TF-IDF sensible al contexto en app y manual + capa opcional Ollama (`/api/embed` con `nomic-embed-text` y `/api/chat` socrático con *fallback* automático al motor offline) |
 | `public/css/main.css` | Estilos. La sección "Práctica y evaluaciones" está al final |
 | `public/js/lessons.js` | `LESSONS`: las 35 lecciones y los helpers `cb`, `ann`, `gl`, `jHL` |
 | `public/js/javarun.js` | `JavaRun.run(fuente, { stdin })`: intérprete de Java |
@@ -33,7 +33,7 @@ Sitio estático en Firebase Hosting, sin paso de compilación: HTML, CSS y JavaS
 | `public/js/auth.js` | Login obligatorio con Google o Facebook |
 | `firestore.rules` | Reglas de seguridad |
 | `tests/run.js` | Suite completa. `tests/JavaOracle.java` compila y ejecuta con el JDK |
-| `tests/bot-holdout.js` | Batería independiente de 30 preguntas naturales + memoria por faceta y tipeos para medir generalización real de `JavaBot` |
+| `tests/bot-regression.js` | Regresión de `JavaBot`: 50 casos positivos, casos negativos ("sin ficha"), memoria por faceta, tipeos y capa Ollama |
 | `tests/sync.js` | Guardado contra un Firestore simulado: carga fallida, dos pestañas, reiniciar en varios navegadores y ranking sin emails |
 | `tests/spring-check.js` | Compila fragmentos con Spring, ejecuta SQL en H2 y compara `ApiLab` con la API real |
 | `tests/browser.js` | Prueba en Edge o Chrome con Firebase simulado, y mide cada pantalla a 360 px. El guion está en `tests/browser-scenario.js` |
@@ -193,7 +193,7 @@ No soporta Spring, varargs, clases anónimas, clases internas que usan al objeto
 
 ```bash
 node tests/run.js                                  # pruebas: requiere Node y un JDK
-node tests/bot-holdout.js                          # generalización de JavaBot (30 preguntas independientes)
+node tests/bot-regression.js                       # regresión de JavaBot (positivos, "no sé" y Ollama)
 node tests/sync.js                                 # guardado del progreso: solo Node
 node tools/manual-pdf.js --all                     # los 8 PDFs A4 (completo F1/F2 + 6 tomos): requiere Edge o Chrome
 node tests/spring-check.js                         # Spring, SQL y API real: requiere además Maven
