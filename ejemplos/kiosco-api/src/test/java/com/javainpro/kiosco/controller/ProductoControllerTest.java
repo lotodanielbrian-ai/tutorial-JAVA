@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -60,6 +61,7 @@ class ProductoControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nombre\":\"Mate\",\"precio\":900,\"stock\":4}"))
                 .andExpect(status().isCreated())
+                .andExpect(header().string("Location", "/api/productos/5"))
                 .andExpect(jsonPath("$.id").value(5));
     }
 

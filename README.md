@@ -27,7 +27,7 @@ La Fase 2 sigue el orden del segundo semestre de Programación 1. Ver [PLAN-FASE
 - **Manual "Java desde cero" en 6 Tomos + Completo:** vista interactiva ejecutable en pantalla, vista imprimible en hoja A4 y **7 PDFs A4 con marcadores** (de Súper Básico a Spring Boot, Calidad y Entrega)
 - **Tutorial técnico:** código, tablas y errores comunes
 - **Ejercicio con editor:** autocompletado, pistas y un intérprete que ejecuta tu código de verdad
-- **Práctica:** 541 actividades de once tipos, con devolución inmediata
+- **Práctica:** 549 actividades de once tipos, con devolución inmediata
 - **Repaso espaciado:** cada actividad vuelve a los 1, 3, 7, 14 y 30 días; lo que fallás vuelve al día siguiente
 - **Evaluaciones:** simulacros, parcial práctico con código y reloj, ping-pong oral, prueba de nivel y mapa de dominio
 - **Parciales simulados y coloquio:** en la Fase 1 y en la Fase 2, con listas de pasos verificables para hacer el proyecto real

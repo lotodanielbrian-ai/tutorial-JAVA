@@ -9,9 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.net.URI;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,7 +64,8 @@ public class ProductoController {
         @ApiResponse(responseCode = "409", description = "Ya existe un producto con ese nombre")
     })
     public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.crear(request));
+        ProductoResponse creado = service.crear(request);
+        return ResponseEntity.created(URI.create("/api/productos/" + creado.id())).body(creado);
     }
 
     @PutMapping("/{id}")

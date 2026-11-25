@@ -233,6 +233,9 @@ function checkData() {
     ['toString', /toString/i],
     ['StringBuilder', /StringBuilder/i],
     ['sobrecarga', /Sobrecarga/i],
+    ['paso por valor o referencia', /Paso por valor/i],
+    ['cómo ordeno una lista o array', /ordenar/i],
+    ['qué es una llave foránea', /JPA|SQL/i],
     ['gracias', /De nada/i],
     ['tema inexistente xyzz', /.+/]
   ].forEach(([q, expectedTitle]) => {
@@ -240,6 +243,14 @@ function checkData() {
     ok(ans && typeof ans.html === 'string' && ans.html.indexOf('bot-card') !== -1, 'JavaBot.ask(' + q + ') debe responder tarjeta útil');
     ok(expectedTitle.test(ans.title), 'JavaBot.ask(' + q + ') respondió "' + ans.title + '" en lugar de ' + expectedTitle);
   });
+  {
+    const aL7 = ctx.JavaBot.ask('ayuda', { lesson: LESSONS.find(x => x.id === 7) });
+    const aL107 = ctx.JavaBot.ask('ayuda', { lesson: LESSONS.find(x => x.id === 107) });
+    ok(aL7.lessonId === 7 && aL107.lessonId === 107 && aL7.title !== aL107.title, 'JavaBot.ask("ayuda") debe adaptarse a la lección activa');
+    ctx.JavaBot.ask('qué es un enum', { lesson: LESSONS[0] });
+    const follow = ctx.JavaBot.ask('y eso para qué sirve', { lesson: LESSONS[0] });
+    ok(/enum/i.test(follow.title), 'JavaBot debe recordar el último tema en seguimientos cortos (respondió: ' + follow.title + ')');
+  }
 
   // Frases técnicas falsas prohibidas (anti-regresión)
   LESSONS.forEach(l => {
@@ -274,6 +285,12 @@ function checkData() {
     ok(rMerge.ok && norm(rMerge.output) === '3', 'JavaRun Map.merge falló: ' + JSON.stringify(rMerge));
     const rSw = ctx.JavaRun.run('public class Main { enum Dia { LUN, MAR } public static void main(String[] args) { Dia d = Dia.MAR; switch (d) { case LUN -> System.out.println("1"); case MAR -> System.out.println("2"); } } }');
     ok(rSw.ok && norm(rSw.output) === '2', 'JavaRun switch con flechas falló: ' + JSON.stringify(rSw));
+    const rFqcn = ctx.JavaRun.run('public class Main { public static void main(String[] args) { int[] a = {3, 1, 2}; java.util.Arrays.sort(a); System.out.println(a[0]); } }');
+    ok(rFqcn.ok && norm(rFqcn.output) === '1', 'JavaRun java.util.Arrays.sort falló: ' + JSON.stringify(rFqcn));
+    const rBox = ctx.JavaRun.run('public class Main { public static void main(String[] args) { Integer a = 100, b = 100, c = 128, d = 128; System.out.println((a == b) + " " + (c == d)); } }');
+    ok(rBox.ok && norm(rBox.output) === 'true false', 'JavaRun caché de Integer falló: ' + JSON.stringify(rBox));
+    const rRnd = ctx.JavaRun.run('import java.util.Random; public class Main { public static void main(String[] args) { Random r = new Random(42); System.out.println(r.nextInt(100) + "," + r.nextInt(100)); } }');
+    ok(rRnd.ok && norm(rRnd.output) === '30,63', 'JavaRun Random(42) falló: ' + JSON.stringify(rRnd));
   }
   ok(ctx.MANUAL && Array.isArray(ctx.MANUAL.ERRORES_F2) && ctx.MANUAL.ERRORES_F2.length >= 8, 'MANUAL.ERRORES_F2 debe tener errores de Fase 2');
   ok(ctx.MANUAL && Array.isArray(ctx.MANUAL.REFERENCIA_F2) && ctx.MANUAL.REFERENCIA_F2.length >= 10, 'MANUAL.REFERENCIA_F2 debe tener referencia de Fase 2');

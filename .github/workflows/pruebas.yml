@@ -8,11 +8,11 @@ jobs:
   tutorial:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
@@ -33,7 +33,7 @@ jobs:
       run:
         working-directory: ejemplos/kiosco-api
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Levantar la base y la API desde cero
         run: docker compose up -d --build --wait --wait-timeout 300
       - name: Esperar a la API

@@ -367,7 +367,7 @@ function render() {
       <button type="button" class="tab-btn" id="tab-ex" onclick="switchTab('ex')">${exBtnLabel}</button>
       <button type="button" class="tab-btn" id="tab-prac" onclick="switchTab('prac')">🧠 Práctica</button>
     </div>
-    <div class="tab-pane active" id="pane-simple">${l.id === 1 ? '<div class="gc-ex-note"><div><strong>🧭 ¿Primera vez programando?</strong> Antes de escribir código, podés leer el <strong>Capítulo 0</strong>: qué es Java, por qué no es JavaScript y cómo funciona.</div><a class="gc-bot-btn" href="manual.html#cap-0">📖 Abrir Capítulo 0</a></div>' : ''}${typeof GuiaCero !== 'undefined' ? GuiaCero.cardSimple(l) : ''}${typeof Practica !== 'undefined' ? Practica.ladder(l) : ''}${lessonFigure(l)}${l.simple()}</div>
+    <div class="tab-pane active" id="pane-simple">${l.id === 1 ? '<div class="gc-ex-note"><div><strong>🧭 ¿Primera vez programando?</strong> Antes de escribir código, podés leer el <strong>Capítulo 0</strong>: qué es Java, por qué no es JavaScript y cómo funciona.</div><a class="gc-bot-btn" href="manual.html#cap-0" target="_blank" rel="noopener">📖 Abrir Capítulo 0</a></div>' : ''}${typeof GuiaCero !== 'undefined' ? GuiaCero.cardSimple(l) : ''}${typeof Practica !== 'undefined' ? Practica.ladder(l) : ''}${lessonFigure(l)}${l.simple()}</div>
     <div class="tab-pane" id="pane-tut">${l.tutorial()}${typeof GuiaCero !== 'undefined' ? GuiaCero.cardTutorial(l) : ''}</div>
     <div class="tab-pane" id="pane-ex">${exPaneHtml}</div>
     <div class="tab-pane" id="pane-prac">${typeof Practica !== 'undefined' ? Practica.buildTab(l) : ''}</div>

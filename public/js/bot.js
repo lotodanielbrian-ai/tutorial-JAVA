@@ -3,6 +3,8 @@ var JavaBot = (function () {
   var initialized = false;
   var panelOpen = false;
   var tipCursor = 0;
+  var lastEntry = null;
+  var lastManualEditor = null;
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -333,7 +335,7 @@ var JavaBot = (function () {
     {
       id: 'jpa_sql',
       lessonId: 109,
-      keywords: ['jpa', 'entity', 'entidad', 'h2', 'mysql', 'sql', 'select', 'insert', 'update', 'join', 'relacion', 'onetomany', 'manytoone', 'jpql', 'borrado logico'],
+      keywords: ['jpa', 'entity', 'entidad', 'h2', 'mysql', 'sql', 'select', 'insert', 'update', 'join', 'relacion', 'onetomany', 'manytoone', 'jpql', 'borrado logico', 'llave foranea', 'clave foranea', 'foreign key', 'fk'],
       title: 'JPA, SQL y relaciones entre entidades',
       que: 'Mapea clases Java (<code>@Entity</code>) a tablas relacionales, genera consultas con <code>JpaRepository</code> y conecta entidades con llaves foráneas.',
       porque: 'Guarda los datos de forma persistente e íntegra entre reinicios.',
@@ -559,6 +561,26 @@ var JavaBot = (function () {
       porque: 'Evita errores de tipeo que pasarían con <code>String</code> sueltos como <code>"pagdo"</code> o <code>"PAGADO "</code>.',
       ejemplo: 'Un semáforo solo puede estar en ROJO, AMARILLO o VERDE: nunca en "azul".',
       buenaPractica: 'Usá <code>enum</code> siempre que un campo represente categorías, roles o estados fijos en vez de cadenas o números mágicos.'
+    },
+    {
+      id: 'paso_por_valor',
+      lessonId: 17,
+      keywords: ['paso por valor', 'por valor', 'por referencia', 'valor o referencia', 'copia del parametro'],
+      title: 'Paso por valor en Java (primitivos vs referencias)',
+      que: 'En Java <strong>todo se pasa por valor</strong>: si pasás un <code>int</code>, el método recibe una copia y cambiarlo adentro no afecta la variable original. Si pasás un objeto o array, recibe una copia de la <em>referencia</em>: podés modificar sus atributos internos, pero reasignar el parámetro no cambia la variable del llamador.',
+      porque: 'Explica por qué <code>duplicar(n)</code> no modifica <code>n</code> en <code>main</code>, mientras que <code>lista.add(...)</code> sí modifica la misma lista.',
+      ejemplo: 'Fotocopiar un número escrito en un papel (cambiar la fotocopia no cambia el original) vs copiar la dirección de una casa (si pintás la casa en esa dirección, la casa cambia para todos).',
+      buenaPractica: 'Cuando un método transforme un número o texto, devolvé el resultado nuevo con <code>return</code> en lugar de intentar modificar el parámetro.'
+    },
+    {
+      id: 'ordenar',
+      lessonId: 24,
+      keywords: ['ordenar', 'ordeno', 'ordenamiento', 'sort', 'arrays.sort', 'collections.sort', 'comparator', 'comparable', 'ordenar lista', 'ordenar array'],
+      title: 'Cómo ordenar arrays y listas en Java',
+      que: 'Para arrays usá <code>Arrays.sort(arr)</code> (o <code>Arrays.sort(arr, desde, hasta)</code> para un rango); para <code>ArrayList</code> usá <code>Collections.sort(lista)</code> o <code>lista.sort(Comparator.comparing(...))</code>.',
+      porque: 'No hace falta escribir un algoritmo de burbuja a mano en proyectos reales: la biblioteca estándar ya trae ordenamiento optimizado.',
+      ejemplo: 'Ordenar cartas alfabéticamente o productos de menor a mayor precio con una sola regla de comparación.',
+      buenaPractica: 'Para ordenar objetos propios por un campo usá <code>lista.sort(Comparator.comparing(Producto::getPrecio))</code> y agregá <code>.reversed()</code> si lo querés descendente.'
     },
     {
       id: 'recursividad',
@@ -814,13 +836,41 @@ var JavaBot = (function () {
     return q.indexOf(k) !== -1;
   }
 
+  function pickTip(lesson) {
+    var isF2 = !!(lesson && lesson.id > 100);
+    var pool = TIPS_JAVA.filter(function (t, i) {
+      return isF2 ? i >= 18 : i < 18;
+    });
+    if (!pool.length) pool = TIPS_JAVA;
+    var tip = pool[tipCursor % pool.length];
+    tipCursor++;
+    return tip;
+  }
+
+  function topSuggestions(q, limit) {
+    var tokens = q.split(/\s+/).filter(function (w) { return w.length >= 3; });
+    if (!tokens.length) return [];
+    var scored = [];
+    KB.forEach(function (item) {
+      if (item.id === 'como_empezar') return;
+      var hay = fold(item.title + ' ' + item.keywords.join(' '));
+      var sc = 0;
+      tokens.forEach(function (t) {
+        if (hay.indexOf(t) !== -1) sc += 2;
+        else if (t.length >= 4 && hay.indexOf(t.slice(0, 4)) !== -1) sc += 1;
+      });
+      if (sc > 0) scored.push({ item: item, sc: sc });
+    });
+    scored.sort(function (a, b) { return b.sc - a.sc; });
+    return scored.slice(0, limit || 3).map(function (x) { return x.item; });
+  }
+
   function ask(rawQuery, ctx) {
     var q = fold(rawQuery);
     var lesson = (ctx && ctx.lesson) || currentLesson();
 
     if (!q) {
-      var tip0 = TIPS_JAVA[tipCursor % TIPS_JAVA.length];
-      tipCursor++;
+      var tip0 = pickTip(lesson);
       return { title: tip0.title, lessonId: lesson ? lesson.id : null, html: renderTip(tip0) };
     }
 
@@ -840,6 +890,37 @@ var JavaBot = (function () {
       };
     }
 
+    // Seguimiento conversacional sobre el último tema consultado
+    if (lastEntry && /^(y eso para que|y para que|para que sirve eso|y eso|dame un ejemplo|ejemplo de eso|mas detalle|explicamelo mejor|como se usa eso|como lo uso)/.test(q)) {
+      return {
+        title: lastEntry.title,
+        lessonId: lastEntry.lessonId,
+        html: '<div class="bot-card">' +
+          '<div class="bot-card-title">🔁 Siguiendo con: ' + esc(lastEntry.title) + '</div>' +
+          '<p><strong>Para qué te sirve en la práctica:</strong> ' + lastEntry.porque + '</p>' +
+          '<p><strong>☕ Ejemplo cotidiano:</strong> ' + lastEntry.ejemplo + '</p>' +
+          '<p class="bot-bp"><strong>✨ Buena práctica:</strong> ' + lastEntry.buenaPractica + '</p>' +
+          '</div>'
+      };
+    }
+
+    // Pedidos abiertos de ayuda contextualizados en la lección actual
+    if (/^(ayuda|ayudame|que hago|que estoy haciendo|estoy perdido|me trabe|no se que hacer)$/.test(q) && lesson && typeof GuiaCero !== 'undefined' && GuiaCero.get(lesson.id)) {
+      var lg = GuiaCero.get(lesson.id);
+      return {
+        title: 'Ayuda en: ' + lesson.title,
+        lessonId: lesson.id,
+        html: '<div class="bot-card">' +
+          '<div class="bot-card-title">🧭 En tu lección actual: ' + esc(lesson.title) + '</div>' +
+          '<p><strong>Qué estás haciendo:</strong> ' + lg.que + '</p>' +
+          '<p><strong>Para qué sirve:</strong> ' + lg.paraque + '</p>' +
+          '<p><strong>☕ En el día a día:</strong> ' + lg.dia + '</p>' +
+          '<p class="bot-bp"><strong>✨ Consejo clave:</strong> ' + lg.tip + '</p>' +
+          '<div class="bot-card-act"><button type="button" class="pr-link" onclick="JavaBot.openTopic(\'code\')">🐞 Revisar mi código</button></div>' +
+          '</div>'
+      };
+    }
+
     if (/^(me sale error|no entiendo el error|tengo un error|me tira error|me da error|no anda|mi codigo no anda|no funciona mi codigo|revisar mi codigo|revisa mi codigo)$/.test(q)) {
       var diag = analyzeCurrentCode();
       return {
@@ -850,8 +931,7 @@ var JavaBot = (function () {
     }
 
     if (/\b(consejo|tip|otra buena practica|buena practica al azar)\b/.test(q) && q.split(' ').length <= 5) {
-      var tip = TIPS_JAVA[tipCursor % TIPS_JAVA.length];
-      tipCursor++;
+      var tip = pickTip(lesson);
       return { title: tip.title, lessonId: lesson ? lesson.id : null, html: renderTip(tip) };
     }
 
@@ -875,10 +955,12 @@ var JavaBot = (function () {
     });
 
     if (best && bestScore >= 4) {
+      lastEntry = best;
       return { title: best.title, lessonId: best.lessonId, html: renderEntry(best) };
     }
 
     if (introEntry && introScore >= 12) {
+      lastEntry = introEntry;
       return { title: introEntry.title, lessonId: introEntry.lessonId, html: renderEntry(introEntry) };
     }
 
@@ -887,26 +969,36 @@ var JavaBot = (function () {
       var g = typeof GuiaCero !== 'undefined' ? GuiaCero.get(matchLesson.id) : null;
       var lad = typeof PRACTICA !== 'undefined' && PRACTICA[matchLesson.id] ? PRACTICA[matchLesson.id].escalera : null;
       if (g) {
+        var entryL = {
+          lessonId: matchLesson.id,
+          title: 'Lección ' + (matchLesson.id % 100) + ': ' + matchLesson.title,
+          que: g.que,
+          porque: g.porque + ' ' + g.paraque,
+          ejemplo: g.dia + (lad && lad.vida ? ' ' + lad.vida : ''),
+          buenaPractica: g.tip
+        };
+        lastEntry = entryL;
         return {
           title: matchLesson.title,
           lessonId: matchLesson.id,
-          html: renderEntry({
-            lessonId: matchLesson.id,
-            title: 'Lección ' + (matchLesson.id % 100) + ': ' + matchLesson.title,
-            que: g.que,
-            porque: g.porque + ' ' + g.paraque,
-            ejemplo: g.dia + (lad && lad.vida ? ' ' + lad.vida : ''),
-            buenaPractica: g.tip
-          })
+          html: renderEntry(entryL)
         };
       }
     }
 
     if (introEntry && introScore >= 4) {
+      lastEntry = introEntry;
       return { title: introEntry.title, lessonId: introEntry.lessonId, html: renderEntry(introEntry) };
     }
 
-    // Fallback amigable contextualizado en la lección actual
+    // Fallback amigable contextualizado en la lección actual + "¿Te referías a...?"
+    var sugs = topSuggestions(q, 3);
+    var sugHtml = sugs.length
+      ? '<p><strong>¿Te referías a alguno de estos temas?</strong></p><div class="bot-chips" style="padding:0;border:0;background:transparent">' +
+        sugs.map(function (s) {
+          return '<button type="button" class="bot-chip" onclick="JavaBot.openTopic(\'' + esc(s.keywords[0]) + '\')">' + esc(s.title) + '</button>';
+        }).join('') + '</div>'
+      : '';
     if (lesson && typeof GuiaCero !== 'undefined' && GuiaCero.get(lesson.id)) {
       var curG = GuiaCero.get(lesson.id);
       return {
@@ -914,6 +1006,7 @@ var JavaBot = (function () {
         lessonId: lesson.id,
         html: '<div class="bot-card">' +
           '<div class="bot-card-title">🤖 Todavía no tengo una ficha exacta para "' + esc(rawQuery) + '", pero puedo orientarte</div>' +
+          sugHtml +
           '<p>Probá preguntar por conceptos como <code>variables</code>, <code>String equals</code>, <code>if/else</code>, <code>while</code>, <code>arrays</code>, <code>clases</code>, <code>ArrayList</code>, <code>try-catch</code>, <code>SOLID</code>, <code>DTO</code> o <code>buenas prácticas</code>.</p>' +
           '<p>Mientras tanto, en tu lección actual (<strong>' + esc(lesson.title) + '</strong>): ' + curG.que + '</p>' +
           '<p class="bot-bp"><strong>✨ Consejo clave:</strong> ' + curG.tip + '</p>' +
@@ -967,9 +1060,21 @@ var JavaBot = (function () {
     if (!ed) {
       var isManual = typeof document !== 'undefined' && !!document.getElementById('libro');
       if (isManual) {
-        var mnEd = document.querySelector('textarea.mn-editor');
+        var mnEd = (lastManualEditor && document.body.contains(lastManualEditor)) ? lastManualEditor : null;
+        if (!mnEd) {
+          var allEds = Array.prototype.slice.call(document.querySelectorAll('textarea.mn-editor'));
+          if (allEds.length) {
+            mnEd = allEds.reduce(function (best, el) {
+              var d = Math.abs(el.getBoundingClientRect().top - 120);
+              return !best || d < best.d ? { el: el, d: d } : best;
+            }, null).el;
+          }
+        }
         if (mnEd && typeof JavaRun !== 'undefined') {
-          var mr = JavaRun.run(mnEd.value || '', { stdin: [] });
+          var blk = mnEd.closest ? mnEd.closest('.cblock') : null;
+          var stdinEl = blk ? blk.querySelector('.mn-stdin textarea') : null;
+          var stdinLines = stdinEl && stdinEl.value ? stdinEl.value.split('\n') : [];
+          var mr = JavaRun.run(mnEd.value || '', { stdin: stdinLines });
           if (mr.compile) {
             return {
               html: '<div class="bot-card"><div class="bot-card-title">🔎 Revisión del ejemplo editado (Línea ' + esc(mr.compile.line) + ')</div>' +
@@ -980,7 +1085,9 @@ var JavaBot = (function () {
           if (mr.exception) {
             return {
               html: '<div class="bot-card"><div class="bot-card-title">💥 Excepción al ejecutar el ejemplo</div>' +
-                '<p><code>' + esc(mr.exception) + '</code></p><p>' + explainRuntime(mr.exception) + '</p></div>'
+                '<p><code>' + esc(mr.exception) + '</code></p><p>' + explainRuntime(mr.exception) + '</p>' +
+                (mr.type === 'NoSuchElementException' && stdinEl ? '<p class="bot-bp"><strong>💡 Pista:</strong> Este ejemplo usa <code>Scanner</code>: escribí los datos de entrada (una línea por dato) en el cuadro "Entrada" debajo del código.</p>' : '') +
+                '</div>'
             };
           }
           if (mr.unsupported) {
@@ -1166,8 +1273,21 @@ var JavaBot = (function () {
       var ans = ask(text);
       appendMsg('bot', ans.html);
     });
+    document.addEventListener('focusin', function (e) {
+      if (e.target && e.target.classList && e.target.classList.contains('mn-editor')) {
+        lastManualEditor = e.target;
+      }
+    });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && panelOpen) close();
+      if (!panelOpen) return;
+      if (e.key === 'Escape') { close(); return; }
+      if (e.key === 'Tab') {
+        var focusables = Array.prototype.slice.call(panel.querySelectorAll('button:not([disabled]), input:not([disabled]), a[href]'));
+        if (!focusables.length) return;
+        var first = focusables[0], last = focusables[focusables.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     });
 
     appendMsg('bot',
@@ -1267,8 +1387,7 @@ var JavaBot = (function () {
 
     if (topic === 'tip') {
       appendMsg('user', 'Dame un consejo de buenas prácticas para esta lección');
-      var randTip = TIPS_JAVA[tipCursor % TIPS_JAVA.length];
-      tipCursor++;
+      var randTip = pickTip(l);
       if (l && g) {
         appendMsg('bot',
           '<div class="bot-card">' +
@@ -1290,8 +1409,7 @@ var JavaBot = (function () {
 
     if (topic === 'random') {
       appendMsg('user', 'Tirame un consejo práctico de Java');
-      var tip = TIPS_JAVA[tipCursor % TIPS_JAVA.length];
-      tipCursor++;
+      var tip = pickTip(l);
       appendMsg('bot', renderTip(tip));
       return;
     }

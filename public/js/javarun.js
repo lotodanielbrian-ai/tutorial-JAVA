@@ -999,7 +999,7 @@ var JavaRun = (function () {
 
   var BUILTIN_STATIC = dict({ Math: 1, Integer: 1, Double: 1, Long: 1, Float: 1, Short: 1, Byte: 1, Boolean: 1, Character: 1, String: 1, System: 1, Arrays: 1, Collections: 1, List: 1, Objects: 1, Thread: 1, Optional: 1, Stream: 1, IntStream: 1, Collectors: 1, Comparator: 1, Map: 1 });
   var BOXED = dict({ Integer: 'int', Double: 'double', Long: 'long', Float: 'float', Short: 'short', Byte: 'byte', Character: 'char', Boolean: 'boolean' });
-  var KNOWN_NATIVE = dict({ String: 1, Object: 1, ArrayList: 1, List: 1, LinkedList: 1, Collection: 1, Iterable: 1, StringBuilder: 1, StringBuffer: 1, Scanner: 1, File: 1, FileWriter: 1, BufferedWriter: 1, PrintWriter: 1, FileReader: 1, BufferedReader: 1, Comparable: 1, Runnable: 1, Cloneable: 1, Serializable: 1, AutoCloseable: 1, Closeable: 1, CharSequence: 1, Number: 1, Map: 1, HashMap: 1, LinkedHashMap: 1, TreeMap: 1, Optional: 1, Function: 1, BiFunction: 1, Predicate: 1, Consumer: 1, Supplier: 1, UnaryOperator: 1, BinaryOperator: 1, Comparator: 1 });
+  var KNOWN_NATIVE = dict({ String: 1, Object: 1, ArrayList: 1, List: 1, LinkedList: 1, Collection: 1, Iterable: 1, StringBuilder: 1, StringBuffer: 1, Scanner: 1, Random: 1, File: 1, FileWriter: 1, BufferedWriter: 1, PrintWriter: 1, FileReader: 1, BufferedReader: 1, Comparable: 1, Runnable: 1, Cloneable: 1, Serializable: 1, AutoCloseable: 1, Closeable: 1, CharSequence: 1, Number: 1, Map: 1, HashMap: 1, LinkedHashMap: 1, TreeMap: 1, Optional: 1, Function: 1, BiFunction: 1, Predicate: 1, Consumer: 1, Supplier: 1, UnaryOperator: 1, BinaryOperator: 1, Comparator: 1 });
 
   function run(source, opts) {
     opts = opts || {};
@@ -1312,7 +1312,7 @@ var JavaRun = (function () {
 
     // Una clase de java.util o java.io necesita su import
     var NEEDS_IMPORT = dict({
-      ArrayList: 'java.util', LinkedList: 'java.util', List: 'java.util', Arrays: 'java.util', Collections: 'java.util', Scanner: 'java.util', Objects: 'java.util',
+      ArrayList: 'java.util', LinkedList: 'java.util', List: 'java.util', Arrays: 'java.util', Collections: 'java.util', Scanner: 'java.util', Random: 'java.util', Objects: 'java.util',
       NoSuchElementException: 'java.util', InputMismatchException: 'java.util',
       File: 'java.io', FileWriter: 'java.io', FileReader: 'java.io', BufferedWriter: 'java.io', BufferedReader: 'java.io', PrintWriter: 'java.io',
       IOException: 'java.io', FileNotFoundException: 'java.io',
@@ -1581,6 +1581,7 @@ var JavaRun = (function () {
             checkCall(e, sc, ctx);
             return;
           case 'field':
+            if (fqcnName(e)) return;
             exprCheck(e.target, sc, ctx);
             return;
           case 'lambda': {
@@ -2457,6 +2458,16 @@ var JavaRun = (function () {
           var a = ev(n.a, f, sc);
           var b = ev(n.b, f, sc);
           if (a instanceof ClassRef || b instanceof ClassRef) noSymbol((a instanceof ClassRef ? a : b).name, n.line);
+          if ((n.op === '==' || n.op === '!=') && a !== null && b !== null && isNum(a) && isNum(b)) {
+            var sa = n.a.k === 'name' ? lookup(n.a.name, f, sc) : null;
+            var sb = n.b.k === 'name' ? lookup(n.b.name, f, sc) : null;
+            if (sa && sb && sa !== sb && BOXED[sa.type] && BOXED[sb.type] && sa.type === sb.type) {
+              var nv = asNumber(a);
+              var cached = (sa.type === 'Integer' || sa.type === 'Long' || sa.type === 'Short' || sa.type === 'Byte') ? (nv >= -128 && nv <= 127)
+                : sa.type === 'Character' ? (nv >= 0 && nv <= 127) : false;
+              if (!cached) return n.op === '!=';
+            }
+          }
           return binary(n.op, a, b, n.line);
         }
         case 'un': {
@@ -2628,7 +2639,21 @@ var JavaRun = (function () {
       if (!same) compileErr(line, name + ' has private access in ' + slot.cls, name + ' es private: solo se puede usar dentro de ' + slot.cls + '. Desde afuera usá sus getters y setters.');
     }
 
+    function fqcnName(node) {
+      var parts = [];
+      var cur = node;
+      while (cur && cur.k === 'field') { parts.unshift(cur.name); cur = cur.target; }
+      if (!cur || cur.k !== 'name' || cur.name !== 'java' || parts.length < 2) return null;
+      var cls = parts[parts.length - 1];
+      if (!KNOWN_NATIVE[cls] && !BUILTIN_STATIC[cls] && !classes[cls]) return null;
+      var pkg = 'java.' + parts.slice(0, -1).join('.');
+      if (pkg === 'java.lang' || pkg === 'java.util' || pkg === 'java.io' || pkg === 'java.util.stream' || pkg === 'java.util.function') return cls;
+      return null;
+    }
+
     function fieldGet(n, f, sc) {
+      var fq = fqcnName(n);
+      if (fq) return new ClassRef(fq);
       var t = ev(n.target, f, sc);
       if (t instanceof ClassRef) return staticField(t.name, n.name, n.line, f);
       if (t === null) throwJava('NullPointerException', 'Cannot read field "' + n.name + '" because value is null', n.line);
@@ -2795,6 +2820,11 @@ var JavaRun = (function () {
           if (args[0] === IN) return new Native('Scanner');
           if (args[0] instanceof Native && args[0].kind === 'File') return new Native('FileReader', { text: readFile(args[0].st.path, n.line), pos: 0 });
           throw new Unsupported('Scanner sobre esa fuente');
+        case 'Random': {
+          var rSeed = args.length ? BigInt(args[0] instanceof JLong ? args[0].v : (asNumber(args[0]) | 0)) : BigInt(Date.now() ^ ((Math.random() * 0x7fffffff) | 0));
+          var rMask = (BigInt(1) << BigInt(48)) - BigInt(1);
+          return new Native('Random', { seed: (rSeed ^ BigInt('0x5DEECE66D')) & rMask });
+        }
         case 'File': return new Native('File', { path: toStr(args[0]) });
         case 'FileWriter': case 'BufferedWriter': case 'PrintWriter':
           return openWriter(cname, args, n.line);
@@ -3689,6 +3719,34 @@ var JavaRun = (function () {
             sink(javaFormat(needStr(a[0], line), a.slice(1), line));
             return undefined;
           case 'flush': return undefined;
+        }
+        missingMethod(name, a, line);
+      }
+      if (t.kind === 'Random') {
+        var rMask = (BigInt(1) << BigInt(48)) - BigInt(1);
+        var nextBits = function (bits) {
+          t.st.seed = (t.st.seed * BigInt('0x5DEECE66D') + BigInt(11)) & rMask;
+          return Number(t.st.seed >> BigInt(48 - bits));
+        };
+        switch (name) {
+          case 'nextInt': {
+            if (!a.length) return nextBits(32) | 0;
+            var bound = asNumber(a[0]) | 0;
+            if (bound <= 0) throwJava('IllegalArgumentException', 'bound must be positive', line);
+            if ((bound & -bound) === bound) return Number((BigInt(bound) * BigInt(nextBits(31))) >> BigInt(31)) | 0;
+            var bits2, val;
+            do { bits2 = nextBits(31); val = bits2 % bound; } while (bits2 - val + (bound - 1) < 0);
+            return val;
+          }
+          case 'nextDouble':
+            return new JDouble(((nextBits(26) * 134217728) + nextBits(27)) / 9007199254740992);
+          case 'nextBoolean':
+            return nextBits(1) !== 0;
+          case 'nextLong': {
+            var hi = BigInt(nextBits(32) | 0);
+            var lo = BigInt(nextBits(32) | 0);
+            return new JLong((hi << BigInt(32)) + lo);
+          }
         }
         missingMethod(name, a, line);
       }
